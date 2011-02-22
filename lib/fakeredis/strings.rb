@@ -14,7 +14,7 @@ module FakeRedis
 
       def decrby(key, by)
         @data[key] = (@data[key] || "0")
-        @data[key] = (@data[key].to_i - by).to_s
+        @data[key] = (@data[key].to_i - by.to_i).to_s
       end
 
       def get(key)
@@ -47,7 +47,7 @@ module FakeRedis
 
       def incrby(key, by)
         @data[key] = (@data[key] || "0")
-        @data[key] = (@data[key].to_i + by).to_s
+        @data[key] = (@data[key].to_i + by.to_i).to_s
       end
 
       def mget(keys)
@@ -89,8 +89,8 @@ module FakeRedis
 
       end
 
-      alias get []
-      alias set []=
+      alias [] get
+      alias []= set
     end
 
     include StringsMethods

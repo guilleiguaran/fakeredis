@@ -62,11 +62,11 @@ module FakeRedis
 
       def type(key)
         case value = @data[key]
-          when nil: "none"
-          when String: "string"
-          when Hash: "hash"
-          when Array: "list"
-          when Set: "set"
+          when nil then "none"
+          when String then "string"
+          when Hash then "hash"
+          when Array then "list"
+          when Set then "set"
         end
       end
 

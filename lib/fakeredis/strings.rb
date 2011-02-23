@@ -83,7 +83,8 @@ module FakeRedis
       end
 
       def setex(key, seconds, value)
-
+        @data[key] = value
+        expire(key, seconds)
       end
 
       def setnx(key, value)

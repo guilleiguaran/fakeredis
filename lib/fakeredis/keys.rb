@@ -16,14 +16,14 @@ module FakeRedis
       end
 
       def expire(key, ttl)
-        return @expires[key]
-        @expires[key] = Time.now + ttl
+        return unless @data[key]
+        @expires[key] = ttl
         true
       end
 
       def expireat(key, timestamp)
         return @expires[key]
-        @expires[key] = Time.at(timestamp)
+        @expires[key] = (Time.at(timestamp) - Time.now).to_i
         true
       end
 

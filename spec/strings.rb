@@ -106,4 +106,11 @@ describe "FakeRedis::StringsMethods" do
     @client.get("key1").should == "arc"
   end
 
+  it "should set a value with a expire" do
+    @client.setex("key1", 30, "value1")
+
+    @client.get("key1").should == "value1"
+    @client.ttl("key1").should == 30
+  end
+
 end

@@ -99,4 +99,11 @@ describe "FakeRedis::StringsMethods" do
     @client.get("key2").should == "value2"
   end
 
+  it "should set bit of a value" do
+    @client.set("key1", "abc")
+    @client.setbit("key1", 11, 1)
+
+    @client.get("key1").should == "arc"
+  end
+
 end

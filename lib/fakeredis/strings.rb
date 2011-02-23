@@ -73,8 +73,13 @@ module FakeRedis
         @data[key] = value.to_s
       end
 
-      def setbit(key, offset, value)
-
+      def setbit(key, offset, bit)
+        return unless @data[key]
+        old_val = @data[key].unpack('B*')[0].split("")
+        old_val[offset] = bit.to_s
+        new_val = ""
+        old_val.each_slice(8){|b| new_val = new_val + b.join("").to_i(2).chr }
+        @data[key] = new_val
       end
 
       def setex(key, seconds, value)

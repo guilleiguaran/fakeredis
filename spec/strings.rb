@@ -113,4 +113,17 @@ describe "FakeRedis::StringsMethods" do
     @client.ttl("key1").should == 30
   end
 
+  it "should set a range of a value" do
+    @client.set("key1", "Hello World")
+    @client.setrange("key1", 6, "Redis")
+
+    @client.get("key1").should == "Hello Redis"
+  end
+
+  it "should return string length of a value" do
+    @client.set("key1", "abc")
+
+    @client.strlen("key1").should == 3
+  end
+
 end

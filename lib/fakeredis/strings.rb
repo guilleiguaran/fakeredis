@@ -92,11 +92,14 @@ module FakeRedis
       end
 
       def setrange(key, offset, value)
-
+        return unless @data[key]
+        s = @data[key][offset,value.size]
+        @data[key][s] = value
       end
 
       def strlen(key)
-
+        return unless @data[key]
+        @data[key].size
       end
 
       alias [] get

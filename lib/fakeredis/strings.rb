@@ -61,8 +61,12 @@ module FakeRedis
         "OK"
       end
 
-      def msetnx(key_value_pairs)
-
+      def msetnx(*pairs)
+        keys = []
+        pairs.each_with_index{|item, index| keys << item.to_s if index % 2 == 0}
+        return if keys.any?{|key| @data.key?(key) }
+        mset(*pairs)
+        true
       end
 
       def set(key, value)

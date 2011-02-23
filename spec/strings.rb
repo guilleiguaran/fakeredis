@@ -76,7 +76,7 @@ describe "FakeRedis::StringsMethods" do
     @client.get("counter").should == "15"
   end
 
-  it "should get multiples keys" do
+  it "should get multiples values" do
     @client.set("key1", "value1")
     @client.set("key2", "value2")
     @client.set("key3", "value3")
@@ -84,8 +84,16 @@ describe "FakeRedis::StringsMethods" do
     @client.mget("key1", "key2", "key3").should == ["value1", "value2", "value3"]
   end
 
-  it "should set multiple keys" do
+  it "should set multiple values" do
     @client.mset(:key1, "value1", :key2, "value2")
+
+    @client.get("key1").should == "value1"
+    @client.get("key2").should == "value2"
+  end
+
+  it "should set multiple values if any of the keys exist" do
+    @client.msetnx(:key1, "value1", :key2, "value2")
+    @client.msetnx(:key1, "value3", :key2, "value4")
 
     @client.get("key1").should == "value1"
     @client.get("key2").should == "value2"

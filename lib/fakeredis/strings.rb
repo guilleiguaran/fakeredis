@@ -50,11 +50,11 @@ module FakeRedis
         @data[key] = (@data[key].to_i + by.to_i).to_s
       end
 
-      def mget(keys)
+      def mget(*keys)
         @data.values_at(*keys)
       end
 
-      def mset(pairs)
+      def mset(*pairs)
         pairs.each_slice(2) do |pair|
           @data[pair[0].to_s] = pair[1].to_s
         end

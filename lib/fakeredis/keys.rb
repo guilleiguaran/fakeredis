@@ -22,7 +22,6 @@ module FakeRedis
       end
 
       def expireat(key, timestamp)
-        return @expires[key]
         @expires[key] = (Time.at(timestamp) - Time.now).to_i
         true
       end

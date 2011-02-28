@@ -20,12 +20,12 @@ module FakeRedis
         return @data[key].inspect
       end
 
-      alias flushall flushdb
-
       def flushdb
         @data = {}
         @expires = {}
       end
+
+      alias flushall flushdb
 
       def info
         server_info = {

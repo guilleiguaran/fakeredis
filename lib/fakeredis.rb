@@ -16,5 +16,6 @@ end
 require "fakeredis/connection"
 require "fakeredis/keys"
 require "fakeredis/strings"
+require "fakeredis/hashes"
 require "fakeredis/transactions"
 require "fakeredis/server"

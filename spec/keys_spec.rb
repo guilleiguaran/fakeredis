@@ -7,7 +7,7 @@ module FakeRedis
       @client = FakeRedis::Redis.new
     end
 
-    it "should delete values" do
+    it "should delete a key" do
       @client.set("key1", "1")
       @client.set("key2", "2")
       @client.del("key1", "key2")
@@ -15,28 +15,28 @@ module FakeRedis
       @client.get("key1").should == nil
     end
 
-    it "should respond if a key exist" do
+    it "should determine if a key exists" do
       @client.set("key1", "1")
 
       @client.exists("key1").should == true
       @client.exists("key2").should == false
     end
 
-    it "should set a expire ttl of a key" do
+    it "should set a key's time to live in seconds" do
       @client.set("key1", "1")
       @client.expire("key1", 1)
 
       @client.ttl("key1").should == 1
     end
 
-    it "should set a expire timestamp of a key" do
+    it "should set the expiration for a key as a UNIX timestamp" do
       @client.set("key1", "1")
       @client.expireat("key1", Time.now.to_i + 2)
 
       @client.ttl("key1").should == 1
     end
 
-    it "should get multiple values" do
+    it "should find all keys matching the given pattern" do
       @client.set("key:a", "1")
       @client.set("key:b", "2")
       @client.set("key:c", "3")
@@ -46,14 +46,14 @@ module FakeRedis
       @client.keys("key:").should == ["key:a", "key:b", "key:c"]
     end
 
-    it "should persist a value" do
+    it "should remove the expiration from a key" do
       @client.set("key1", "1")
       @client.persist("key1")
 
       @client.ttl("key1").should == -1
     end
 
-    it "should get a random value" do
+    it "should return a random key from the keyspace" do
       @client.set("key1", "1")
       @client.set("key2", "2")
 
@@ -68,7 +68,7 @@ module FakeRedis
       @client.get("key2").should == "2"
     end
 
-    it "should rename a key if new name doesn't exist" do
+    it "should rename a key, only if new key does not exist" do
       @client.set("key1", "1")
       @client.set("key2", "2")
       @client.set("key3", "3")
@@ -81,11 +81,11 @@ module FakeRedis
       @client.get("key4").should == "3"
     end
 
-    it "should sort the values of a key" do
+    it "should sort the elements in a list, set or sorted set" do
       pending "SORT Command not implemented yet"
     end
 
-    it "should return the type of a value" do
+    it "should determine the type stored at key" do
       @client.set("key1", "1")
 
       @client.type("key1").should == "string"

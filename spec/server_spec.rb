@@ -7,7 +7,7 @@ module FakeRedis
       @client = FakeRedis::Redis.new
     end
 
-    it "should return database size" do
+    it "should return the number of keys in the selected database" do
       @client.set("key1", "1")
       @client.set("key2", "2")
       @client.set("key2", "two")
@@ -15,13 +15,13 @@ module FakeRedis
       @client.dbsize.should == 2
     end
 
-    it "should debug a object" do
+    it "should get debugging information about a key" do
       @client.set("key1", "1")
 
       @client.debug_object("key1").should == "1".inspect
     end
 
-    it "should return server info" do
+    it "should get information and statistics about the server" do
       @client.info.key?("redis_version").should == true
     end
   end

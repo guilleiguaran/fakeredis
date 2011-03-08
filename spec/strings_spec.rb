@@ -114,7 +114,14 @@ module FakeRedis
       @client.ttl("key1").should == 30
     end
 
-    it "should set the value of a key, only if the key does not exist"
+    it "should set the value of a key, only if the key does not exist" do
+      @client.set("key1", "test value")
+      @client.setnx("key1", "new value")
+      @client.setnx("key2", "another value")
+
+      @client.get("key1").should == "test value"
+      @client.get("key2").should == "another value"
+    end
 
     it "should overwrite part of a string at key starting at the specified offset" do
       @client.set("key1", "Hello World")

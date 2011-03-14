@@ -74,18 +74,61 @@ module FakeRedis
 
       @client.lrem("key1", 1, "v1").should == 1
       @client.lrem("key1", -2, "v2").should == 2
+      @client.llen("key1").should == 2
     end
 
-    it "should set the value of an element in a list by its index"
+    it "should set the value of an element in a list by its index" do
+      @client.rpush("key1", "one")
+      @client.rpush("key1", "two")
+      @client.rpush("key1", "three")
 
-    it "should trim a list to the specified range"
+      @client.lset("key1", 0, "four")
+      @client.lset("key1", -2, "five")
+      @client.lrange("key1", 0, -1).should == ["four", "five", "three"]
+    end
 
-    it "should remove and get the last element in a list"
+    it "should trim a list to the specified range" do
+      @client.rpush("key1", "one")
+      @client.rpush("key1", "two")
+      @client.rpush("key1", "three")
 
-    it "should remove the last element in a list, append it to another list and return it"
+      @client.ltrim("key1", 1, -1)
+      @client.lrange("key1", 0, -1).should == ["two", "three"]
+    end
 
-    it "should append a value to a list"
+    it "should remove and get the last element in a list" do
+      @client.rpush("key1", "one")
+      @client.rpush("key1", "two")
+      @client.rpush("key1", "three")
 
-    it "should append a value to a list, only if the list exists"
+      @client.rpop("key1").should == "three"
+      @client.lrange("key1", 0, -1).should == ["one", "two"]
+    end
+
+    it "should remove the last element in a list, append it to another list and return it" do
+      @client.rpush("key1", "one")
+      @client.rpush("key1", "two")
+      @client.rpush("key1", "three")
+      @client.rpoplpush("key1", "key2")
+
+      @client.lrange("key1", 0, -1).should == ["one", "two"]
+      @client.lrange("key2", 0, -1).should == ["three"]
+    end
+
+    it "should append a value to a list" do
+      @client.rpush("key1", "one")
+      @client.rpush("key1", "two")
+
+      @client.lrange("key1", 0, -1).should == ["one", "two"]
+    end
+
+    it "should append a value to a list, only if the list exists" do
+      @client.rpush("key1", "one")
+      @client.rpushx("key1", "two")
+      @client.rpushx("key2", "two")
+
+      @client.lrange("key1", 0, -1).should == ["one", "two"]
+      @client.lrange("key2", 0, -1).should == nil
+    end
   end
 end

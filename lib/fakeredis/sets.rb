@@ -4,7 +4,7 @@ module FakeRedis
       def sadd(key, value)
         fail_unless_set(key)
         case set = @data[key]
-          when nil then @data[key] = Set.new([value])
+          when nil then @data[key] = Set.new([value.to_s])
           when Set then set.add(value.to_s)
         end
       end

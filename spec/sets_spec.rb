@@ -96,7 +96,7 @@ module FakeRedis
       @client.smove("key1", "key2", "a")
 
       @client.smembers("key1").should == ["b"]
-      @client.smembers("key2").should == ["c", "a"]
+      @client.smembers("key2").should =~ ["c", "a"]
     end
 
     it "should remove and return a random member from a set" do

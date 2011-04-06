@@ -43,7 +43,7 @@ module FakeRedis
       @client.set("akeyd", "4")
       @client.set("key1", "5")
 
-      @client.keys("key:").should == ["key:a", "key:b", "key:c"]
+      @client.keys("key:").should =~ ["key:a", "key:b", "key:c"]
     end
 
     it "should remove the expiration from a key" do

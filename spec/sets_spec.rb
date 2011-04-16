@@ -29,7 +29,7 @@ module FakeRedis
       @client.sadd("key3", "c")
       @client.sadd("key3", "e")
 
-      @client.sdiff("key1", "key2", "key3").should == ["b", "d"]
+      @client.sdiff("key1", "key2", "key3").should =~ ["b", "d"]
     end
 
     it "should subtract multiple sets and store the resulting set in a key" do
@@ -43,7 +43,7 @@ module FakeRedis
       @client.sadd("key3", "e")
       @client.sdiffstore("key", "key1", "key2", "key3")
 
-      @client.smembers("key").should == ["b", "d"]
+      @client.smembers("key").should =~ ["b", "d"]
     end
 
     it "should intersect multiple sets" do
@@ -86,7 +86,7 @@ module FakeRedis
       @client.sadd("key", "c")
       @client.sadd("key", "d")
 
-      @client.smembers("key").should == ["a", "b", "c", "d"]
+      @client.smembers("key").should =~ ["a", "b", "c", "d"]
     end
 
     it "should move a member from one set to another" do
@@ -133,7 +133,7 @@ module FakeRedis
       @client.sadd("key3", "c")
       @client.sadd("key3", "e")
 
-      @client.sunion("key1", "key2", "key3").should == ["a", "b", "c", "d", "e"]
+      @client.sunion("key1", "key2", "key3").should =~ ["a", "b", "c", "d", "e"]
     end
 
     it "should add multiple sets and store the resulting set in a key" do
@@ -147,7 +147,7 @@ module FakeRedis
       @client.sadd("key3", "e")
       @client.sunionstore("key", "key1", "key2", "key3")
 
-      @client.smembers("key").should == ["a", "b", "c", "d", "e"]
+      @client.smembers("key").should =~ ["a", "b", "c", "d", "e"]
     end
   end
 end

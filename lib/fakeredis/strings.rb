@@ -71,6 +71,7 @@ module FakeRedis
 
       def set(key, value)
         @data[key] = value.to_s
+        "OK"
       end
 
       def setbit(key, offset, bit)

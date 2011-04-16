@@ -1,10 +1,24 @@
-FakeRedis
+FakeRedis [![Build Status](http://travis-ci.org/guilleiguaran/fakeredis.png)](http://travis-ci.org/guilleiguaran/fakeredis)
 --------
-This a tiny clone of redis-rb usable in your tests.
+This a fake implementation of redis-rb for machines without Redis or test environments
 
 Usage
 =====
-Nothing to see here yet...
+You can use FakeRedis::Redis similary as you use redis gem:
+
+     require "fakeredis"
+     
+     redis = FakeRedis::Redis.new
+
+
+     >> redis.set "foo", "bar"
+     => "OK"
+     
+     >> redis.get "foo"
+     => "bar"
+
+Read [redis-rb](https://github.com/ezmobius/redis-rb) documentation and
+[Redis](http://redis.io) homepage for more info about commands
 
 
 Contributing to FakeRedis

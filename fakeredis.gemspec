@@ -6,9 +6,9 @@ Gem::Specification.new do |s|
   s.name        = "fakeredis"
   s.version     = FakeRedis::VERSION
   s.platform    = Gem::Platform::RUBY
-  s.authors     = ["fakeredis"]
+  s.authors     = ["Guillermo Iguaran"]
   s.email       = ["guilleiguaran@gmail.com"]
-  s.homepage    = "http://github.com/guilleiguaran/fakeredis"
+  s.homepage    = "https://github.com/guilleiguaran/fakeredis"
   s.summary     = %q{Fake redis-rb for your tests}
   s.description = %q{Fake implementation of redis-rb for machines without Redis or test environments}
 

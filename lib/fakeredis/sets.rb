@@ -58,7 +58,7 @@ module FakeRedis
         fail_unless_set(key)
         case set = @data[key]
           when nil then []
-          when Set then set.to_a
+          when Set then set.to_a.reverse
         end
       end
 

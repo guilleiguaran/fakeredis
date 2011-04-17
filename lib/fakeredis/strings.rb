@@ -54,6 +54,11 @@ module FakeRedis
         @data.values_at(*keys)
       end
 
+      def mapped_mget(*keys)
+        reply = mget(*keys)
+        Hash[*keys.zip(reply).flatten]
+      end
+
       def mset(*pairs)
         pairs.each_slice(2) do |pair|
           @data[pair[0].to_s] = pair[1].to_s

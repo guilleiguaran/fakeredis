@@ -26,7 +26,7 @@ module FakeRedis
         true
       end
 
-      def keys(pattern)
+      def keys(pattern = "*")
         regexp = Regexp.new(pattern.split("*").map { |r| Regexp.escape(r) }.join(".*"))
         @data.keys.select { |key| key =~ regexp }
       end

@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.email       = ["guilleiguaran@gmail.com"]
   s.homepage    = "https://github.com/guilleiguaran/fakeredis"
   s.summary     = %q{Fake redis-rb for your tests}
-  s.description = %q{Fake implementation of redis-rb for machines without Redis or test environments}
+  s.description = %q{Fake implementation of redis-rb for machines without Redis or for testing purposes}
 
   s.rubyforge_project = "fakeredis"
 

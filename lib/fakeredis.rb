@@ -13,6 +13,10 @@ module FakeRedis
         @reconnect = true
       end
 
+      def id
+        "redis://#{@host}:#{@port}/#{@db}"
+      end
+
       def connect
         self
       end
@@ -33,7 +37,7 @@ module FakeRedis
     def initialize(options = {})
       @data = {}
       @expires = {}
-      @client = Client.new
+      @client = Client.new(options)
     end
 
     def client

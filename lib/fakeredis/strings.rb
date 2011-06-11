@@ -34,7 +34,6 @@ module FakeRedis
       end
 
       def getset(key, value)
-        return unless @data[key]
         old_value = @data[key]
         @data[key] = value
         return old_value

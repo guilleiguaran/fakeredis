@@ -56,8 +56,13 @@ module FakeRedis
       @client.getset("key1", "value2").should == "value1"
       @client.get("key1").should == "value2"
     end
+    
+    it "should return nil for #getset if the key does not exist when setting" do
+      @client.getset("key1", "value1").should == nil
+      @client.get("key1").should == "value1"
+    end
 
-      it "should increment the integer value of a key by one" do
+    it "should increment the integer value of a key by one" do
       @client.set("counter", "1")
       @client.incr("counter")
 

@@ -46,4 +46,3 @@ Read [redis-rb](https://github.com/ezmobius/redis-rb) documentation and
 
 Copyright (c) 2011 Guillermo Iguaran. See LICENSE for
 further details.
-

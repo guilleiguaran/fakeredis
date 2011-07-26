@@ -15,11 +15,11 @@ Add it to your Gemfile:
 
 ## Usage
 
-You can use FakeRedis::Redis similary as you use redis gem:
+You can use FakeRedis without any changes:
 
     require "fakeredis"
     
-    redis = FakeRedis::Redis.new
+    redis = Redis.new
     
     >> redis.set "foo", "bar"
     => "OK"

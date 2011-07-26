@@ -10,6 +10,7 @@ class Redis
         @data = {}
         @expires = {}
         @connected = false
+        @replies = []
       end
 
       def connected?
@@ -33,19 +34,23 @@ class Redis
       end
 
       def write(command)
-        @result = send(command.shift, *command)
-        if @result == true
-          @result = 1
-        elsif @result == false
-          @result = 0
+        method = command.shift
+        reply = send(method, *command)
+
+        if reply == true
+          reply = 1
+        elsif reply == false
+          reply = 0
         end
-        @result
+
+        @replies << reply
+        @buffer << reply if @buffer && method != :multi
+        
+        nil
       end
 
       def read
-        result = @result
-        @result = nil
-        result
+        @replies.shift
       end
 
       # NOT IMPLEMENTED:
@@ -619,10 +624,16 @@ class Redis
 
       def slaveof(host, port) ; end
 
-      def exec ; end
+      def exec
+        buffer = @buffer
+        @buffer = nil
+        buffer
+      end
 
       def multi
+        @buffer = []
         yield if block_given?
+        "OK"
       end
 
       private

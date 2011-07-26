@@ -3,7 +3,7 @@ require 'spec_helper'
 module FakeRedis
   describe "ListsMethods" do
     before(:each) do
-      @client = FakeRedis::Redis.new
+      @client = Redis.new
     end
 
     it "should get an element from a list by its index" do

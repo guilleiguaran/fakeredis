@@ -4,11 +4,11 @@ module FakeRedis
   describe "ConnectionMethods" do
 
     before(:each) do
-      @client = FakeRedis::Redis.new
+      @client = Redis.new
     end
 
     it "should authenticate to the server" do
-      @client.auth("pass").should == true
+      @client.auth("pass").should == "OK"
     end
 
     it "should echo the given string" do

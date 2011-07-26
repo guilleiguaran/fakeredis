@@ -4,7 +4,7 @@ module FakeRedis
   describe "StringsMethods" do
 
     before(:each) do
-      @client = FakeRedis::Redis.new
+      @client = Redis.new
     end
 
     it "should append a value to key" do

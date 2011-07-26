@@ -3,7 +3,7 @@ require 'spec_helper'
 module FakeRedis
   describe "SetsMethods" do
     before(:each) do
-      @client = FakeRedis::Redis.new
+      @client = Redis.new
     end
 
     it "should add a member to a set" do

@@ -3,7 +3,7 @@ require 'spec_helper'
 module FakeRedis
   describe "TransactionsMethods" do
     before(:each) do
-      @client = FakeRedis::Redis.new
+      @client = Redis.new
     end
 
     it "should mark the start of a transaction block" do

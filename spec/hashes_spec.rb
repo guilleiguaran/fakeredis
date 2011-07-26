@@ -3,7 +3,7 @@ require 'spec_helper'
 module FakeRedis
   describe "HashesMethods" do
     before(:each) do
-      @client = FakeRedis::Redis.new
+      @client = Redis.new
     end
 
     it "should delete a hash field" do

@@ -8,6 +8,7 @@ class Redis
 
       def initialize
         @data = {}
+        @expires = {}
         @connected = false
       end
 
@@ -33,6 +34,12 @@ class Redis
 
       def write(command)
         @result = send(command.shift, *command)
+        if @result == true
+          @result = 1
+        elsif @result == false
+          @result = 0
+        end
+        @result
       end
 
       def read
@@ -83,7 +90,7 @@ class Redis
       end
 
       def auth(password)
-        true
+        "OK"
       end
 
       def select(index) ; end
@@ -611,6 +618,8 @@ class Redis
       def shutdown; end
 
       def slaveof(host, port) ; end
+
+      def exec ; end
 
       def multi
         yield if block_given?

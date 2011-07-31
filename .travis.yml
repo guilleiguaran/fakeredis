@@ -6,3 +6,4 @@ rvm:
   - jruby
   - rbx-head
   - ruby-head
+  - rbx-2.0.0pre

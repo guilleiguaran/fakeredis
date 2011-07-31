@@ -7,5 +7,4 @@ rvm:
   - jruby
   - jruby-head
   - rbx
-  - rbx-master
   - rbx-2.0

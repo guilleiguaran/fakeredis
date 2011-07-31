@@ -1,6 +1,6 @@
 require 'redis'
 require 'redis/connection/memory'
 
-module Fakeredis
+module FakeRedis
   Redis = ::Redis
 end

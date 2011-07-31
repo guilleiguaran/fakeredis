@@ -9,8 +9,8 @@ Gem::Specification.new do |s|
   s.authors     = ["Guillermo Iguaran"]
   s.email       = ["guilleiguaran@gmail.com"]
   s.homepage    = "https://github.com/guilleiguaran/fakeredis"
-  s.summary     = %q{Fake redis-rb for your tests}
-  s.description = %q{Fake implementation of redis-rb for machines without Redis or for testing purposes}
+  s.summary     = %q{Fake (In-memory) driver for redis-rb.}
+  s.description = %q{Fake (In-memory) driver for redis-rb. Useful for testing environment and machines without Redis.}
 
   s.rubyforge_project = "fakeredis"
 

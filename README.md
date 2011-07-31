@@ -31,6 +31,13 @@ Read [redis-rb](https://github.com/ezmobius/redis-rb) documentation and
 [Redis](http://redis.io) homepage for more info about commands
 
 
+## Acknowledgements
+
+* [czarneckid](https://github.com/czarneckid)
+* [obrie](https://github.com/obrie)
+* [Travis-CI](http://travis-ci.org/) (Travis-CI also uses Fakeredis in its tests!!!)
+
+
 ## Contributing to FakeRedis
 
 * Check out the latest master to make sure the feature hasn't been implemented or the bug hasn't been fixed yet

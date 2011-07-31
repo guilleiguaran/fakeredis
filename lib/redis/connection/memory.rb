@@ -45,7 +45,6 @@ class Redis
 
         @replies << reply
         @buffer << reply if @buffer && method != :multi
-        
         nil
       end
 

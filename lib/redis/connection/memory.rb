@@ -4,11 +4,65 @@ require 'redis/connection/command_helper'
 class Redis
   module Connection
     class Memory
+      # Represents a normal hash with some additional expiration information
+      # associated with each key
+      class ExpiringHash < Hash
+        attr_reader :expires
+        
+        def initialize(*)
+          super
+          @expires = {}
+        end
+        
+        def [](key)
+          delete(key) if expired?(key)
+          super
+        end
+
+        def []=(key, val)
+          expire(key)
+          super
+        end
+
+        def delete(key)
+          expire(key)
+          super
+        end
+
+        def expire(key)
+          expires.delete(key)
+        end
+
+        def expired?(key)
+          expires.include?(key) && expires[key] < Time.now
+        end
+
+        def key?(key)
+          delete(key) if expired?(key)
+          super
+        end
+
+        def values_at(*keys)
+          keys.each {|key| delete(key) if expired?(key)}
+          super
+        end
+
+        def keys
+          super.select do |key|
+            if expired?(key)
+              delete(key)
+              false
+            else
+              true
+            end
+          end
+        end
+      end
+      
       include Redis::Connection::CommandHelper
 
       def initialize
-        @data = {}
-        @expires = {}
+        @data = ExpiringHash.new
         @connected = false
         @replies = []
       end
@@ -85,8 +139,7 @@ class Redis
       # * zscore
       # * zunionstore
       def flushdb
-        @data = {}
-        @expires = {}
+        @data = ExpiringHash.new
       end
 
       def flushall
@@ -123,12 +176,10 @@ class Redis
       def bgreriteaof ; end
 
       def get(key)
-        #return if expired?(key)
         @data[key]
       end
 
       def getbit(key, offset)
-        #return if expired?(key)
         return unless @data[key]
         @data[key].unpack('B8')[0].split("")[offset]
       end
@@ -423,7 +474,6 @@ class Redis
         old_count = @data.keys.size
         keys.flatten.each do |key|
           @data.delete(key)
-          @expires.delete(key)
         end
         deleted_count = old_count - @data.keys.size
       end
@@ -435,9 +485,8 @@ class Redis
       def rename(key, new_key)
         return unless @data[key]
         @data[new_key] = @data[key]
-        @expires[new_key] = @expires[key]
+        @data.expires[new_key] = @data.expires[key] if @data.expires.include?(key)
         @data.delete(key)
-        @expires.delete(key)
       end
 
       def renamenx(key, new_key)
@@ -446,21 +495,25 @@ class Redis
 
       def expire(key, ttl)
         return unless @data[key]
-        @expires[key] = ttl
+        @data.expires[key] = Time.now + ttl
         true
       end
 
       def ttl(key)
-        @expires[key]
+        if @data.expires.include?(key) && (ttl = @data.expires[key].to_i - Time.now.to_i) > 0
+          ttl
+        else
+          -1
+        end
       end
 
       def expireat(key, timestamp)
-        @expires[key] = (Time.at(timestamp) - Time.now).to_i
+        @data.expires[key] = Time.at(timestamp)
         true
       end
 
       def persist(key)
-        @expires[key] = -1
+        @data.expires.delete(key)
       end
 
       def hset(key, field, value)
@@ -642,11 +695,6 @@ class Redis
 
         def fail_unless_set(key)
           fail "Not a set" unless is_a_set?(key)
-        end
-
-        def expired?(key)
-          return false if @expires[key] == -1
-          return true if @expires[key] && @expires[key] < Time.now
         end
     end
   end

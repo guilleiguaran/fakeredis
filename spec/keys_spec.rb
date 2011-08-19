@@ -34,7 +34,52 @@ puts "checking existence"
       @client.set("key1", "1")
       @client.expireat("key1", Time.now.to_i + 2)
 
-      @client.ttl("key1").should == 1
+      @client.ttl("key1").should == 2
+    end
+
+    it 'should not have an expiration after re-set' do
+      @client.set("key1", "1")
+      @client.expireat("key1", Time.now.to_i + 2)
+      @client.set("key1", "1")
+
+      @client.ttl("key1").should == -1
+    end
+
+    it "should not have a ttl if expired" do
+      @client.set("key1", "1")
+      @client.expireat("key1", Time.now.to_i)
+
+      @client.ttl("key1").should == -1
+    end
+    
+    it "should not find a key if expired" do
+      @client.set("key1", "1")
+      @client.expireat("key1", Time.now.to_i)
+
+      @client.get("key1").should be_nil
+    end
+
+    it "should not find multiple keys if expired" do
+      @client.set("key1", "1")
+      @client.set("key2", "2")
+      @client.expireat("key1", Time.now.to_i)
+
+      @client.mget("key1", "key2").should == [nil, "2"]
+    end
+
+    it "should only find keys that aren't expired" do
+      @client.set("key1", "1")
+      @client.set("key2", "2")
+      @client.expireat("key1", Time.now.to_i)
+
+      @client.keys.should == ["key2"]
+    end
+
+    it "should not exist if expired" do
+      @client.set("key1", "1")
+      @client.expireat("key1", Time.now.to_i)
+
+      @client.exists("key1").should be_false
     end
 
     it "should find all keys matching the given pattern" do

@@ -116,7 +116,6 @@ class Redis
       # * mapped_mset
       # * mapped_msetnx
       # * move
-      # * multi
       # * subscribe
       # * psubscribe
       # * publish

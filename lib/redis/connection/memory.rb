@@ -579,8 +579,6 @@ class Redis
         @data[key].key?(field)
       end
 
-      def monitor ; end
-
       def sync ; end
 
       def [](key)

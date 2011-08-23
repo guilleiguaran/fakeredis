@@ -8,12 +8,12 @@ class Redis
       # associated with each key
       class ExpiringHash < Hash
         attr_reader :expires
-        
+
         def initialize(*)
           super
           @expires = {}
         end
-        
+
         def [](key)
           delete(key) if expired?(key)
           super
@@ -58,13 +58,14 @@ class Redis
           end
         end
       end
-      
+
       include Redis::Connection::CommandHelper
 
       def initialize
         @data = ExpiringHash.new
         @connected = false
         @replies = []
+        @buffer = nil
       end
 
       def connected?

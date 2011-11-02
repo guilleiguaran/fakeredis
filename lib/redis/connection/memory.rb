@@ -479,7 +479,12 @@ class Redis
       end
 
       def setnx(key, value)
-        set(key, value) unless @data.key?(key)
+        if exists(key)
+          false
+        else
+          set(key, value)
+          true
+        end
       end
 
       def rename(key, new_key)
@@ -490,7 +495,12 @@ class Redis
       end
 
       def renamenx(key, new_key)
-        rename(key, new_key) unless exists(new_key)
+        if exists(new_key)
+          false
+        else
+          rename(key, new_key)
+          true
+        end
       end
 
       def expire(key, ttl)
@@ -531,7 +541,7 @@ class Redis
 
       def hmset(key, *fields)
         @data[key] ||= {}
-        fail "Not a hash" unless @data[key].is_a?(Hash) 
+        fail "Not a hash" unless @data[key].is_a?(Hash)
         fields.each_slice(2) do |field|
           @data[key][field[0].to_s] = field[1].to_s
         end
@@ -540,7 +550,7 @@ class Redis
       def hmget(key, *fields)
         values = []
         fields.each do |field|
-          case hash = @data[key] 
+          case hash = @data[key]
             when nil then values << nil
             when Hash then values << hash[field]
             else fail "Not a hash"

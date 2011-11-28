@@ -577,10 +577,11 @@ class Redis
 
       def hincrby(key, field, increment)
         case hash = @data[key]
-          when nil then @data[key] = { field => value.to_s }
+          when nil then @data[key] = { field => increment.to_s }
           when Hash then hash[field] = (hash[field].to_i + increment.to_i).to_s
           else fail "Not a hash"
         end
+        @data[key][field].to_i
       end
 
       def hexists(key, field)

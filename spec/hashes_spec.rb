@@ -37,9 +37,13 @@ module FakeRedis
 
     it "should increment the integer value of a hash field by the given number" do
       @client.hset("key1", "cont1", "5")
-      @client.hincrby("key1", "cont1", "5")
-
+      @client.hincrby("key1", "cont1", "5").should == 10
       @client.hget("key1", "cont1").should == "10"
+    end
+
+    it "should increment non existing hash keys" do
+      @client.hget("key1", "cont2").should be_nil
+      @client.hincrby("key1", "cont2", "5").should == 5
     end
 
     it "should get all the fields in a hash" do

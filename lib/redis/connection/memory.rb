@@ -127,7 +127,6 @@ class Redis
       # * substr
       # * unwatch
       # * watch
-      # * zinterstore
       # * zremrangebyrank
       # * zremrangebyscore
       # * zunionstore

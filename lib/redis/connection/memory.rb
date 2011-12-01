@@ -59,6 +59,9 @@ class Redis
         end
       end
 
+      class ZSet < Hash
+      end
+
       include Redis::Connection::CommandHelper
 
       def initialize
@@ -123,20 +126,9 @@ class Redis
       # * substr
       # * unwatch
       # * watch
-      # * zadd
-      # * zcard
-      # * zcount
-      # * zincrby
       # * zinterstore
-      # * zrange
-      # * zrangescore
-      # * zrank
-      # * zrem
       # * zremrangebyrank
       # * zremrangebyscore
-      # * zrevrange
-      # * zrevrangebyscore
-      # * zscore
       # * zunionstore
       def flushdb
         @data = ExpiringHash.new
@@ -697,7 +689,102 @@ class Redis
         "OK"
       end
 
+      def zadd(key, score, value)
+        fail_unless_zset(key)
+        @data[key] ||= ZSet.new
+        exists = @data[key].key?(value.to_s)
+        @data[key][value.to_s] = score.to_i
+        !exists
+      end
+
+      def zrem(key, value)
+        fail_unless_zset(key)
+        exists = false
+        exists = @data[key].delete(value.to_s) if @data[key]
+        !!exists
+      end
+
+      def zcard(key)
+        fail_unless_zset(key)
+        @data[key] ? @data[key].size : 0
+      end
+
+      def zscore(key, value)
+        fail_unless_zset(key)
+        @data[key] && @data[key][value]
+      end
+
+      def zcount(key, min, max)
+        fail_unless_zset(key)
+        return 0 unless @data[key]
+        zrange_select_by_score(key, min, max).size
+      end
+
+      def zincrby(key, num, value)
+        fail_unless_zset(key)
+        @data[key][value.to_s] ||= 0
+        @data[key][value.to_s] += num
+        @data[key][value.to_s].to_s
+      end
+
+      def zrank(key, value)
+        fail_unless_zset(key)
+        @data[key].keys.sort_by {|k| @data[key][k] }.index(value.to_s)
+      end
+
+      def zrevrank(key, value)
+        fail_unless_zset(key)
+        @data[key].keys.sort_by {|k| -@data[key][k] }.index(value.to_s)
+      end
+
+      def zrange(key, start, stop, with_scores = nil)
+        fail_unless_zset(key)
+        return [] unless @data[key]
+
+        if with_scores
+          @data[key].sort_by {|_,v| v }
+        else
+          @data[key].keys.sort_by {|k| @data[key][k] }
+        end[start..stop].flatten.map(&:to_s)
+      end
+
+      def zrevrange(key, start, stop, with_scores = nil)
+        fail_unless_zset(key)
+        return [] unless @data[key]
+
+        if with_scores
+          @data[key].sort_by {|_,v| -v }
+        else
+          @data[key].keys.sort_by {|k| -@data[key][k] }
+        end[start..stop].flatten.map(&:to_s)
+      end
+
+      def zrangebyscore(key, min, max, with_scores = nil)
+        fail_unless_zset(key)
+        return [] unless @data[key]
+
+        range = zrange_select_by_score(key, min, max)
+        if with_scores
+          range.sort_by {|_,v| v }
+        else
+          range.keys.sort_by {|k| range[k] }
+        end.flatten.map(&:to_s)
+      end
+
+      def zrevrangebyscore(key, max, min, with_scores = nil)
+        fail_unless_zset(key)
+        return [] unless @data[key]
+
+        range = zrange_select_by_score(key, min, max)
+        if with_scores
+          range.sort_by {|_,v| -v }
+        else
+          range.keys.sort_by {|k| -range[k] }
+        end.flatten.map(&:to_s)
+      end
+
       private
+
         def is_a_set?(key)
           @data[key].is_a?(Set) || @data[key].nil?
         end
@@ -705,6 +792,19 @@ class Redis
         def fail_unless_set(key)
           fail "Not a set" unless is_a_set?(key)
         end
+
+        def is_a_zset?(key)
+          @data[key].is_a?(ZSet) || @data[key].nil?
+        end
+
+        def fail_unless_zset(key)
+          fail "Not a sorted set" unless is_a_zset?(key)
+        end
+
+        def zrange_select_by_score(key, min, max)
+          @data[key].reject {|_,v| v < min || v > max }
+        end
+
     end
   end
 end

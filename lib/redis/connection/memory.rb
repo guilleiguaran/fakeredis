@@ -793,9 +793,9 @@ class Redis
           when Hash
             @data[src]
           else
-            nil
+            {}
           end
-        end.compact
+        end
 
         @data[out] = ZSet.new
         values = hashes.inject([]) {|r, h| r.empty? ? h.keys : r & h.keys }

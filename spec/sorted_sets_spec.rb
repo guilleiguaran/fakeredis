@@ -123,6 +123,9 @@ module FakeRedis
 
       @client.zinterstore("out", ["key1", "key2", "key3"]).should == 1
       @client.zrange("out", 0, 100, :with_scores => true).should == ['two', '7']
+
+      @client.zinterstore("out", ["key1", "no_key"]).should == 0
+      @client.zrange("out", 0, 100, :with_scores => true).should == []
     end
 
     #it "should remove all members in a sorted set within the given indexes"

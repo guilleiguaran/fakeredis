@@ -33,6 +33,7 @@ Read [redis-rb](https://github.com/ezmobius/redis-rb) documentation and
 
 ## Acknowledgements
 
+* [dim](https://github.com/dim)
 * [czarneckid](https://github.com/czarneckid)
 * [obrie](https://github.com/obrie)
 * [Travis-CI](http://travis-ci.org/) (Travis-CI also uses Fakeredis in its tests!!!)

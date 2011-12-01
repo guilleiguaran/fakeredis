@@ -1,3 +1,4 @@
+require 'set'
 require 'redis/connection/registry'
 require 'redis/connection/command_helper'
 
@@ -781,6 +782,29 @@ class Redis
         else
           range.keys.sort_by {|k| -range[k] }
         end.flatten.map(&:to_s)
+      end
+
+      def zinterstore(out, _, *keys)
+        fail_unless_zset(out)
+
+        hashes = keys.map do |src|
+          case @data[src]
+          when Set
+            Hash[@data[src].zip([0] * @data[src].size)]
+          when Hash
+            @data[src]
+          else
+            nil
+          end
+        end.compact
+
+        @data[out] = ZSet.new
+        values = hashes.inject([]) {|r, h| r.empty? ? h.keys : r & h.keys }
+        values.each do |value|
+          @data[out][value] = hashes.inject(0) {|n, h| n + h[value].to_i }
+        end
+
+        @data[out].size
       end
 
       private

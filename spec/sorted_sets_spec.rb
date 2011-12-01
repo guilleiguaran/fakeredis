@@ -106,6 +106,25 @@ module FakeRedis
       @client.zrevrank("key", "four").should be_nil
     end
 
+    it "should create untersections between multiple (sorted) sets and store the resulting sorted set in a new key" do
+      @client.zadd("key1", 1, "one")
+      @client.zadd("key1", 2, "two")
+      @client.zadd("key1", 3, "three")
+      @client.zadd("key2", 5, "two")
+      @client.zadd("key2", 7, "three")
+      @client.sadd("key3", 'one')
+      @client.sadd("key3", 'two')
+
+      @client.zinterstore("out", ["key1", "key2"]).should == 2
+      @client.zrange("out", 0, 100, :with_scores => true).should == ['two', '7', 'three', '10']
+
+      @client.zinterstore("out", ["key1", "key3"]).should == 2
+      @client.zrange("out", 0, 100, :with_scores => true).should == ['one', '1', 'two', '2']
+
+      @client.zinterstore("out", ["key1", "key2", "key3"]).should == 1
+      @client.zrange("out", 0, 100, :with_scores => true).should == ['two', '7']
+    end
+
     #it "should remove all members in a sorted set within the given indexes"
 
     #it "should remove all members in a sorted set within the given scores"

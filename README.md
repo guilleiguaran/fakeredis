@@ -30,6 +30,20 @@ You can use FakeRedis without any changes:
 Read [redis-rb](https://github.com/ezmobius/redis-rb) documentation and
 [Redis](http://redis.io) homepage for more info about commands
 
+## Usage with RSpec
+
+Require this either in your Gemfile or in RSpec's support scripts. So either: 
+
+    # Gemfile
+    group :test do
+      gem "rspec"
+      gem "fakeredis", :require => "fakeredis/rspec"
+    end 
+
+Or:
+
+    # spec/support/fakeredis.rb
+    require 'fakeredis/rspec'
 
 ## Acknowledgements
 

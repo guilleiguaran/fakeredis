@@ -94,7 +94,9 @@ puts "checking existence"
 
     it "should remove the expiration from a key" do
       @client.set("key1", "1")
-      @client.persist("key1")
+      @client.expireat("key1", Time.now.to_i)
+      @client.persist("key1").should == true
+      @client.persist("key1").should == false
 
       @client.ttl("key1").should == -1
     end

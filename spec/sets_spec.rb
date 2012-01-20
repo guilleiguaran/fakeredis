@@ -7,7 +7,8 @@ module FakeRedis
     end
 
     it "should add a member to a set" do
-      @client.sadd("key", "value")
+      @client.sadd("key", "value").should == true
+      @client.sadd("key", "value").should == false
 
       @client.smembers("key").should == ["value"]
     end
@@ -93,7 +94,8 @@ module FakeRedis
       @client.sadd("key1", "a")
       @client.sadd("key1", "b")
       @client.sadd("key2", "c")
-      @client.smove("key1", "key2", "a")
+      @client.smove("key1", "key2", "a").should == true
+      @client.smove("key1", "key2", "a").should == false
 
       @client.smembers("key1").should == ["b"]
       @client.smembers("key2").should =~ ["c", "a"]
@@ -118,7 +120,8 @@ module FakeRedis
     it "should remove a member from a set" do
       @client.sadd("key1", "a")
       @client.sadd("key1", "b")
-      @client.srem("key1", "a")
+      @client.srem("key1", "a").should == true
+      @client.srem("key1", "a").should == false
 
       @client.smembers("key1").should == ["b"]
     end

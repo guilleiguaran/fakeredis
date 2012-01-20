@@ -77,15 +77,16 @@ module FakeRedis
     end
 
     it "should set the string value of a hash field" do
-      @client.hset("key1", "k1", "val1")
+      @client.hset("key1", "k1", "val1").should == true
+      @client.hset("key1", "k1", "val1").should == false
 
       @client.hget("key1", "k1").should == "val1"
     end
 
     it "should set the value of a hash field, only if the field does not exist" do
       @client.hset("key1", "k1", "val1")
-      @client.hsetnx("key1", "k1", "value")
-      @client.hsetnx("key1", "k2", "val2")
+      @client.hsetnx("key1", "k1", "value").should == false
+      @client.hsetnx("key1", "k2", "val2").should == true
 
       @client.hget("key1", "k1").should == "val1"
       @client.hget("key1", "k2").should == "val2"

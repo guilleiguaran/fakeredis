@@ -376,24 +376,24 @@ class Redis
       def sadd(key, value)
         fail_unless_set(key)
         case set = @data[key]
-          when nil then @data[key] = Set.new([value.to_s])
-          when Set then set.add(value.to_s)
+          when nil then @data[key] = Set.new([value.to_s]); true
+          when Set then !!set.add?(value.to_s)
         end
       end
 
       def srem(key, value)
         fail_unless_set(key)
         case set = @data[key]
-          when nil then return
-          when Set then set.delete(value.to_s)
+          when nil then false
+          when Set then !!set.delete?(value.to_s)
         end
       end
 
       def smove(source, destination, value)
         fail_unless_set(destination)
-        if elem = self.srem(source, value)
-          self.sadd(destination, value)
-        end
+        result = self.srem(source, value)
+        self.sadd(destination, value) if result
+        result
       end
 
       def spop(key)
@@ -515,19 +515,19 @@ class Redis
       end
 
       def persist(key)
-        @data.expires.delete(key)
+        !!@data.expires.delete(key)
       end
 
       def hset(key, field, value)
         case hash = @data[key]
-          when nil then @data[key] = { field => value.to_s }
-          when Hash then hash[field] = value.to_s
+          when nil then @data[key] = { field => value.to_s }; true
+          when Hash then result = !hash.include?(field); hash[field] = value.to_s; result
           else fail "Not a hash"
         end
       end
 
       def hsetnx(key, field, value)
-        return if (@data[key][field] rescue false)
+        return false if (@data[key][field] rescue false)
         hset(key, field, value)
       end
 

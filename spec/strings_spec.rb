@@ -64,16 +64,30 @@ module FakeRedis
 
     it "should increment the integer value of a key by one" do
       @client.set("counter", "1")
-      @client.incr("counter")
+      @client.incr("counter").should == 2
 
       @client.get("counter").should == "2"
+    end
+    
+    it "should decrement the integer value of a key by one" do
+      @client.set("counter", "1")
+      @client.decr("counter").should == 0
+      
+      @client.get("counter").should == "0"
     end
 
     it "should increment the integer value of a key by the given number" do
       @client.set("counter", "10")
-      @client.incrby("counter", "5")
+      @client.incrby("counter", "5").should == 15
+      @client.incrby("counter", 2).should == 17
+      @client.get("counter").should == "17"
+    end
 
-      @client.get("counter").should == "15"
+    it "should decrement the integer value of a key by the given number" do
+      @client.set("counter", "10")
+      @client.decrby("counter", "5").should == 5
+      @client.decrby("counter", 2).should == 3
+      @client.get("counter").should == "3"
     end
 
     it "should get the values of all the given keys" do

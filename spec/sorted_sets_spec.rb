@@ -42,6 +42,10 @@ module FakeRedis
       @client.zscore("key", "val1").should == 3
     end
 
+    it "should convert the key to a string for zscore" do
+      @client.zadd("key", 1, 1)
+      @client.zscore("key", 1).should == 1
+    end
     #it "should intersect multiple sorted sets and store the resulting sorted set in a new key"
 
     it "should return a range of members in a sorted set, by index" do

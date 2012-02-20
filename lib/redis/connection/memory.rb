@@ -212,7 +212,7 @@ class Redis
       def hget(key, field)
         return unless @data[key]
         fail "Not a hash" unless @data[key].is_a?(Hash)
-        @data[key][field]
+        @data[key][field.to_s]
       end
 
       def hdel(key, field)
@@ -519,6 +519,7 @@ class Redis
       end
 
       def hset(key, field, value)
+        field = field.to_s
         case hash = @data[key]
           when nil then @data[key] = { field => value.to_s }; true
           when Hash then result = !hash.include?(field); hash[field] = value.to_s; result
@@ -527,6 +528,7 @@ class Redis
       end
 
       def hsetnx(key, field, value)
+        field = field.to_s
         return false if (@data[key][field] rescue false)
         hset(key, field, value)
       end
@@ -542,6 +544,7 @@ class Redis
       def hmget(key, *fields)
         values = []
         fields.each do |field|
+          field = field.to_s
           case hash = @data[key]
             when nil then values << nil
             when Hash then values << hash[field]
@@ -644,21 +647,25 @@ class Redis
       def incr(key)
         @data[key] = (@data[key] || "0")
         @data[key] = (@data[key].to_i + 1).to_s
+        @data[key].to_i
       end
 
       def incrby(key, by)
         @data[key] = (@data[key] || "0")
         @data[key] = (@data[key].to_i + by.to_i).to_s
+        @data[key].to_i
       end
 
       def decr(key)
         @data[key] = (@data[key] || "0")
         @data[key] = (@data[key].to_i - 1).to_s
+        @data[key].to_i
       end
 
       def decrby(key, by)
         @data[key] = (@data[key] || "0")
         @data[key] = (@data[key].to_i - by.to_i).to_s
+        @data[key].to_i
       end
 
       def type(key)
@@ -711,7 +718,7 @@ class Redis
 
       def zscore(key, value)
         fail_unless_zset(key)
-        @data[key] && @data[key][value]
+        @data[key] && @data[key][value.to_s].to_s
       end
 
       def zcount(key, min, max)

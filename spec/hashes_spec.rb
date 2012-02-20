@@ -15,6 +15,22 @@ module FakeRedis
       @client.hget("key1", "k2").should == "val2"
     end
 
+    it "should convert key to a string via to_s for hset" do
+      m = double("key")
+      m.stub(:to_s).and_return("foo")
+
+      @client.hset("key1", m, "bar")
+      @client.hget("key1", "foo").should == "bar"
+    end
+
+    it "should convert key to a string via to_s for hget" do
+      m = double("key")
+      m.stub(:to_s).and_return("foo")
+
+      @client.hset("key1", "foo", "bar")
+      @client.hget("key1", m).should == "bar"
+    end
+
     it "should determine if a hash field exists" do
       @client.hset("key1", "index", "value")
 
@@ -87,9 +103,12 @@ module FakeRedis
       @client.hset("key1", "k1", "val1")
       @client.hsetnx("key1", "k1", "value").should == false
       @client.hsetnx("key1", "k2", "val2").should == true
+      @client.hsetnx("key1", :k1, "value").should == false
+      @client.hsetnx("key1", :k3, "val3").should == true
 
       @client.hget("key1", "k1").should == "val1"
       @client.hget("key1", "k2").should == "val2"
+      @client.hget("key1", "k3").should == "val3"
     end
 
     it "should get all the values in a hash" do

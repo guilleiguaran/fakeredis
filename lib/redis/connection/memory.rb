@@ -415,7 +415,7 @@ class Redis
       def sinterstore(destination, *keys)
         data_type_check(destination, Set)
         result = sinter(*keys)
-        @data[destination] = Set.new(result)
+        @data[destination] = ::Set.new(result)
       end
 
       def sunion(*keys)
@@ -429,7 +429,7 @@ class Redis
       def sunionstore(destination, *keys)
         data_type_check(destination, Set)
         result = sunion(*keys)
-        @data[destination] = Set.new(result)
+        @data[destination] = ::Set.new(result)
       end
 
       def sdiff(key1, *keys)
@@ -443,7 +443,7 @@ class Redis
       def sdiffstore(destination, key1, *keys)
         data_type_check(destination, Set)
         result = sdiff(key1, *keys)
-        @data[destination] = Set.new(result)
+        @data[destination] = ::Set.new(result)
       end
 
       def srandmember(key)
@@ -666,7 +666,7 @@ class Redis
           when String then "string"
           when Hash then "hash"
           when Array then "list"
-          when Set then "set"
+          when ::Set then "set"
         end
       end
 
@@ -788,7 +788,7 @@ class Redis
 
         hashes = keys.map do |src|
           case @data[src]
-          when Set
+          when ::Set
             Hash[@data[src].zip([0] * @data[src].size)]
           when Hash
             @data[src]

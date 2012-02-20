@@ -18,7 +18,6 @@ module FakeRedis
     it "should determine if a key exists" do
       @client.set("key1", "1")
 
-puts "checking existence"
       @client.exists("key1").should == true
       @client.exists("key2").should == false
     end

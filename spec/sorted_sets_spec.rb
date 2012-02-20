@@ -8,10 +8,10 @@ module FakeRedis
 
     it "should add a member to a sorted set, or update its score if it already exists" do
       @client.zadd("key", 1, "val").should be(true)
-      @client.zscore("key", "val").should == 1
+      @client.zscore("key", "val").should == "1"
 
       @client.zadd("key", 2, "val").should be(false)
-      @client.zscore("key", "val").should == 2
+      @client.zscore("key", "val").should == "2"
     end
 
     it "should remove members from sorted sets" do
@@ -39,12 +39,12 @@ module FakeRedis
     it "should increment the score of a member in a sorted set" do
       @client.zadd("key", 1, "val1")
       @client.zincrby("key", 2, "val1").should == "3"
-      @client.zscore("key", "val1").should == 3
+      @client.zscore("key", "val1").should == "3"
     end
 
     it "should convert the key to a string for zscore" do
       @client.zadd("key", 1, 1)
-      @client.zscore("key", 1).should == 1
+      @client.zscore("key", 1).should == "1"
     end
     #it "should intersect multiple sorted sets and store the resulting sorted set in a new key"
 

@@ -718,7 +718,7 @@ class Redis
 
       def zscore(key, value)
         fail_unless_zset(key)
-        @data[key] && @data[key][value.to_s]
+        @data[key] && @data[key][value.to_s].to_s
       end
 
       def zcount(key, min, max)

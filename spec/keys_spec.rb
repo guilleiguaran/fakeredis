@@ -138,5 +138,13 @@ module FakeRedis
       @client.type("key1").should == "string"
       @client.type("key0").should == "none"
     end
+
+    it "should convert the value into a string before storing" do
+      @client.set("key1", 1)
+      @client.get("key1").should == "1"
+
+      @client.setex("key2", 30, 1)
+      @client.get("key2").should == "1"
+    end
   end
 end

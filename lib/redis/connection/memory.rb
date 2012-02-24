@@ -610,7 +610,7 @@ class Redis
       end
 
       def setex(key, seconds, value)
-        @data[key] = value
+        @data[key] = value.to_s
         expire(key, seconds)
       end
 

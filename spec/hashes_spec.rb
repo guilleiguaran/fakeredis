@@ -15,6 +15,15 @@ module FakeRedis
       @client.hget("key1", "k2").should == "val2"
     end
 
+    it "should remove a hash with no keys left" do
+      @client.hset("key1", "k1", "val1")
+      @client.hset("key1", "k2", "val2")
+      @client.hdel("key1", "k1")
+      @client.hdel("key1", "k2")
+
+      @client.exists("key1").should == false
+    end
+
     it "should convert key to a string via to_s for hset" do
       m = double("key")
       m.stub(:to_s).and_return("foo")

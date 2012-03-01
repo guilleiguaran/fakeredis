@@ -77,6 +77,15 @@ module FakeRedis
       @client.llen("key1").should == 2
     end
 
+    it "should remove list's key when list is empty" do
+      @client.rpush("key1", "v1")
+      @client.rpush("key1", "v2")
+      @client.lrem("key1", 1, "v1")
+      @client.lrem("key1", 1, "v2")
+
+      @client.exists("key1").should == false
+    end
+
     it "should set the value of an element in a list by its index" do
       @client.rpush("key1", "one")
       @client.rpush("key1", "two")

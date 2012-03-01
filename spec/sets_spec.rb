@@ -126,6 +126,15 @@ module FakeRedis
       @client.smembers("key1").should == ["b"]
     end
 
+    it "should remove the set's key once it's empty" do
+      @client.sadd("key1", "a")
+      @client.sadd("key1", "b")
+      @client.srem("key1", "b")
+      @client.srem("key1", "a")
+
+      @client.exists("key1").should == false
+    end
+
     it "should add multiple sets" do
       @client.sadd("key1", "a")
       @client.sadd("key1", "b")

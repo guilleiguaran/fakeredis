@@ -20,6 +20,12 @@ module FakeRedis
       @client.zrem("key", "val").should be(true)
     end
 
+    it "should remove sorted set's key when it is empty" do
+      @client.zadd("key", 1, "val")
+      @client.zrem("key", "val")
+      @client.exists("key").should == false
+    end
+
     it "should get the number of members in a sorted set" do
       @client.zadd("key", 1, "val2")
       @client.zadd("key", 2, "val1")

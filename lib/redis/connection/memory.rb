@@ -219,6 +219,7 @@ class Redis
         return unless @data[key]
         fail "Not a hash" unless @data[key].is_a?(Hash)
         @data[key].delete(field)
+        remove_key_for_empty_collection(key)
       end
 
       def hkeys(key)
@@ -304,15 +305,18 @@ class Redis
         fail "Not a list" unless @data[key].is_a?(Array)
         return unless @data[key]
         old_size = @data[key].size
-        if count == 0
-          @data[key].delete(value)
-          old_size - @data[key].size
-        else
-          array = count > 0 ? @data[key].dup : @data[key].reverse
-          count.abs.times{ array.delete_at(array.index(value) || array.length) }
-          @data[key] = count > 0 ? array.dup : array.reverse
-          old_size - @data[key].size
-        end
+        diff =
+          if count == 0
+            @data[key].delete(value)
+            old_size - @data[key].size
+          else
+            array = count > 0 ? @data[key].dup : @data[key].reverse
+            count.abs.times{ array.delete_at(array.index(value) || array.length) }
+            @data[key] = count > 0 ? array.dup : array.reverse
+            old_size - @data[key].size
+          end
+        remove_key_for_empty_collection(key)
+        diff
       end
 
       def rpush(key, value)
@@ -383,10 +387,14 @@ class Redis
 
       def srem(key, value)
         fail_unless_set(key)
-        case set = @data[key]
-          when nil then false
-          when Set then !!set.delete?(value.to_s)
-        end
+        deleted = 
+          case set = @data[key]
+            when nil then false
+            when Set then !!set.delete?(value.to_s)
+          end
+        
+        remove_key_for_empty_collection(key)
+        deleted
       end
 
       def smove(source, destination, value)
@@ -708,6 +716,7 @@ class Redis
         fail_unless_zset(key)
         exists = false
         exists = @data[key].delete(value.to_s) if @data[key]
+        remove_key_for_empty_collection(key)
         !!exists
       end
 
@@ -835,6 +844,9 @@ class Redis
           @data[key].reject {|_,v| v < min || v > max }
         end
 
+        def remove_key_for_empty_collection(key)
+          del(key) if @data[key] && @data[key].empty?
+        end
     end
   end
 end

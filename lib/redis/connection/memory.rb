@@ -202,32 +202,25 @@ class Redis
       end
 
       def hgetall(key)
-        case hash = @data[key]
-          when nil then {}
-          when Hash then hash
-          else fail "Not a hash"
-        end
+        data_type_check(key, Hash)
+        @data[key] || {}
       end
 
       def hget(key, field)
-        return unless @data[key]
-        fail "Not a hash" unless @data[key].is_a?(Hash)
-        @data[key][field.to_s]
+        data_type_check(key, Hash)
+        @data[key] && @data[key][field.to_s]
       end
 
       def hdel(key, field)
-        return unless @data[key]
-        fail "Not a hash" unless @data[key].is_a?(Hash)
-        @data[key].delete(field)
+        data_type_check(key, Hash)
+        @data[key] && @data[key].delete(field)
         remove_key_for_empty_collection(key)
       end
 
       def hkeys(key)
-        case hash = @data[key]
-          when nil then []
-          when Hash then hash.keys
-          else fail "Not a hash"
-        end
+        data_type_check(key, Hash)
+        return [] if @data[key].nil?
+        @data[key].keys
       end
 
       def keys(pattern = "*")
@@ -260,31 +253,29 @@ class Redis
       end
 
       def llen(key)
-        @data[key] ||= []
-        fail "Not a list" unless @data[key].is_a?(Array)
+        data_type_check(key, Array)
+        return 0 unless @data[key]
         @data[key].size
       end
 
       def lrange(key, startidx, endidx)
-        return unless @data[key]
-        fail "Not a list" unless @data[key].is_a?(Array)
-        @data[key][startidx..endidx]
+        data_type_check(key, Array)
+        @data[key] && @data[key][startidx..endidx]
       end
 
       def ltrim(key, start, stop)
-        fail "Not a list" unless @data[key].is_a?(Array)
+        data_type_check(key, Array)
         return unless @data[key]
         @data[key] = @data[key][start..stop]
       end
 
       def lindex(key, index)
-        fail "Not a list" unless @data[key].is_a?(Array)
-        return unless @data[key]
-        @data[key][index]
+        data_type_check(key, Array)
+        @data[key] && @data[key][index]
       end
 
       def linsert(key, where, pivot, value)
-        fail "Not a list" unless @data[key].is_a?(Array)
+        data_type_check(key, Array)
         return unless @data[key]
         index = @data[key].index(pivot)
         case where
@@ -295,14 +286,14 @@ class Redis
       end
 
       def lset(key, index, value)
-        fail "Not a list" unless @data[key].is_a?(Array)
+        data_type_check(key, Array)
         return unless @data[key]
-        raise RuntimeError unless index < @data[key].size
+        raise RuntimeError if index >= @data[key].size
         @data[key][index] = value
       end
 
       def lrem(key, count, value)
-        fail "Not a list" unless @data[key].is_a?(Array)
+        data_type_check(key, Array)
         return unless @data[key]
         old_size = @data[key].size
         diff =
@@ -320,107 +311,100 @@ class Redis
       end
 
       def rpush(key, value)
+        data_type_check(key, Array)
         @data[key] ||= []
-        fail "Not a list" unless @data[key].is_a?(Array)
         @data[key].push(value)
+        @data[key].size
       end
 
       def rpushx(key, value)
+        data_type_check(key, Array)
         return unless @data[key]
-        fail "Not a list" unless @data[key].is_a?(Array)
         rpush(key, value)
       end
 
       def lpush(key, value)
+        data_type_check(key, Array)
         @data[key] ||= []
-        fail "Not a list" unless @data[key].is_a?(Array)
-        @data[key] = [value] + @data[key]
+        @data[key].unshift(value)
         @data[key].size
       end
 
       def lpushx(key, value)
+        data_type_check(key, Array)
         return unless @data[key]
-        fail "Not a list" unless @data[key].is_a?(Array)
         lpush(key, value)
       end
 
       def rpop(key)
-        fail "Not a list" unless @data[key].is_a?(Array)
+        data_type_check(key, Array)
+        return unless @data[key]
         @data[key].pop
       end
 
       def rpoplpush(key1, key2)
-        fail "Not a list" unless @data[key1].is_a?(Array)
-        elem = @data[key1].pop
+        data_type_check(key1, Array)
+        elem = rpop(key1)
         lpush(key2, elem)
       end
 
       def lpop(key)
+        data_type_check(key, Array)
         return unless @data[key]
-        fail "Not a list" unless @data[key].is_a?(Array)
-        @data[key].delete_at(0)
+        @data[key].shift
       end
 
       def smembers(key)
-        fail_unless_set(key)
-        case set = @data[key]
-          when nil then []
-          when Set then set.to_a.reverse
-        end
+        data_type_check(key, Set)
+        return [] unless @data[key]
+        @data[key].to_a.reverse
       end
 
       def sismember(key, value)
-        fail_unless_set(key)
-        case set = @data[key]
-          when nil then false
-          when Set then set.include?(value.to_s)
-        end
+        data_type_check(key, Set)
+        return false unless @data[key]
+        @data[key].include?(value.to_s)
       end
 
       def sadd(key, value)
-        fail_unless_set(key)
-        case set = @data[key]
-          when nil then @data[key] = Set.new([value.to_s]); true
-          when Set then !!set.add?(value.to_s)
+        data_type_check(key, Set)
+        if @data[key]
+          !!@data[key].add?(value.to_s)
+        else
+          @data[key] = Set.new([value.to_s])
+          true
         end
       end
 
       def srem(key, value)
-        fail_unless_set(key)
-        deleted = 
-          case set = @data[key]
-            when nil then false
-            when Set then !!set.delete?(value.to_s)
-          end
-        
+        data_type_check(key, Set)
+        deleted = !!(@data[key] && @data[key].delete?(value.to_s))
         remove_key_for_empty_collection(key)
         deleted
       end
 
       def smove(source, destination, value)
-        fail_unless_set(destination)
+        data_type_check(destination, Set)
         result = self.srem(source, value)
         self.sadd(destination, value) if result
         result
       end
 
       def spop(key)
-        fail_unless_set(key)
+        data_type_check(key, Set)
         elem = srandmember(key)
         srem(key, elem)
         elem
       end
 
       def scard(key)
-        fail_unless_set(key)
-        case set = @data[key]
-          when nil then 0
-          when Set then set.size
-        end
+        data_type_check(key, Set)
+        return 0 unless @data[key]
+        @data[key].size
       end
 
       def sinter(*keys)
-        keys.each { |k| fail_unless_set(k) }
+        keys.each { |k| data_type_check(k, Set) }
         return Set.new if keys.any? { |k| @data[k].nil? }
         keys = keys.map { |k| @data[k] || Set.new }
         keys.inject do |set, key|
@@ -429,13 +413,13 @@ class Redis
       end
 
       def sinterstore(destination, *keys)
-        fail_unless_set(destination)
+        data_type_check(destination, Set)
         result = sinter(*keys)
         @data[destination] = Set.new(result)
       end
 
       def sunion(*keys)
-        keys.each { |k| fail_unless_set(k) }
+        keys.each { |k| data_type_check(k, Set) }
         keys = keys.map { |k| @data[k] || Set.new }
         keys.inject(Set.new) do |set, key|
           set | key
@@ -443,13 +427,13 @@ class Redis
       end
 
       def sunionstore(destination, *keys)
-        fail_unless_set(destination)
+        data_type_check(destination, Set)
         result = sunion(*keys)
         @data[destination] = Set.new(result)
       end
 
       def sdiff(key1, *keys)
-        [key1, *keys].each { |k| fail_unless_set(k) }
+        [key1, *keys].each { |k| data_type_check(k, Set) }
         keys = keys.map { |k| @data[k] || Set.new }
         keys.inject(@data[key1]) do |memo, set|
           memo - set
@@ -457,17 +441,15 @@ class Redis
       end
 
       def sdiffstore(destination, key1, *keys)
-        fail_unless_set(destination)
+        data_type_check(destination, Set)
         result = sdiff(key1, *keys)
         @data[destination] = Set.new(result)
       end
 
       def srandmember(key)
-        fail_unless_set(key)
-        case set = @data[key]
-          when nil then nil
-          when Set then set.to_a[rand(set.size)]
-        end
+        data_type_check(key, Set)
+        return nil unless @data[key]
+        @data[key].to_a[rand(@data[key].size)]
       end
 
       def del(*keys)
@@ -527,69 +509,71 @@ class Redis
       end
 
       def hset(key, field, value)
+        data_type_check(key, Hash)
         field = field.to_s
-        case hash = @data[key]
-          when nil then @data[key] = { field => value.to_s }; true
-          when Hash then result = !hash.include?(field); hash[field] = value.to_s; result
-          else fail "Not a hash"
+        if @data[key]
+          result = !@data[key].include?(field)
+          @data[key][field] = value.to_s
+          result
+        else
+          @data[key] = { field => value.to_s }
+          true
         end
       end
 
       def hsetnx(key, field, value)
+        data_type_check(key, Hash)
         field = field.to_s
-        return false if (@data[key][field] rescue false)
+        return false if @data[key] && @data[key][field]
         hset(key, field, value)
       end
 
       def hmset(key, *fields)
+        data_type_check(key, Hash)
         @data[key] ||= {}
-        fail "Not a hash" unless @data[key].is_a?(Hash)
         fields.each_slice(2) do |field|
           @data[key][field[0].to_s] = field[1].to_s
         end
       end
 
       def hmget(key, *fields)
+        data_type_check(key, Hash)
         values = []
-        fields.each do |field|
+        fields.map do |field|
           field = field.to_s
-          case hash = @data[key]
-            when nil then values << nil
-            when Hash then values << hash[field]
-            else fail "Not a hash"
+          if @data[key]
+            @data[key][field]
+          else
+            nil
           end
         end
-        values
       end
 
       def hlen(key)
-        case hash = @data[key]
-          when nil then 0
-          when Hash then hash.size
-          else fail "Not a hash"
-        end
+        data_type_check(key, Hash)
+        return 0 unless @data[key]
+        @data[key].size
       end
 
       def hvals(key)
-        case hash = @data[key]
-          when nil then []
-          when Hash then hash.values
-          else fail "Not a hash"
-        end
+        data_type_check(key, Hash)
+        return [] unless @data[key]
+        @data[key].values
       end
 
       def hincrby(key, field, increment)
-        case hash = @data[key]
-          when nil then @data[key] = { field => increment.to_s }
-          when Hash then hash[field] = (hash[field].to_i + increment.to_i).to_s
-          else fail "Not a hash"
+        data_type_check(key, Hash)
+        if @data[key]
+          @data[key][field] = (@data[key][field.to_s].to_i + increment.to_i).to_s
+        else
+          @data[key] = { field => increment.to_s }
         end
         @data[key][field].to_i
       end
 
       def hexists(key, field)
-        return unless @data[key]
-        fail "Not a hash" unless @data[key].is_a?(Hash)
+        data_type_check(key, Hash)
+        return false unless @data[key]
         @data[key].key?(field)
       end
 
@@ -705,7 +689,7 @@ class Redis
       end
 
       def zadd(key, score, value)
-        fail_unless_zset(key)
+        data_type_check(key, ZSet)
         @data[key] ||= ZSet.new
         exists = @data[key].key?(value.to_s)
         @data[key][value.to_s] = score.to_i
@@ -713,7 +697,7 @@ class Redis
       end
 
       def zrem(key, value)
-        fail_unless_zset(key)
+        data_type_check(key, ZSet)
         exists = false
         exists = @data[key].delete(value.to_s) if @data[key]
         remove_key_for_empty_collection(key)
@@ -721,40 +705,40 @@ class Redis
       end
 
       def zcard(key)
-        fail_unless_zset(key)
+        data_type_check(key, ZSet)
         @data[key] ? @data[key].size : 0
       end
 
       def zscore(key, value)
-        fail_unless_zset(key)
+        data_type_check(key, ZSet)
         @data[key] && @data[key][value.to_s].to_s
       end
 
       def zcount(key, min, max)
-        fail_unless_zset(key)
+        data_type_check(key, ZSet)
         return 0 unless @data[key]
         zrange_select_by_score(key, min, max).size
       end
 
       def zincrby(key, num, value)
-        fail_unless_zset(key)
+        data_type_check(key, ZSet)
         @data[key][value.to_s] ||= 0
         @data[key][value.to_s] += num
         @data[key][value.to_s].to_s
       end
 
       def zrank(key, value)
-        fail_unless_zset(key)
+        data_type_check(key, ZSet)
         @data[key].keys.sort_by {|k| @data[key][k] }.index(value.to_s)
       end
 
       def zrevrank(key, value)
-        fail_unless_zset(key)
+        data_type_check(key, ZSet)
         @data[key].keys.sort_by {|k| -@data[key][k] }.index(value.to_s)
       end
 
       def zrange(key, start, stop, with_scores = nil)
-        fail_unless_zset(key)
+        data_type_check(key, ZSet)
         return [] unless @data[key]
 
         if with_scores
@@ -765,7 +749,7 @@ class Redis
       end
 
       def zrevrange(key, start, stop, with_scores = nil)
-        fail_unless_zset(key)
+        data_type_check(key, ZSet)
         return [] unless @data[key]
 
         if with_scores
@@ -776,7 +760,7 @@ class Redis
       end
 
       def zrangebyscore(key, min, max, with_scores = nil)
-        fail_unless_zset(key)
+        data_type_check(key, ZSet)
         return [] unless @data[key]
 
         range = zrange_select_by_score(key, min, max)
@@ -788,7 +772,7 @@ class Redis
       end
 
       def zrevrangebyscore(key, max, min, with_scores = nil)
-        fail_unless_zset(key)
+        data_type_check(key, ZSet)
         return [] unless @data[key]
 
         range = zrange_select_by_score(key, min, max)
@@ -800,7 +784,7 @@ class Redis
       end
 
       def zinterstore(out, _, *keys)
-        fail_unless_zset(out)
+        data_type_check(out, ZSet)
 
         hashes = keys.map do |src|
           case @data[src]
@@ -824,28 +808,18 @@ class Redis
 
       private
 
-        def is_a_set?(key)
-          @data[key].is_a?(Set) || @data[key].nil?
-        end
-
-        def fail_unless_set(key)
-          fail "Not a set" unless is_a_set?(key)
-        end
-
-        def is_a_zset?(key)
-          @data[key].is_a?(ZSet) || @data[key].nil?
-        end
-
-        def fail_unless_zset(key)
-          fail "Not a sorted set" unless is_a_zset?(key)
-        end
-
         def zrange_select_by_score(key, min, max)
           @data[key].reject {|_,v| v < min || v > max }
         end
 
         def remove_key_for_empty_collection(key)
           del(key) if @data[key] && @data[key].empty?
+        end
+        
+        def data_type_check(key, klass)
+          if @data[key] && !@data[key].is_a?(klass)
+            fail "Operation against a key holding the wrong kind of value: Expected #{klass} at #{key}."
+          end
         end
     end
   end

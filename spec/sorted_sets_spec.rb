@@ -137,6 +137,21 @@ module FakeRedis
       @client.zinterstore("out", ["key1", "no_key"]).should == 0
       @client.zrange("out", 0, 100, :with_scores => true).should == []
     end
+    
+    context "zremrangebyscore" do
+      it "should remove items by score" do
+        @client.zadd("key", 1, "one")
+        @client.zadd("key", 2, "two")
+        @client.zadd("key", 3, "three")
+
+        @client.zremrangebyscore("key", 0, 2).should == 2
+        @client.zcard("key").should == 1
+      end
+
+      it "should return 0 if the key didn't exist" do
+        @client.zremrangebyscore("key", 0, 2).should == 0
+      end
+    end
 
     #it "should remove all members in a sorted set within the given indexes"
 

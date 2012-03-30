@@ -128,7 +128,6 @@ class Redis
       # * unwatch
       # * watch
       # * zremrangebyrank
-      # * zremrangebyscore
       # * zunionstore
       def flushdb
         @data = ExpiringHash.new
@@ -781,6 +780,15 @@ class Redis
         else
           range.keys.sort_by {|k| -range[k] }
         end.flatten.map(&:to_s)
+      end
+
+      def zremrangebyscore(key, min, max)
+        data_type_check(key, ZSet)
+        return 0 unless @data[key]
+
+        range = zrange_select_by_score(key, min, max)
+        range.each {|k,_| @data[key].delete(k) }
+        range.size
       end
 
       def zinterstore(out, _, *keys)

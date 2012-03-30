@@ -128,7 +128,6 @@ class Redis
       # * unwatch
       # * watch
       # * zremrangebyrank
-      # * zremrangebyscore
       # * zunionstore
       def flushdb
         @data = ExpiringHash.new
@@ -355,99 +354,99 @@ class Redis
       end
 
       def smembers(key)
-        data_type_check(key, Set)
+        data_type_check(key, ::Set)
         return [] unless @data[key]
         @data[key].to_a.reverse
       end
 
       def sismember(key, value)
-        data_type_check(key, Set)
+        data_type_check(key, ::Set)
         return false unless @data[key]
         @data[key].include?(value.to_s)
       end
 
       def sadd(key, value)
-        data_type_check(key, Set)
+        data_type_check(key, ::Set)
         if @data[key]
           !!@data[key].add?(value.to_s)
         else
-          @data[key] = Set.new([value.to_s])
+          @data[key] = ::Set.new([value.to_s])
           true
         end
       end
 
       def srem(key, value)
-        data_type_check(key, Set)
+        data_type_check(key, ::Set)
         deleted = !!(@data[key] && @data[key].delete?(value.to_s))
         remove_key_for_empty_collection(key)
         deleted
       end
 
       def smove(source, destination, value)
-        data_type_check(destination, Set)
+        data_type_check(destination, ::Set)
         result = self.srem(source, value)
         self.sadd(destination, value) if result
         result
       end
 
       def spop(key)
-        data_type_check(key, Set)
+        data_type_check(key, ::Set)
         elem = srandmember(key)
         srem(key, elem)
         elem
       end
 
       def scard(key)
-        data_type_check(key, Set)
+        data_type_check(key, ::Set)
         return 0 unless @data[key]
         @data[key].size
       end
 
       def sinter(*keys)
-        keys.each { |k| data_type_check(k, Set) }
-        return Set.new if keys.any? { |k| @data[k].nil? }
-        keys = keys.map { |k| @data[k] || Set.new }
+        keys.each { |k| data_type_check(k, ::Set) }
+        return ::Set.new if keys.any? { |k| @data[k].nil? }
+        keys = keys.map { |k| @data[k] || ::Set.new }
         keys.inject do |set, key|
           set & key
         end.to_a
       end
 
       def sinterstore(destination, *keys)
-        data_type_check(destination, Set)
+        data_type_check(destination, ::Set)
         result = sinter(*keys)
-        @data[destination] = Set.new(result)
+        @data[destination] = ::Set.new(result)
       end
 
       def sunion(*keys)
-        keys.each { |k| data_type_check(k, Set) }
-        keys = keys.map { |k| @data[k] || Set.new }
-        keys.inject(Set.new) do |set, key|
+        keys.each { |k| data_type_check(k, ::Set) }
+        keys = keys.map { |k| @data[k] || ::Set.new }
+        keys.inject(::Set.new) do |set, key|
           set | key
         end.to_a
       end
 
       def sunionstore(destination, *keys)
-        data_type_check(destination, Set)
+        data_type_check(destination, ::Set)
         result = sunion(*keys)
-        @data[destination] = Set.new(result)
+        @data[destination] = ::Set.new(result)
       end
 
       def sdiff(key1, *keys)
-        [key1, *keys].each { |k| data_type_check(k, Set) }
-        keys = keys.map { |k| @data[k] || Set.new }
+        [key1, *keys].each { |k| data_type_check(k, ::Set) }
+        keys = keys.map { |k| @data[k] || ::Set.new }
         keys.inject(@data[key1]) do |memo, set|
           memo - set
         end.to_a
       end
 
       def sdiffstore(destination, key1, *keys)
-        data_type_check(destination, Set)
+        data_type_check(destination, ::Set)
         result = sdiff(key1, *keys)
-        @data[destination] = Set.new(result)
+        @data[destination] = ::Set.new(result)
       end
 
       def srandmember(key)
-        data_type_check(key, Set)
+        data_type_check(key, ::Set)
         return nil unless @data[key]
         @data[key].to_a[rand(@data[key].size)]
       end
@@ -666,7 +665,7 @@ class Redis
           when String then "string"
           when Hash then "hash"
           when Array then "list"
-          when Set then "set"
+          when ::Set then "set"
         end
       end
 
@@ -783,12 +782,21 @@ class Redis
         end.flatten.map(&:to_s)
       end
 
+      def zremrangebyscore(key, min, max)
+        data_type_check(key, ZSet)
+        return 0 unless @data[key]
+
+        range = zrange_select_by_score(key, min, max)
+        range.each {|k,_| @data[key].delete(k) }
+        range.size
+      end
+
       def zinterstore(out, _, *keys)
         data_type_check(out, ZSet)
 
         hashes = keys.map do |src|
           case @data[src]
-          when Set
+          when ::Set
             Hash[@data[src].zip([0] * @data[src].size)]
           when Hash
             @data[src]

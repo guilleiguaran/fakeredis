@@ -50,6 +50,8 @@ Or:
 * [dim](https://github.com/dim)
 * [czarneckid](https://github.com/czarneckid)
 * [obrie](https://github.com/obrie)
+* [jredville](https://github.com/jredville)
+* [redsquirrel](https://github.com/redsquirrel)
 * [Travis-CI](http://travis-ci.org/) (Travis-CI also uses Fakeredis in its tests!!!)
 
 
@@ -66,5 +68,5 @@ Or:
 
 ## Copyright
 
-Copyright (c) 2011 Guillermo Iguaran. See LICENSE for
+Copyright (c) 2011-2012 Guillermo Iguaran. See LICENSE for
 further details.

@@ -125,8 +125,6 @@ class Redis
       # * psubscribe
       # * publish
       # * substr
-      # * unwatch
-      # * watch
       # * zremrangebyrank
       # * zunionstore
       def flushdb
@@ -632,7 +630,7 @@ class Redis
       end
 
       def sort(key)
-        # TODO: Impleent
+        # TODO: Implement
       end
 
       def incr(key)
@@ -684,6 +682,14 @@ class Redis
       def multi
         @buffer = []
         yield if block_given?
+        "OK"
+      end
+
+      def watch(_)
+        "OK"
+      end
+
+      def unwatch
         "OK"
       end
 
@@ -823,7 +829,7 @@ class Redis
         def remove_key_for_empty_collection(key)
           del(key) if @data[key] && @data[key].empty?
         end
-        
+
         def data_type_check(key, klass)
           if @data[key] && !@data[key].is_a?(klass)
             fail "Operation against a key holding the wrong kind of value: Expected #{klass} at #{key}."

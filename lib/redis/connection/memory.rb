@@ -526,7 +526,7 @@ class Redis
       end
 
       def hmset(key, *fields)
-        raise ArgumentError, "wrong number of arguments for 'hmset' command" if fields.empty?
+        raise ArgumentError, "wrong number of arguments for 'hmset' command" if fields.empty? || fields.size.odd?
         data_type_check(key, Hash)
         @data[key] ||= {}
         fields.each_slice(2) do |field|

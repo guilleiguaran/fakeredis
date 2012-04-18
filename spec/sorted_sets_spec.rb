@@ -48,6 +48,10 @@ module FakeRedis
       @client.zscore("key", "val1").should == "3"
     end
 
+    it "initializes the sorted set if the key wasnt already set" do
+      @client.zincrby("key", 1, "val1").should == "1"
+    end
+
     it "should convert the key to a string for zscore" do
       @client.zadd("key", 1, 1)
       @client.zscore("key", 1).should == "1"
@@ -137,7 +141,7 @@ module FakeRedis
       @client.zinterstore("out", ["key1", "no_key"]).should == 0
       @client.zrange("out", 0, 100, :with_scores => true).should == []
     end
-    
+
     context "zremrangebyscore" do
       it "should remove items by score" do
         @client.zadd("key", 1, "one")

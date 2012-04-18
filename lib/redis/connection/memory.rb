@@ -729,6 +729,7 @@ class Redis
 
       def zincrby(key, num, value)
         data_type_check(key, ZSet)
+        @data[key] ||= ZSet.new
         @data[key][value.to_s] ||= 0
         @data[key][value.to_s] += num
         @data[key][value.to_s].to_s

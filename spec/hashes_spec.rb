@@ -94,6 +94,10 @@ module FakeRedis
       @client.hmget("key2", "i1", "i2").should == [nil, nil]
     end
 
+    it "throws an argument error when you don't ask for any keys" do
+      lambda { @client.hmget("key1") }.should raise_error(ArgumentError)
+    end
+
     it "should reject an empty list of values" do
       lambda { @client.hmset("key") }.should raise_error(ArgumentError)
       @client.exists("key").should be_false

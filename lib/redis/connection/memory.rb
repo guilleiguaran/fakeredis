@@ -535,6 +535,7 @@ class Redis
       end
 
       def hmget(key, *fields)
+        raise ArgumentError, "wrong number of arguments for 'hmget' command" if fields.empty?
         data_type_check(key, Hash)
         values = []
         fields.map do |field|

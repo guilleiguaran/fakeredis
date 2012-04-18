@@ -278,7 +278,7 @@ class Redis
         case where
           when :before then @data[key].insert(index, value)
           when :after  then @data[key].insert(index + 1, value)
-          else raise ArgumentError.new
+          else raise ArgumentError
         end
       end
 
@@ -526,6 +526,7 @@ class Redis
       end
 
       def hmset(key, *fields)
+        raise ArgumentError, "wrong number of arguments for 'hmset' command" if fields.empty?
         data_type_check(key, Hash)
         @data[key] ||= {}
         fields.each_slice(2) do |field|

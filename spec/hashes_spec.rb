@@ -94,6 +94,11 @@ module FakeRedis
       @client.hmget("key2", "i1", "i2").should == [nil, nil]
     end
 
+    it "should reject an empty list of values" do
+      lambda { @client.hmset("key") }.should raise_error(ArgumentError)
+      @client.exists("key").should be_false
+    end
+
     it "should set multiple hash fields to multiple values" do
       @client.hmset("key", "k1", "value1", "k2", "value2")
 

@@ -99,6 +99,12 @@ module FakeRedis
       @client.mget("key1", "key2", "key3").should == ["value1", "value2", "value3"]
     end
 
+    it 'raises an argument error when not passed any fields' do
+      @client.set("key3", "value3")
+
+      lambda { @client.mget }.should raise_error(ArgumentError)
+    end
+
     it "should set multiple keys to multiple values" do
       @client.mset(:key1, "value1", :key2, "value2")
 

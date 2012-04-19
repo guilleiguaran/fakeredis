@@ -181,6 +181,7 @@ class Redis
       end
 
       def mget(*keys)
+        raise ArgumentError, "wrong number of arguments for 'mget' command" if keys.empty?
         @data.values_at(*keys)
       end
 

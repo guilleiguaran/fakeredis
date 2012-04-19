@@ -48,6 +48,7 @@ module FakeRedis
       @client.set("key1", "This a message")
 
       @client.getrange("key1", 0, 3).should == "This"
+      @client.substr("key1", 0, 3).should == "This"
     end
 
     it "should set the string value of a key and return its old value" do
@@ -56,7 +57,7 @@ module FakeRedis
       @client.getset("key1", "value2").should == "value1"
       @client.get("key1").should == "value2"
     end
-    
+
     it "should return nil for #getset if the key does not exist when setting" do
       @client.getset("key1", "value1").should == nil
       @client.get("key1").should == "value1"
@@ -68,11 +69,11 @@ module FakeRedis
 
       @client.get("counter").should == "2"
     end
-    
+
     it "should decrement the integer value of a key by one" do
       @client.set("counter", "1")
       @client.decr("counter").should == 0
-      
+
       @client.get("counter").should == "0"
     end
 

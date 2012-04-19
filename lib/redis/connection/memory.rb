@@ -120,7 +120,6 @@ class Redis
       # * subscribe
       # * psubscribe
       # * publish
-      # * substr
       # * zremrangebyrank
       # * zunionstore
       def flushdb
@@ -173,6 +172,7 @@ class Redis
         return unless @data[key]
         @data[key][start..ending]
       end
+      alias :substr :getrange
 
       def getset(key, value)
         old_value = @data[key]

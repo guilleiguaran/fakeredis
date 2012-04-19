@@ -116,10 +116,6 @@ class Redis
       # * brpop
       # * brpoplpush
       # * discard
-      # * mapped_hmset
-      # * mapped_hmget
-      # * mapped_mset
-      # * mapped_msetnx
       # * move
       # * subscribe
       # * psubscribe
@@ -624,11 +620,6 @@ class Redis
         return if keys.any?{|key| @data.key?(key) }
         mset(*pairs)
         true
-      end
-
-      def mapped_mget(*keys)
-        reply = mget(*keys)
-        Hash[*keys.zip(reply).flatten]
       end
 
       def sort(key)

@@ -98,17 +98,6 @@ module FakeRedis
       @client.mget("key1", "key2", "key3").should == ["value1", "value2", "value3"]
     end
 
-    it "should get the values of all the given keys mapped" do
-      @client.set("key1", "value1")
-      @client.set("key2", "value2")
-      @client.set("key3", "value3")
-      response = @client.mapped_mget("key1", "key2", "key3")
-
-      response["key1"].should == "value1"
-      response["key2"].should == "value2"
-      response["key3"].should == "value3"
-    end
-
     it "should set multiple keys to multiple values" do
       @client.mset(:key1, "value1", :key2, "value2")
 

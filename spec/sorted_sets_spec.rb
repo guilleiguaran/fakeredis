@@ -157,9 +157,18 @@ module FakeRedis
       end
     end
 
-    #it "should remove all members in a sorted set within the given indexes"
+    context '#zremrangebyrank' do
+      it 'removes all elements with in the given range' do
+        @client.zadd("key", 1, "one")
+        @client.zadd("key", 2, "two")
+        @client.zadd("key", 3, "three")
 
-    #it "should remove all members in a sorted set within the given scores"
+        @client.zremrangebyrank("key", 0, 1).should == 2
+        @client.zcard('key').should == 1
+      end
+    end
+
+    #it "should remove all members in a sorted set within the given indexes"
 
     #it "should return a range of members in a sorted set, by index, with scores ordered from high to low"
 

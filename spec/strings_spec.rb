@@ -35,18 +35,18 @@ module FakeRedis
     it "should returns the bit value at offset in the string value stored at key" do
       @client.set("key1", "a")
 
-      @client.getbit("key1", 1).should == "1"
-      @client.getbit("key1", 2).should == "1"
-      @client.getbit("key1", 3).should == "0"
-      @client.getbit("key1", 4).should == "0"
-      @client.getbit("key1", 5).should == "0"
-      @client.getbit("key1", 6).should == "0"
-      @client.getbit("key1", 7).should == "1"
+      @client.getbit("key1", 1).should == 1
+      @client.getbit("key1", 2).should == 1
+      @client.getbit("key1", 3).should == 0
+      @client.getbit("key1", 4).should == 0
+      @client.getbit("key1", 5).should == 0
+      @client.getbit("key1", 6).should == 0
+      @client.getbit("key1", 7).should == 1
     end
 
     it "should allow direct bit manipulation even if the string isn't set" do
       @client.setbit("key1", 10, 1)
-      @client.getbit("key1", 10).should == "1"
+      @client.getbit("key1", 10).should == 1
     end
 
     it "should get a substring of the string stored at a key" do

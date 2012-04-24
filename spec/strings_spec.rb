@@ -44,6 +44,11 @@ module FakeRedis
       @client.getbit("key1", 7).should == "1"
     end
 
+    it "should allow direct bit manipulation even if the string isn't set" do
+      @client.setbit("key1", 10, 1)
+      @client.getbit("key1", 10).should == "1"
+    end
+
     it "should get a substring of the string stored at a key" do
       @client.set("key1", "This a message")
 

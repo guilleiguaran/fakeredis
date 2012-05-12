@@ -694,7 +694,7 @@ class Redis
         data_type_check(key, ZSet)
         @data[key] ||= ZSet.new
         exists = @data[key].key?(value.to_s)
-        @data[key][value.to_s] = score.to_i
+        @data[key][value.to_s] = score
         !exists
       end
 

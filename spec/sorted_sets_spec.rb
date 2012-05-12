@@ -14,6 +14,14 @@ module FakeRedis
       @client.zscore("key", "val").should == "2"
     end
 
+    it "should allow floats as scores when adding or updating" do
+      @client.zadd("key", 4.321, "val").should be(true)
+      @client.zscore("key", "val").should == "4.321"
+
+      @client.zadd("key", 54.3210, "val").should be(false)
+      @client.zscore("key", "val").should == "54.321"
+    end
+
     it "should remove members from sorted sets" do
       @client.zrem("key", "val").should be(false)
       @client.zadd("key", 1, "val").should be(true)

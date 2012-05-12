@@ -89,6 +89,9 @@ module FakeRedis
       @client.zrangebyscore("key", 1, 2).should == ["one", "two"]
       @client.zrangebyscore("key", 0, 100, :withscores => true).should == ["one", "1", "two", "2", "three", "3"]
       @client.zrangebyscore("key", 1, 2, :with_scores => true).should == ["one", "1", "two", "2"]
+      @client.zrangebyscore("key", 0, 100, :limit => [0, 1]).should == ["one"]
+      @client.zrangebyscore("key", 0, 100, :limit => [0, -1]).should == ["one", "two", "three"]
+      @client.zrangebyscore("key", 0, 100, :limit => [1, -1], :with_scores => true).should == ["two", "2", "three", "3"]
     end
 
     it "should return a reversed range of members in a sorted set, by score" do
@@ -100,6 +103,9 @@ module FakeRedis
       @client.zrevrangebyscore("key", 2, 1).should == ["two", "one"]
       @client.zrevrangebyscore("key", 1, 2).should == []
       @client.zrevrangebyscore("key", 2, 1, :with_scores => true).should == ["two", "2", "one", "1"]
+      @client.zrevrangebyscore("key", 100, 0, :limit => [0, 1]).should == ["three"]
+      @client.zrevrangebyscore("key", 100, 0, :limit => [0, -1]).should == ["three", "two", "one"]
+      @client.zrevrangebyscore("key", 100, 0, :limit => [1, -1], :with_scores => true).should == ["two", "2", "one", "1"]
     end
 
     it "should determine the index of a member in a sorted set" do

@@ -762,28 +762,38 @@ class Redis
         end[start..stop].flatten.map(&:to_s)
       end
 
-      def zrangebyscore(key, min, max, with_scores = nil)
+      def zrangebyscore(key, min, max, *opts)
         data_type_check(key, ZSet)
         return [] unless @data[key]
 
         range = zrange_select_by_score(key, min, max)
-        if with_scores
+        vals = if opts.include?('WITHSCORES')
           range.sort_by {|_,v| v }
         else
           range.keys.sort_by {|k| range[k] }
-        end.flatten.map(&:to_s)
+        end
+
+        limit = get_limit(opts, vals)
+        vals = vals[*limit] if limit
+
+        vals.flatten.map(&:to_s)
       end
 
-      def zrevrangebyscore(key, max, min, with_scores = nil)
+      def zrevrangebyscore(key, max, min, *opts)
         data_type_check(key, ZSet)
         return [] unless @data[key]
 
         range = zrange_select_by_score(key, min, max)
-        if with_scores
+        vals = if opts.include?('WITHSCORES')
           range.sort_by {|_,v| -v }
         else
           range.keys.sort_by {|k| -range[k] }
-        end.flatten.map(&:to_s)
+        end
+
+        limit = get_limit(opts, vals)
+        vals = vals[*limit] if limit
+
+        vals.flatten.map(&:to_s)
       end
 
       def zremrangebyscore(key, min, max)
@@ -838,6 +848,19 @@ class Redis
         def data_type_check(key, klass)
           if @data[key] && !@data[key].is_a?(klass)
             fail "Operation against a key holding the wrong kind of value: Expected #{klass} at #{key}."
+          end
+        end
+
+        def get_limit(opts, vals)
+          index = opts.index('LIMIT')
+
+          if index
+            offset = opts[index + 1]
+
+            count = opts[index + 2]
+            count = vals.size if count < 0
+
+            [offset, count]
           end
         end
     end

@@ -15,7 +15,8 @@ module FakeRedis
 
     it "should add multiple members to a set" do
       @client.sadd("key", %w(value other something more)).should == 4
-      @client.smembers("key").should =~ ["value", "other", "something", "more"]
+      @client.sadd("key", %w(and additional values)).should == 3
+      @client.smembers("key").should =~ ["value", "other", "something", "more", "and", "additional", "values"]
     end
 
     it "should get the number of members in a set" do

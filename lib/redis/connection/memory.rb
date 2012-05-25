@@ -362,12 +362,20 @@ class Redis
 
       def sadd(key, value)
         data_type_check(key, ::Set)
-        if @data[key]
-          !!@data[key].add?(value.to_s)
+        value = Array(value)
+
+        result = if @data[key]
+          old_set = @data[key].dup
+          @data[key].merge(value.map(&:to_s))
+          (@data[key] - old_set).size
         else
-          @data[key] = ::Set.new([value.to_s])
-          true
+          @data[key] = ::Set.new(value.map(&:to_s))
+          @data[key].size
         end
+
+        # 0 = false, 1 = true, 2+ untouched
+        return result == 1 if result < 2
+        result
       end
 
       def srem(key, value)

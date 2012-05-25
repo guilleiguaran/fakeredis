@@ -141,7 +141,7 @@ module FakeRedis
       @client.zrevrank("key", "four").should be_nil
     end
 
-    it "should create untersections between multiple (sorted) sets and store the resulting sorted set in a new key" do
+    it "should create intersections between multiple (sorted) sets and store the resulting sorted set in a new key" do
       @client.zadd("key1", 1, "one")
       @client.zadd("key1", 2, "two")
       @client.zadd("key1", 3, "three")

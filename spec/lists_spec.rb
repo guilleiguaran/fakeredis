@@ -23,6 +23,12 @@ module FakeRedis
       @client.lrange("key1", 0, -1).should == ["v1", "v2", "v3"]
     end
 
+    it "should error if an invalid where argument is given" do
+      @client.rpush("key1", "v1")
+      @client.rpush("key1", "v3")
+      lambda { @client.linsert("key1", :invalid, "v3", "v2") }.should raise_error(Redis::CommandError, "ERR syntax error")
+    end
+
     it "should get the length of a list" do
       @client.rpush("key1", "v1")
       @client.rpush("key1", "v2")

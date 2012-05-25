@@ -181,7 +181,7 @@ class Redis
       end
 
       def mget(*keys)
-        raise ArgumentError, "wrong number of arguments for 'mget' command" if keys.empty?
+        raise Redis::CommandError, "wrong number of arguments for 'mget' command" if keys.empty?
         @data.values_at(*keys)
       end
 
@@ -275,7 +275,7 @@ class Redis
         case where
           when :before then @data[key].insert(index, value)
           when :after  then @data[key].insert(index + 1, value)
-          else raise ArgumentError
+          else raise Redis::CommandError, "ERR syntax error"
         end
       end
 
@@ -523,7 +523,7 @@ class Redis
       end
 
       def hmset(key, *fields)
-        raise ArgumentError, "wrong number of arguments for 'hmset' command" if fields.empty? || fields.size.odd?
+        raise Redis::CommandError, "wrong number of arguments for 'hmset' command" if fields.empty? || fields.size.odd?
         data_type_check(key, Hash)
         @data[key] ||= {}
         fields.each_slice(2) do |field|
@@ -532,7 +532,7 @@ class Redis
       end
 
       def hmget(key, *fields)
-        raise ArgumentError, "wrong number of arguments for 'hmget' command" if fields.empty?
+        raise Redis::CommandError, "wrong number of arguments for 'hmget' command" if fields.empty?
         data_type_check(key, Hash)
         values = []
         fields.map do |field|

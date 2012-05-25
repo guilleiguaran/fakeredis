@@ -254,7 +254,7 @@ class Redis
 
       def lrange(key, startidx, endidx)
         data_type_check(key, Array)
-        @data[key] && @data[key][startidx..endidx]
+        (@data[key] && @data[key][startidx..endidx]) || []
       end
 
       def ltrim(key, start, stop)

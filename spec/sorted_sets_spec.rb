@@ -15,7 +15,7 @@ module FakeRedis
     end
 
     it 'adds multiple things to a set' do
-      @client.zadd("key", [[1, "val"], [2, 'val2']]).should == 1
+      @client.zadd("key", [[1, "val"], [2, 'val2']]).should == 2
     end
 
     it "should allow floats as scores when adding or updating" do
@@ -154,10 +154,10 @@ module FakeRedis
       @client.zrange("out", 0, 100, :with_scores => true).should == [['two', 7], ['three', 10]]
 
       @client.zinterstore("out", ["key1", "key3"]).should == 2
-      @client.zrange("out", 0, 100, :with_scores => true).should == [['one', 1], ['two', 2]]
+      @client.zrange("out", 0, 100, :with_scores => true).should == [['one', 2], ['two', 3]]
 
       @client.zinterstore("out", ["key1", "key2", "key3"]).should == 1
-      @client.zrange("out", 0, 100, :with_scores => true).should == [['two', 7]]
+      @client.zrange("out", 0, 100, :with_scores => true).should == [['two', 8]]
 
       @client.zinterstore("out", ["key1", "no_key"]).should == 0
       @client.zrange("out", 0, 100, :with_scores => true).should == []

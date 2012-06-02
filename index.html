@@ -1,0 +1,141 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>FakeRedis by guilleiguaran</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/main.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+
+      <header>
+        <h1>FakeRedis</h1>
+        <p>In-Memory driver for redis-rb.</p>
+      </header>
+
+      <div id="banner">
+        <span id="logo"></span>
+
+        <a href="https://github.com/guilleiguaran/fakeredis" class="button fork"><strong>View On GitHub</strong></a>
+        <div class="downloads">
+          <span>Downloads:</span>
+          <ul>
+            <li><a href="https://github.com/guilleiguaran/fakeredis/zipball/master" class="button">ZIP</a></li>
+            <li><a href="https://github.com/guilleiguaran/fakeredis/tarball/master" class="button">TAR</a></li>
+          </ul>
+        </div>
+      </div><!-- end banner -->
+
+    <div class="wrapper">
+      <nav>
+        <ul></ul>
+      </nav>
+      <section>
+        <h1>FakeRedis <a href="http://travis-ci.org/guilleiguaran/fakeredis"><img src="http://travis-ci.org/guilleiguaran/fakeredis.png" alt="Build Status"></a>
+</h1>
+
+<p>This a fake implementation of redis-rb for machines without Redis or test environments</p>
+
+<h2>Installation</h2>
+
+<p>Install the gem:</p>
+
+<pre><code>gem install fakeredis
+</code></pre>
+
+<p>Add it to your Gemfile:</p>
+
+<pre><code>gem "fakeredis"
+</code></pre>
+
+<h2>Versions</h2>
+
+<p>FakeRedis currently supports redis-rb v3.0.0 or later, if you are using
+redis-rb v2.2.x install the version 0.3.x:</p>
+
+<pre><code>gem install fakeredis -v "~&gt; 0.3.0"
+</code></pre>
+
+<p>or use the branch 0-3-x on your Gemfile:</p>
+
+<pre><code>gem "fakeredis", :git =&gt; "git://github.com/guilleiguaran/fakeredis.git", :branch =&gt; "0-3-x"
+</code></pre>
+
+<h2>Usage</h2>
+
+<p>You can use FakeRedis without any changes:</p>
+
+<pre><code>require "fakeredis"
+
+redis = Redis.new
+
+&gt;&gt; redis.set "foo", "bar"
+=&gt; "OK"
+
+&gt;&gt; redis.get "foo"
+=&gt; "bar"
+</code></pre>
+
+<p>Read <a href="https://github.com/ezmobius/redis-rb">redis-rb</a> documentation and
+<a href="http://redis.io">Redis</a> homepage for more info about commands</p>
+
+<h2>Usage with RSpec</h2>
+
+<p>Require this either in your Gemfile or in RSpec's support scripts. So either: </p>
+
+<pre><code># Gemfile
+group :test do
+  gem "rspec"
+  gem "fakeredis", :require =&gt; "fakeredis/rspec"
+end
+</code></pre>
+
+<p>Or:</p>
+
+<pre><code># spec/support/fakeredis.rb
+require 'fakeredis/rspec'
+</code></pre>
+
+<h2>Acknowledgements</h2>
+
+<ul>
+<li><a href="https://github.com/dim">dim</a></li>
+<li><a href="https://github.com/czarneckid">czarneckid</a></li>
+<li><a href="https://github.com/obrie">obrie</a></li>
+<li><a href="https://github.com/jredville">jredville</a></li>
+<li><a href="https://github.com/redsquirrel">redsquirrel</a></li>
+<li><a href="https://github.com/dpick">dpick</a></li>
+<li>
+<a href="http://travis-ci.org/">Travis-CI</a> (Travis-CI also uses Fakeredis in its tests!!!)</li>
+</ul><h2>Contributing to FakeRedis</h2>
+
+<ul>
+<li>Check out the latest master to make sure the feature hasn't been implemented or the bug hasn't been fixed yet</li>
+<li>Check out the issue tracker to make sure someone already hasn't requested it and/or contributed it</li>
+<li>Fork the project</li>
+<li>Start a feature/bugfix branch</li>
+<li>Commit and push until you are happy with your contribution</li>
+<li>Make sure to add tests for it. This is important so I don't break it in a future version unintentionally.</li>
+<li>Please try not to mess with the Rakefile, version, or history. If you want to have your own version, or is otherwise necessary, that is fine, but please isolate to its own commit so I can cherry-pick around it.</li>
+</ul><h2>Copyright</h2>
+
+<p>Copyright (c) 2011-2012 Guillermo Iguaran. See LICENSE for
+further details.</p>
+      </section>
+      <footer>
+        <p>Project maintained by <a href="https://github.com/guilleiguaran">guilleiguaran</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="http://twitter.com/#!/michigangraham">mattgraham</a></small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+    
+  </body>
+</html>

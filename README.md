@@ -64,6 +64,7 @@ Or:
 * [obrie](https://github.com/obrie)
 * [jredville](https://github.com/jredville)
 * [redsquirrel](https://github.com/redsquirrel)
+* [dpick](https://github.com/dpick)
 * [Travis-CI](http://travis-ci.org/) (Travis-CI also uses Fakeredis in its tests!!!)
 
 

@@ -8,18 +8,18 @@ module FakeRedis
 
     it "should add a member to a sorted set, or update its score if it already exists" do
       @client.zadd("key", 1, "val").should be(true)
-      @client.zscore("key", "val").should == "1"
+      @client.zscore("key", "val").should == 1.0
 
       @client.zadd("key", 2, "val").should be(false)
-      @client.zscore("key", "val").should == "2"
+      @client.zscore("key", "val").should == 2.0
     end
 
     it "should allow floats as scores when adding or updating" do
       @client.zadd("key", 4.321, "val").should be(true)
-      @client.zscore("key", "val").should == "4.321"
+      @client.zscore("key", "val").should == 4.321
 
       @client.zadd("key", 54.3210, "val").should be(false)
-      @client.zscore("key", "val").should == "54.321"
+      @client.zscore("key", "val").should == 54.321
     end
 
     it "should remove members from sorted sets" do
@@ -52,17 +52,17 @@ module FakeRedis
 
     it "should increment the score of a member in a sorted set" do
       @client.zadd("key", 1, "val1")
-      @client.zincrby("key", 2, "val1").should == "3"
-      @client.zscore("key", "val1").should == "3"
+      @client.zincrby("key", 2, "val1").should == 3
+      @client.zscore("key", "val1").should == 3
     end
 
     it "initializes the sorted set if the key wasnt already set" do
-      @client.zincrby("key", 1, "val1").should == "1"
+      @client.zincrby("key", 1, "val1").should == 1
     end
 
     it "should convert the key to a string for zscore" do
       @client.zadd("key", 1, 1)
-      @client.zscore("key", 1).should == "1"
+      @client.zscore("key", 1).should == 1
     end
     #it "should intersect multiple sorted sets and store the resulting sorted set in a new key"
 
@@ -73,8 +73,8 @@ module FakeRedis
 
       @client.zrange("key", 0, -1).should == ["one", "two", "three"]
       @client.zrange("key", 1, 2).should == ["two", "three"]
-      @client.zrange("key", 0, -1, :withscores => true).should == ["one", "1", "two", "2", "three", "3"]
-      @client.zrange("key", 1, 2, :with_scores => true).should == ["two", "2", "three", "3"]
+      @client.zrange("key", 0, -1, :withscores => true).should == [["one", 1], ["two", 2], ["three", 3]]
+      @client.zrange("key", 1, 2, :with_scores => true).should == [["two", 2], ["three", 3]]
     end
 
     it "should return a reversed range of members in a sorted set, by index" do
@@ -84,8 +84,8 @@ module FakeRedis
 
       @client.zrevrange("key", 0, -1).should == ["three", "two", "one"]
       @client.zrevrange("key", 1, 2).should == ["two", "one"]
-      @client.zrevrange("key", 0, -1, :withscores => true).should == ["three", "3", "two", "2", "one", "1"]
-      @client.zrevrange("key", 0, -1, :with_scores => true).should == ["three", "3", "two", "2", "one", "1"]
+      @client.zrevrange("key", 0, -1, :withscores => true).should == [["three", 3], ["two", 2], ["one", 1]]
+      @client.zrevrange("key", 0, -1, :with_scores => true).should == [["three", 3], ["two", 2], ["one", 1]]
     end
 
     it "should return a range of members in a sorted set, by score" do
@@ -95,11 +95,11 @@ module FakeRedis
 
       @client.zrangebyscore("key", 0, 100).should == ["one", "two", "three"]
       @client.zrangebyscore("key", 1, 2).should == ["one", "two"]
-      @client.zrangebyscore("key", 0, 100, :withscores => true).should == ["one", "1", "two", "2", "three", "3"]
-      @client.zrangebyscore("key", 1, 2, :with_scores => true).should == ["one", "1", "two", "2"]
+      @client.zrangebyscore("key", 0, 100, :withscores => true).should == [["one", 1], ["two", 2], ["three", 3]]
+      @client.zrangebyscore("key", 1, 2, :with_scores => true).should == [["one", 1], ["two", 2]]
       @client.zrangebyscore("key", 0, 100, :limit => [0, 1]).should == ["one"]
       @client.zrangebyscore("key", 0, 100, :limit => [0, -1]).should == ["one", "two", "three"]
-      @client.zrangebyscore("key", 0, 100, :limit => [1, -1], :with_scores => true).should == ["two", "2", "three", "3"]
+      @client.zrangebyscore("key", 0, 100, :limit => [1, -1], :with_scores => true).should == [["two", 2], ["three", 3]]
     end
 
     it "should return a reversed range of members in a sorted set, by score" do
@@ -110,10 +110,10 @@ module FakeRedis
       @client.zrevrangebyscore("key", 100, 0).should == ["three", "two", "one"]
       @client.zrevrangebyscore("key", 2, 1).should == ["two", "one"]
       @client.zrevrangebyscore("key", 1, 2).should == []
-      @client.zrevrangebyscore("key", 2, 1, :with_scores => true).should == ["two", "2", "one", "1"]
+      @client.zrevrangebyscore("key", 2, 1, :with_scores => true).should == [["two", 2], ["one", 1]]
       @client.zrevrangebyscore("key", 100, 0, :limit => [0, 1]).should == ["three"]
       @client.zrevrangebyscore("key", 100, 0, :limit => [0, -1]).should == ["three", "two", "one"]
-      @client.zrevrangebyscore("key", 100, 0, :limit => [1, -1], :with_scores => true).should == ["two", "2", "one", "1"]
+      @client.zrevrangebyscore("key", 100, 0, :limit => [1, -1], :with_scores => true).should == [["two", 2], ["one", 1]]
     end
 
     it "should determine the index of a member in a sorted set" do
@@ -144,13 +144,13 @@ module FakeRedis
       @client.sadd("key3", 'two')
 
       @client.zinterstore("out", ["key1", "key2"]).should == 2
-      @client.zrange("out", 0, 100, :with_scores => true).should == ['two', '7', 'three', '10']
+      @client.zrange("out", 0, 100, :with_scores => true).should == [['two', 7], ['three', 10]]
 
       @client.zinterstore("out", ["key1", "key3"]).should == 2
-      @client.zrange("out", 0, 100, :with_scores => true).should == ['one', '1', 'two', '2']
+      @client.zrange("out", 0, 100, :with_scores => true).should == [['one', 1], ['two', 2]]
 
       @client.zinterstore("out", ["key1", "key2", "key3"]).should == 1
-      @client.zrange("out", 0, 100, :with_scores => true).should == ['two', '7']
+      @client.zrange("out", 0, 100, :with_scores => true).should == [['two', 7]]
 
       @client.zinterstore("out", ["key1", "no_key"]).should == 0
       @client.zrange("out", 0, 100, :with_scores => true).should == []

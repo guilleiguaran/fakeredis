@@ -65,9 +65,9 @@ class Redis
 
       include Redis::Connection::CommandHelper
 
-      def initialize
+      def initialize(connected = false)
         @data = ExpiringHash.new
-        @connected = false
+        @connected = connected
         @replies = []
         @buffer = nil
       end
@@ -76,8 +76,8 @@ class Redis
         @connected
       end
 
-      def connect(host, port, timeout)
-        @connected = true
+      def self.connect(options = {})
+        self.new(true)
       end
 
       def connect_unix(path, timeout)
@@ -197,7 +197,7 @@ class Redis
 
       def hgetall(key)
         data_type_check(key, Hash)
-        @data[key] || {}
+        @data[key].to_a.flatten || {}
       end
 
       def hget(key, field)

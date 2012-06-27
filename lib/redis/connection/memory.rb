@@ -838,7 +838,15 @@ class Redis
       private
 
         def zrange_select_by_score(key, min, max)
-          @data[key].reject {|_,v| v < min || v > max }
+          if min == '-inf' && max == '+inf'
+            @data[key]
+          elsif max == '+inf'
+            @data[key].reject { |_,v| v < min }
+          elsif min == '-inf'
+            @data[key].reject { |_,v| v > max }
+          else
+            @data[key].reject {|_,v| v < min || v > max }
+          end
         end
 
         def remove_key_for_empty_collection(key)

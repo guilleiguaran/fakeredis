@@ -14,6 +14,10 @@ module FakeRedis
       @client.zscore("key", "val").should == 2.0
     end
 
+    it 'adds multiple things to a set' do
+      @client.zadd("key", [[1, "val"], [2, 'val2']]).should == 1
+    end
+
     it "should allow floats as scores when adding or updating" do
       @client.zadd("key", 4.321, "val").should be(true)
       @client.zscore("key", "val").should == 4.321
@@ -100,6 +104,9 @@ module FakeRedis
       @client.zrangebyscore("key", 0, 100, :limit => [0, 1]).should == ["one"]
       @client.zrangebyscore("key", 0, 100, :limit => [0, -1]).should == ["one", "two", "three"]
       @client.zrangebyscore("key", 0, 100, :limit => [1, -1], :with_scores => true).should == [["two", 2], ["three", 3]]
+      @client.zrangebyscore("key", '-inf', '+inf').should == ["one", "two", "three"]
+      @client.zrangebyscore("key", 2, '+inf').should == ["two", "three"]
+      @client.zrangebyscore("key", '-inf', 2).should == ['one', "two"]
     end
 
     it "should return a reversed range of members in a sorted set, by score" do

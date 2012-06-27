@@ -14,6 +14,10 @@ module FakeRedis
       @client.zscore("key", "val").should == 2.0
     end
 
+    it 'adds multiple things to a set' do
+      @client.zadd("key", [[1, "val"], [2, 'val2']]).should == 1
+    end
+
     it "should allow floats as scores when adding or updating" do
       @client.zadd("key", 4.321, "val").should be(true)
       @client.zscore("key", "val").should == 4.321

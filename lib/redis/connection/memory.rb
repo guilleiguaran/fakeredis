@@ -690,12 +690,22 @@ class Redis
         "OK"
       end
 
-      def zadd(key, score, value)
+      def zadd(key, *args)
         data_type_check(key, ZSet)
         @data[key] ||= ZSet.new
-        exists = @data[key].key?(value.to_s)
-        @data[key][value.to_s] = score
-        !exists
+
+        if args.size == 1 && args[0].is_a?(Array)
+          exists = args.map(&:last).map { |el| @data[key].key?(el.to_s) }.count(true)
+          args.each { |score, value| @data[key][value.to_s] = score }
+        elsif args.size == 2
+          score, value = args
+          exists = !@data[key].key?(value.to_s)
+          @data[key][value.to_s] = score
+        else
+          raise ArgumentError, "wrong number of arguments for 'zadd' command" if keys.empty?
+        end
+
+        exists
       end
 
       def zrem(key, value)
@@ -838,7 +848,15 @@ class Redis
       private
 
         def zrange_select_by_score(key, min, max)
-          @data[key].reject {|_,v| v < min || v > max }
+          if min == '-inf' && max == '+inf'
+            @data[key]
+          elsif max == '+inf'
+            @data[key].reject { |_,v| v < min }
+          elsif min == '-inf'
+            @data[key].reject { |_,v| v > max }
+          else
+            @data[key].reject {|_,v| v < min || v > max }
+          end
         end
 
         def remove_key_for_empty_collection(key)

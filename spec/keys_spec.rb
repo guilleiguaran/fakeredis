@@ -15,6 +15,20 @@ module FakeRedis
       @client.get("key1").should == nil
     end
 
+    it "should delete multiple keys" do
+      @client.set("key1", "1")
+      @client.set("key2", "2")
+      @client.del(["key1", "key2"])
+
+      @client.get("key1").should be == nil
+      @client.get("key2").should be == nil
+    end
+
+    it "should error deleting no keys" do
+      -> { @client.del }.should raise_error(Redis::CommandError, "ERR wrong number of arguments for 'del' command")
+      -> { @client.del [] }.should raise_error(Redis::CommandError, "ERR wrong number of arguments for 'del' command")
+    end
+
     it "should determine if a key exists" do
       @client.set("key1", "1")
 

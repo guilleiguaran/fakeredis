@@ -447,8 +447,10 @@ class Redis
       end
 
       def del(*keys)
+        keys = keys.flatten(1)
+        raise Redis::CommandError, "ERR wrong number of arguments for 'del' command" if keys.empty?
         old_count = @data.keys.size
-        keys.flatten.each do |key|
+        keys.each do |key|
           @data.delete(key)
         end
         deleted_count = old_count - @data.keys.size

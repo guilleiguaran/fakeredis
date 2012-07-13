@@ -25,8 +25,8 @@ module FakeRedis
     end
 
     it "should error deleting no keys" do
-      -> { @client.del }.should raise_error(Redis::CommandError, "ERR wrong number of arguments for 'del' command")
-      -> { @client.del [] }.should raise_error(Redis::CommandError, "ERR wrong number of arguments for 'del' command")
+      lambda { @client.del }.should raise_error(Redis::CommandError, "ERR wrong number of arguments for 'del' command")
+      lambda { @client.del [] }.should raise_error(Redis::CommandError, "ERR wrong number of arguments for 'del' command")
     end
 
     it "should determine if a key exists" do

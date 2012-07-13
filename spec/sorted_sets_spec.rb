@@ -27,11 +27,11 @@ module FakeRedis
     end
 
     it "should error with wrong number of arguments when adding members" do
-      -> { @client.zadd("key") }.should raise_error(ArgumentError, "wrong number of arguments")
-      -> { @client.zadd("key", 1) }.should raise_error(ArgumentError, "wrong number of arguments")
-      -> { @client.zadd("key", [1]) }.should raise_error(Redis::CommandError, "ERR wrong number of arguments for 'zadd' command")
-      -> { @client.zadd("key", [1, "val", 2]) }.should raise_error(Redis::CommandError, "ERR syntax error")
-      -> { @client.zadd("key", [[1, "val"], [2]]) }.should raise_error(Redis::CommandError, "ERR syntax error")
+      lambda { @client.zadd("key") }.should raise_error(ArgumentError, "wrong number of arguments")
+      lambda { @client.zadd("key", 1) }.should raise_error(ArgumentError, "wrong number of arguments")
+      lambda { @client.zadd("key", [1]) }.should raise_error(Redis::CommandError, "ERR wrong number of arguments for 'zadd' command")
+      lambda { @client.zadd("key", [1, "val", 2]) }.should raise_error(Redis::CommandError, "ERR syntax error")
+      lambda { @client.zadd("key", [[1, "val"], [2]]) }.should raise_error(Redis::CommandError, "ERR syntax error")
     end
 
     it "should allow floats as scores when adding or updating" do

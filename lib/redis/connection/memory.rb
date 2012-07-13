@@ -181,7 +181,7 @@ class Redis
       end
 
       def mget(*keys)
-        raise ArgumentError, "wrong number of arguments for 'mget' command" if keys.empty?
+        raise Redis::CommandError, "wrong number of arguments for 'mget' command" if keys.empty?
         @data.values_at(*keys)
       end
 
@@ -254,7 +254,7 @@ class Redis
 
       def lrange(key, startidx, endidx)
         data_type_check(key, Array)
-        @data[key] && @data[key][startidx..endidx]
+        (@data[key] && @data[key][startidx..endidx]) || []
       end
 
       def ltrim(key, start, stop)
@@ -275,7 +275,7 @@ class Redis
         case where
           when :before then @data[key].insert(index, value)
           when :after  then @data[key].insert(index + 1, value)
-          else raise ArgumentError
+          else raise Redis::CommandError, "ERR syntax error"
         end
       end
 
@@ -362,12 +362,20 @@ class Redis
 
       def sadd(key, value)
         data_type_check(key, ::Set)
-        if @data[key]
-          !!@data[key].add?(value.to_s)
+        value = Array(value)
+
+        result = if @data[key]
+          old_set = @data[key].dup
+          @data[key].merge(value.map(&:to_s))
+          (@data[key] - old_set).size
         else
-          @data[key] = ::Set.new([value.to_s])
-          true
+          @data[key] = ::Set.new(value.map(&:to_s))
+          @data[key].size
         end
+
+        # 0 = false, 1 = true, 2+ untouched
+        return result == 1 if result < 2
+        result
       end
 
       def srem(key, value)
@@ -525,7 +533,7 @@ class Redis
       end
 
       def hmset(key, *fields)
-        raise ArgumentError, "wrong number of arguments for 'hmset' command" if fields.empty? || fields.size.odd?
+        raise Redis::CommandError, "wrong number of arguments for 'hmset' command" if fields.empty? || fields.size.odd?
         data_type_check(key, Hash)
         @data[key] ||= {}
         fields.each_slice(2) do |field|
@@ -534,7 +542,7 @@ class Redis
       end
 
       def hmget(key, *fields)
-        raise ArgumentError, "wrong number of arguments for 'hmget' command" if fields.empty?
+        raise Redis::CommandError, "wrong number of arguments for 'hmget' command" if fields.empty?
         data_type_check(key, Hash)
         values = []
         fields.map do |field|
@@ -693,18 +701,30 @@ class Redis
       end
 
       def zadd(key, *args)
+        if !args.first.is_a?(Array)
+          if args.size < 2
+            raise Redis::CommandError, "ERR wrong number of arguments for 'zadd' command"
+          elsif args.size.odd?
+            raise Redis::CommandError, "ERR syntax error"
+          end
+        else
+          unless args.all? {|pair| pair.size == 2 }
+            raise(Redis::CommandError, "ERR syntax error")
+          end
+        end
+
         data_type_check(key, ZSet)
         @data[key] ||= ZSet.new
 
-        if args.size == 1 && args[0].is_a?(Array)
-          exists = args.map(&:last).map { |el| @data[key].key?(el.to_s) }.count(true)
-          args.each { |score, value| @data[key][value.to_s] = score }
-        elsif args.size == 2
+        if args.size == 2
           score, value = args
           exists = !@data[key].key?(value.to_s)
           @data[key][value.to_s] = score
         else
-          raise ArgumentError, "wrong number of arguments for 'zadd' command" if keys.empty?
+          # Turn [1, 2, 3, 4] into [[1, 2], [3, 4]] unless it is already
+          args = args.each_slice(2).to_a unless args.first.is_a?(Array)
+          exists = args.map(&:last).map { |el| @data[key].key?(el.to_s) }.count(false)
+          args.each { |score, value| @data[key][value.to_s] = score }
         end
 
         exists
@@ -823,7 +843,8 @@ class Redis
         hashes = keys.map do |src|
           case @data[src]
           when ::Set
-            Hash[@data[src].zip([0] * @data[src].size)]
+            # Every value has a score of 1
+            Hash[@data[src].map {|k,v| [k, 1]}]
           when Hash
             @data[src]
           else

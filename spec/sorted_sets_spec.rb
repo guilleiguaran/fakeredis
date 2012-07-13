@@ -14,8 +14,24 @@ module FakeRedis
       @client.zscore("key", "val").should == 2.0
     end
 
-    it 'adds multiple things to a set' do
-      @client.zadd("key", [[1, "val"], [2, 'val2']]).should == 1
+    it "should add multiple members to a sorted set, or update its score if it already exists" do
+      @client.zadd("key", [1, "val", 2, "val2"]).should be == 2
+      @client.zscore("key", "val").should be == 1
+      @client.zscore("key", "val2").should be == 2
+
+      @client.zadd("key", [[5, "val"], [3, "val3"], [4, "val4"]]).should be == 2
+      @client.zscore("key", "val").should be == 5
+      @client.zscore("key", "val2").should be == 2
+      @client.zscore("key", "val3").should be == 3
+      @client.zscore("key", "val4").should be == 4
+    end
+
+    it "should error with wrong number of arguments when adding members" do
+      lambda { @client.zadd("key") }.should raise_error(ArgumentError, "wrong number of arguments")
+      lambda { @client.zadd("key", 1) }.should raise_error(ArgumentError, "wrong number of arguments")
+      lambda { @client.zadd("key", [1]) }.should raise_error(Redis::CommandError, "ERR wrong number of arguments for 'zadd' command")
+      lambda { @client.zadd("key", [1, "val", 2]) }.should raise_error(Redis::CommandError, "ERR syntax error")
+      lambda { @client.zadd("key", [[1, "val"], [2]]) }.should raise_error(Redis::CommandError, "ERR syntax error")
     end
 
     it "should allow floats as scores when adding or updating" do
@@ -141,7 +157,7 @@ module FakeRedis
       @client.zrevrank("key", "four").should be_nil
     end
 
-    it "should create untersections between multiple (sorted) sets and store the resulting sorted set in a new key" do
+    it "should create intersections between multiple (sorted) sets and store the resulting sorted set in a new key" do
       @client.zadd("key1", 1, "one")
       @client.zadd("key1", 2, "two")
       @client.zadd("key1", 3, "three")
@@ -154,10 +170,10 @@ module FakeRedis
       @client.zrange("out", 0, 100, :with_scores => true).should == [['two', 7], ['three', 10]]
 
       @client.zinterstore("out", ["key1", "key3"]).should == 2
-      @client.zrange("out", 0, 100, :with_scores => true).should == [['one', 1], ['two', 2]]
+      @client.zrange("out", 0, 100, :with_scores => true).should == [['one', 2], ['two', 3]]
 
       @client.zinterstore("out", ["key1", "key2", "key3"]).should == 1
-      @client.zrange("out", 0, 100, :with_scores => true).should == [['two', 7]]
+      @client.zrange("out", 0, 100, :with_scores => true).should == [['two', 8]]
 
       @client.zinterstore("out", ["key1", "no_key"]).should == 0
       @client.zrange("out", 0, 100, :with_scores => true).should == []

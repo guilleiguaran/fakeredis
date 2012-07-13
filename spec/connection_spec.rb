@@ -7,9 +7,11 @@ module FakeRedis
       @client = Redis.new
     end
 
+  if fakeredis?
     it "should authenticate to the server" do
       @client.auth("pass").should == "OK"
     end
+  end
 
     it "should echo the given string" do
       @client.echo("something").should == "something"

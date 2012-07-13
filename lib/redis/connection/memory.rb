@@ -702,7 +702,7 @@ class Redis
         if !args.first.is_a?(Array)
           if args.size < 2
             raise Redis::CommandError, "ERR wrong number of arguments for 'zadd' command"
-          elsif (args.size % 2) != 0 # odd number
+          elsif args.size.odd?
             raise Redis::CommandError, "ERR syntax error"
           end
         else

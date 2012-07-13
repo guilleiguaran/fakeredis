@@ -76,8 +76,12 @@ class Redis
         @connected
       end
 
+      def self.instances
+        @instances ||= {}
+      end
+
       def self.connect(options = {})
-        self.new(true)
+        self.instances[options] ||= self.new(true)
       end
 
       def connect_unix(path, timeout)

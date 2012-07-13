@@ -2,12 +2,7 @@ $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 require 'rspec'
 require 'fakeredis'
-
-RSpec.configure do |config|
-  config.before do
-    Redis.new.flushall
-  end
-end
+require "fakeredis/rspec"
 
 def fakeredis?
   true

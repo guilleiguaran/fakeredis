@@ -699,18 +699,30 @@ class Redis
       end
 
       def zadd(key, *args)
+        if !args.first.is_a?(Array)
+          if args.size < 2
+            raise Redis::CommandError, "ERR wrong number of arguments for 'zadd' command"
+          elsif (args.size % 2) != 0 # odd number
+            raise Redis::CommandError, "ERR syntax error"
+          end
+        else
+          unless args.all? {|pair| pair.size == 2 }
+            raise(Redis::CommandError, "ERR syntax error")
+          end
+        end
+
         data_type_check(key, ZSet)
         @data[key] ||= ZSet.new
 
-        if args.size == 1 && args[0].is_a?(Array)
-          exists = args.map(&:last).map { |el| @data[key].key?(el.to_s) }.count(true)
-          args.each { |score, value| @data[key][value.to_s] = score }
-        elsif args.size == 2
+        if args.size == 2
           score, value = args
           exists = !@data[key].key?(value.to_s)
           @data[key][value.to_s] = score
         else
-          raise ArgumentError, "wrong number of arguments for 'zadd' command" if keys.empty?
+          # Turn [1, 2, 3, 4] into [[1, 2], [3, 4]] unless it is already
+          args = args.each_slice(2).to_a unless args.first.is_a?(Array)
+          exists = args.map(&:last).map { |el| @data[key].key?(el.to_s) }.count(false)
+          args.each { |score, value| @data[key][value.to_s] = score }
         end
 
         exists

@@ -14,8 +14,24 @@ module FakeRedis
       @client.zscore("key", "val").should == 2.0
     end
 
-    it 'adds multiple things to a set' do
-      @client.zadd("key", [[1, "val"], [2, 'val2']]).should == 2
+    it "should add multiple members to a sorted set, or update its score if it already exists" do
+      @client.zadd("key", [1, "val", 2, "val2"]).should be == 2
+      @client.zscore("key", "val").should be == 1
+      @client.zscore("key", "val2").should be == 2
+
+      @client.zadd("key", [[5, "val"], [3, "val3"], [4, "val4"]]).should be == 2
+      @client.zscore("key", "val").should be == 5
+      @client.zscore("key", "val2").should be == 2
+      @client.zscore("key", "val3").should be == 3
+      @client.zscore("key", "val4").should be == 4
+    end
+
+    it "should error with wrong number of arguments when adding members" do
+      -> { @client.zadd("key") }.should raise_error(ArgumentError, "wrong number of arguments")
+      -> { @client.zadd("key", 1) }.should raise_error(ArgumentError, "wrong number of arguments")
+      -> { @client.zadd("key", [1]) }.should raise_error(Redis::CommandError, "ERR wrong number of arguments for 'zadd' command")
+      -> { @client.zadd("key", [1, "val", 2]) }.should raise_error(Redis::CommandError, "ERR syntax error")
+      -> { @client.zadd("key", [[1, "val"], [2]]) }.should raise_error(Redis::CommandError, "ERR syntax error")
     end
 
     it "should allow floats as scores when adding or updating" do

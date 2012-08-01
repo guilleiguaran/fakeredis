@@ -632,26 +632,22 @@ class Redis
       end
 
       def incr(key)
-        @data[key] = (@data[key] || "0")
-        @data[key] = (@data[key].to_i + 1).to_s
+        @data.merge!({ key => (@data[key].to_i + 1).to_s || "1"})
         @data[key].to_i
       end
 
       def incrby(key, by)
-        @data[key] = (@data[key] || "0")
-        @data[key] = (@data[key].to_i + by.to_i).to_s
+        @data.merge!({ key => (@data[key].to_i + by.to_i).to_s || by })
         @data[key].to_i
       end
 
       def decr(key)
-        @data[key] = (@data[key] || "0")
-        @data[key] = (@data[key].to_i - 1).to_s
+        @data.merge!({ key => (@data[key].to_i - 1).to_s || "-1"})
         @data[key].to_i
       end
 
       def decrby(key, by)
-        @data[key] = (@data[key] || "0")
-        @data[key] = (@data[key].to_i - by.to_i).to_s
+        @data.merge!({ key => ((@data[key].to_i - by.to_i) || (by.to_i * -1)).to_s })
         @data[key].to_i
       end
 

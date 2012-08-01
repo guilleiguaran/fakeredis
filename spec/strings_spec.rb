@@ -75,11 +75,27 @@ module FakeRedis
       @client.get("counter").should == "2"
     end
 
+    it "should not change the expire value of the key during incr" do
+      @client.set("counter", "1")
+      @client.expire("counter", 600).should be_true
+      @client.ttl("counter").should == 600
+      @client.incr("counter").should == 2
+      @client.ttl("counter").should == 600
+    end
+
     it "should decrement the integer value of a key by one" do
       @client.set("counter", "1")
       @client.decr("counter").should == 0
 
       @client.get("counter").should == "0"
+    end
+
+    it "should not change the expire value of the key during decr" do
+      @client.set("counter", "2")
+      @client.expire("counter", 600).should be_true
+      @client.ttl("counter").should == 600
+      @client.decr("counter").should == 1
+      @client.ttl("counter").should == 600
     end
 
     it "should increment the integer value of a key by the given number" do
@@ -89,11 +105,27 @@ module FakeRedis
       @client.get("counter").should == "17"
     end
 
+    it "should not change the expire value of the key during incrby" do
+      @client.set("counter", "1")
+      @client.expire("counter", 600).should be_true
+      @client.ttl("counter").should == 600
+      @client.incrby("counter", "5").should == 6
+      @client.ttl("counter").should == 600
+    end
+
     it "should decrement the integer value of a key by the given number" do
       @client.set("counter", "10")
       @client.decrby("counter", "5").should == 5
       @client.decrby("counter", 2).should == 3
       @client.get("counter").should == "3"
+    end
+
+    it "should not change the expire value of the key during decrby" do
+      @client.set("counter", "8")
+      @client.expire("counter", 600).should be_true
+      @client.ttl("counter").should == 600
+      @client.decrby("counter", "3").should == 5
+      @client.ttl("counter").should == 600
     end
 
     it "should get the values of all the given keys" do

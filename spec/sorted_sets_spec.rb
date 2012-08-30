@@ -203,6 +203,15 @@ module FakeRedis
         @client.zremrangebyrank("key", 0, 1).should == 2
         @client.zcard('key').should == 1
       end
+
+      it 'handles out of range requests' do
+        @client.zadd("key", 1, "one")
+        @client.zadd("key", 2, "two")
+        @client.zadd("key", 3, "three")
+
+        @client.zremrangebyrank("key", 25, -1).should == 0
+        @client.zcard('key').should == 3
+      end
     end
 
     #it "should remove all members in a sorted set within the given indexes"

@@ -828,6 +828,7 @@ class Redis
 
       def zremrangebyrank(key, start, stop)
         sorted_elements = @data[key].sort { |(v_a, r_a), (v_b, r_b)| r_a <=> r_b }
+        start = sorted_elements.length if start > sorted_elements.length
         elements_to_delete = sorted_elements[start..stop]
         elements_to_delete.each { |elem, rank| @data[key].delete(elem) }
         elements_to_delete.size

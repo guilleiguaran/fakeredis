@@ -8,11 +8,10 @@ Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Guillermo Iguaran"]
   s.email       = ["guilleiguaran@gmail.com"]
-  s.homepage    = "https://github.com/guilleiguaran/fakeredis"
+  s.homepage    = "https://guilleiguaran.github.com/fakeredis"
+  s.license     = "MIT"
   s.summary     = %q{Fake (In-memory) driver for redis-rb.}
   s.description = %q{Fake (In-memory) driver for redis-rb. Useful for testing environment and machines without Redis.}
-
-  s.rubyforge_project = "fakeredis"
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")

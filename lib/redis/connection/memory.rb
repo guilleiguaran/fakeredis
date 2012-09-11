@@ -311,7 +311,9 @@ class Redis
       def rpush(key, value)
         data_type_check(key, Array)
         @data[key] ||= []
-        @data[key].push(value)
+        [value].flatten.each do |val|
+          @data[key].push(val.to_s)
+        end
         @data[key].size
       end
 
@@ -324,7 +326,9 @@ class Redis
       def lpush(key, value)
         data_type_check(key, Array)
         @data[key] ||= []
-        @data[key].unshift(value)
+        [value].flatten.each do |val|
+          @data[key].unshift(val.to_s)
+        end
         @data[key].size
       end
 

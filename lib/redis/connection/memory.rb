@@ -164,6 +164,7 @@ class Redis
       def bgreriteaof ; end
 
       def get(key)
+        data_type_check(key, String)
         @data[key]
       end
 
@@ -893,7 +894,8 @@ class Redis
 
         def data_type_check(key, klass)
           if @data[key] && !@data[key].is_a?(klass)
-            fail "Operation against a key holding the wrong kind of value: Expected #{klass} at #{key}."
+            warn "Operation against a key holding the wrong kind of value: Expected #{klass} at #{key}."
+            raise Redis::CommandError.new("ERR Operation against a key holding the wrong kind of value")
           end
         end
 

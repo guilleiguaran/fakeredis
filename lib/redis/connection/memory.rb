@@ -180,9 +180,10 @@ class Redis
       alias :substr :getrange
 
       def getset(key, value)
-        old_value = @data[key]
-        @data[key] = value
-        return old_value
+        data_type_check(key, String)
+        @data[key].tap do
+          set(key, value)
+        end
       end
 
       def mget(*keys)

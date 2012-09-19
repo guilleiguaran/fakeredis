@@ -19,6 +19,10 @@ module FakeRedis
       @client.info.key?("redis_version").should == true
     end
 
+    it "should handle non-existent methods" do
+      lambda { @client.idontexist }.should raise_error(Redis::CommandError, "ERR unknown command 'idontexist'")
+    end
+
     describe "multiple databases" do
       it "should default to database 0" do
         @client.inspect.should =~ %r#/0>$#

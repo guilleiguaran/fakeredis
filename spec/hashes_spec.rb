@@ -109,11 +109,22 @@ module FakeRedis
       @client.exists("key").should be_false
     end
 
+    it "should reject the wrong number of arguments" do
+      lambda { @client.hmset("hash", "foo1", "bar1", "foo2", "bar2", "foo3") }.should raise_error(Redis::CommandError, "ERR wrong number of arguments for HMSET")
+    end
+
     it "should set multiple hash fields to multiple values" do
       @client.hmset("key", "k1", "value1", "k2", "value2")
 
       @client.hget("key", "k1").should == "value1"
       @client.hget("key", "k2").should == "value2"
+    end
+
+    it "should set multiple hash fields from a ruby hash to multiple values" do
+      @client.mapped_hmset("foo", :k1 => "value1", :k2 => "value2")
+
+      @client.hget("foo", "k1").should == "value1"
+      @client.hget("foo", "k2").should == "value2"
     end
 
     it "should set the string value of a hash field" do

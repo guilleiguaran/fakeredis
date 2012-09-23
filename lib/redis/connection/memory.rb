@@ -16,7 +16,8 @@ class Redis
       end
 
       def self.connect(options = {})
-        self.instances[options] ||= self.new(true)
+        instance_key = [options[:host], options[:port]]
+        instances[instance_key] ||= self.new(options)
       end
 
       def initialize(connected = false)

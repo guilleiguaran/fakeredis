@@ -47,6 +47,12 @@ module FakeRedis
     end
   end
 
+    it "should not error with a disconnected client" do
+      @client1 = Redis.new
+      @client1.client.disconnect
+      @client1.get("key1").should be_nil
+    end
+
     it "should echo the given string" do
       @client.echo("something").should == "something"
     end

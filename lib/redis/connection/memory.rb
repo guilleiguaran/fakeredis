@@ -1,96 +1,52 @@
 require 'set'
 require 'redis/connection/registry'
 require 'redis/connection/command_helper'
+require "fakeredis/expiring_hash"
+require "fakeredis/zset"
 
 class Redis
   module Connection
     class Memory
-      # Represents a normal hash with some additional expiration information
-      # associated with each key
-      class ExpiringHash < Hash
-        attr_reader :expires
-
-        def initialize(*)
-          super
-          @expires = {}
-        end
-
-        def [](key)
-          delete(key) if expired?(key)
-          super
-        end
-
-        def []=(key, val)
-          expire(key)
-          super
-        end
-
-        def delete(key)
-          expire(key)
-          super
-        end
-
-        def expire(key)
-          expires.delete(key)
-        end
-
-        def expired?(key)
-          expires.include?(key) && expires[key] < Time.now
-        end
-
-        def key?(key)
-          delete(key) if expired?(key)
-          super
-        end
-
-        def values_at(*keys)
-          keys.each {|key| delete(key) if expired?(key)}
-          super
-        end
-
-        def keys
-          super.select do |key|
-            if expired?(key)
-              delete(key)
-              false
-            else
-              true
-            end
-          end
-        end
-      end
-
-      class ZSet < Hash
-      end
-
       include Redis::Connection::CommandHelper
 
-      def initialize(connected = false)
-        @data = ExpiringHash.new
-        @connected = connected
-        @replies = []
-        @buffer = nil
-      end
-
-      def connected?
-        @connected
-      end
+      attr_accessor :buffer
 
       def self.instances
         @instances ||= {}
       end
 
       def self.connect(options = {})
-        self.instances[options] ||= self.new(true)
+        key = [options[:host], options[:port]]
+        instances[key] ||= self.new
+      end
+
+      def database_id
+        @database_id ||= 0
+      end
+      attr_writer :database_id
+
+      def databases
+        @databases ||= []
+      end
+      attr_writer :databases
+
+      def data
+        databases[database_id] ||= ExpiringHash.new
+      end
+
+      def replies
+        @replies ||= []
+      end
+      attr_writer :replies
+
+      def connected?
+        true
       end
 
       def connect_unix(path, timeout)
-        @connected = true
       end
 
       def disconnect
-        @connected = false
-        nil
       end
 
       def timeout=(usecs)
@@ -106,13 +62,13 @@ class Redis
           reply = 0
         end
 
-        @replies << reply
-        @buffer << reply if @buffer && method != :multi
+        replies << reply
+        buffer << reply if buffer && method != :multi
         nil
       end
 
       def read
-        @replies.shift
+        replies.shift
       end
 
       # NOT IMPLEMENTED:
@@ -126,19 +82,26 @@ class Redis
       # * publish
       # * zremrangebyrank
       # * zunionstore
+
       def flushdb
-        @data = ExpiringHash.new
+        databases.delete_at(database_id)
+        "OK"
       end
 
       def flushall
-        flushdb
+        self.databases = nil
+        "OK"
       end
 
       def auth(password)
         "OK"
       end
 
-      def select(index) ; end
+      def select(index)
+        data_type_check(index, Integer)
+        self.database_id = index
+        "OK"
+      end
 
       def info
         {
@@ -165,71 +128,71 @@ class Redis
 
       def get(key)
         data_type_check(key, String)
-        @data[key]
+        data[key]
       end
 
       def getbit(key, offset)
-        return unless @data[key]
-        @data[key].unpack('B*')[0].split("")[offset].to_i
+        return unless data[key]
+        data[key].unpack('B*')[0].split("")[offset].to_i
       end
 
       def getrange(key, start, ending)
-        return unless @data[key]
-        @data[key][start..ending]
+        return unless data[key]
+        data[key][start..ending]
       end
       alias :substr :getrange
 
       def getset(key, value)
         data_type_check(key, String)
-        @data[key].tap do
+        data[key].tap do
           set(key, value)
         end
       end
 
       def mget(*keys)
         raise Redis::CommandError, "wrong number of arguments for 'mget' command" if keys.empty?
-        @data.values_at(*keys)
+        data.values_at(*keys)
       end
 
       def append(key, value)
-        @data[key] = (@data[key] || "")
-        @data[key] = @data[key] + value.to_s
+        data[key] = (data[key] || "")
+        data[key] = data[key] + value.to_s
       end
 
       def strlen(key)
-        return unless @data[key]
-        @data[key].size
+        return unless data[key]
+        data[key].size
       end
 
       def hgetall(key)
         data_type_check(key, Hash)
-        @data[key].to_a.flatten || {}
+        data[key].to_a.flatten || {}
       end
 
       def hget(key, field)
         data_type_check(key, Hash)
-        @data[key] && @data[key][field.to_s]
+        data[key] && data[key][field.to_s]
       end
 
       def hdel(key, field)
         data_type_check(key, Hash)
-        @data[key] && @data[key].delete(field)
+        data[key] && data[key].delete(field)
         remove_key_for_empty_collection(key)
       end
 
       def hkeys(key)
         data_type_check(key, Hash)
-        return [] if @data[key].nil?
-        @data[key].keys
+        return [] if data[key].nil?
+        data[key].keys
       end
 
       def keys(pattern = "*")
         regexp = Regexp.new(pattern.split("*").map { |r| Regexp.escape(r) }.join(".*"))
-        @data.keys.select { |key| key =~ regexp }
+        data.keys.select { |key| key =~ regexp }
       end
 
       def randomkey
-        @data.keys[rand(dbsize)]
+        data.keys[rand(dbsize)]
       end
 
       def echo(string)
@@ -245,66 +208,66 @@ class Redis
       end
 
       def dbsize
-        @data.keys.count
+        data.keys.count
       end
 
       def exists(key)
-        @data.key?(key)
+        data.key?(key)
       end
 
       def llen(key)
         data_type_check(key, Array)
-        return 0 unless @data[key]
-        @data[key].size
+        return 0 unless data[key]
+        data[key].size
       end
 
       def lrange(key, startidx, endidx)
         data_type_check(key, Array)
-        (@data[key] && @data[key][startidx..endidx]) || []
+        (data[key] && data[key][startidx..endidx]) || []
       end
 
       def ltrim(key, start, stop)
         data_type_check(key, Array)
-        return unless @data[key]
-        @data[key] = @data[key][start..stop]
+        return unless data[key]
+        data[key] = data[key][start..stop]
       end
 
       def lindex(key, index)
         data_type_check(key, Array)
-        @data[key] && @data[key][index]
+        data[key] && data[key][index]
       end
 
       def linsert(key, where, pivot, value)
         data_type_check(key, Array)
-        return unless @data[key]
-        index = @data[key].index(pivot)
+        return unless data[key]
+        index = data[key].index(pivot)
         case where
-          when :before then @data[key].insert(index, value)
-          when :after  then @data[key].insert(index + 1, value)
+          when :before then data[key].insert(index, value)
+          when :after  then data[key].insert(index + 1, value)
           else raise Redis::CommandError, "ERR syntax error"
         end
       end
 
       def lset(key, index, value)
         data_type_check(key, Array)
-        return unless @data[key]
-        raise RuntimeError if index >= @data[key].size
-        @data[key][index] = value
+        return unless data[key]
+        raise RuntimeError if index >= data[key].size
+        data[key][index] = value
       end
 
       def lrem(key, count, value)
         data_type_check(key, Array)
-        return unless @data[key]
-        old_size = @data[key].size
+        return unless data[key]
+        old_size = data[key].size
         diff =
           if count == 0
-            @data[key].delete(value)
-            old_size - @data[key].size
+            data[key].delete(value)
+            old_size - data[key].size
           else
-            array = count > 0 ? @data[key].dup : @data[key].reverse
+            array = count > 0 ? data[key].dup : data[key].reverse
             count.abs.times{ array.delete_at(array.index(value) || array.length) }
-            @data[key] = count > 0 ? array.dup : array.reverse
-            old_size - @data[key].size
+            data[key] = count > 0 ? array.dup : array.reverse
+            old_size - data[key].size
           end
         remove_key_for_empty_collection(key)
         diff
@@ -312,38 +275,38 @@ class Redis
 
       def rpush(key, value)
         data_type_check(key, Array)
-        @data[key] ||= []
+        data[key] ||= []
         [value].flatten.each do |val|
-          @data[key].push(val.to_s)
+          data[key].push(val.to_s)
         end
-        @data[key].size
+        data[key].size
       end
 
       def rpushx(key, value)
         data_type_check(key, Array)
-        return unless @data[key]
+        return unless data[key]
         rpush(key, value)
       end
 
       def lpush(key, value)
         data_type_check(key, Array)
-        @data[key] ||= []
+        data[key] ||= []
         [value].flatten.each do |val|
-          @data[key].unshift(val.to_s)
+          data[key].unshift(val.to_s)
         end
-        @data[key].size
+        data[key].size
       end
 
       def lpushx(key, value)
         data_type_check(key, Array)
-        return unless @data[key]
+        return unless data[key]
         lpush(key, value)
       end
 
       def rpop(key)
         data_type_check(key, Array)
-        return unless @data[key]
-        @data[key].pop
+        return unless data[key]
+        data[key].pop
       end
 
       def rpoplpush(key1, key2)
@@ -354,33 +317,33 @@ class Redis
 
       def lpop(key)
         data_type_check(key, Array)
-        return unless @data[key]
-        @data[key].shift
+        return unless data[key]
+        data[key].shift
       end
 
       def smembers(key)
         data_type_check(key, ::Set)
-        return [] unless @data[key]
-        @data[key].to_a.reverse
+        return [] unless data[key]
+        data[key].to_a.reverse
       end
 
       def sismember(key, value)
         data_type_check(key, ::Set)
-        return false unless @data[key]
-        @data[key].include?(value.to_s)
+        return false unless data[key]
+        data[key].include?(value.to_s)
       end
 
       def sadd(key, value)
         data_type_check(key, ::Set)
         value = Array(value)
 
-        result = if @data[key]
-          old_set = @data[key].dup
-          @data[key].merge(value.map(&:to_s))
-          (@data[key] - old_set).size
+        result = if data[key]
+          old_set = data[key].dup
+          data[key].merge(value.map(&:to_s))
+          (data[key] - old_set).size
         else
-          @data[key] = ::Set.new(value.map(&:to_s))
-          @data[key].size
+          data[key] = ::Set.new(value.map(&:to_s))
+          data[key].size
         end
 
         # 0 = false, 1 = true, 2+ untouched
@@ -390,7 +353,7 @@ class Redis
 
       def srem(key, value)
         data_type_check(key, ::Set)
-        deleted = !!(@data[key] && @data[key].delete?(value.to_s))
+        deleted = !!(data[key] && data[key].delete?(value.to_s))
         remove_key_for_empty_collection(key)
         deleted
       end
@@ -411,14 +374,14 @@ class Redis
 
       def scard(key)
         data_type_check(key, ::Set)
-        return 0 unless @data[key]
-        @data[key].size
+        return 0 unless data[key]
+        data[key].size
       end
 
       def sinter(*keys)
         keys.each { |k| data_type_check(k, ::Set) }
-        return ::Set.new if keys.any? { |k| @data[k].nil? }
-        keys = keys.map { |k| @data[k] || ::Set.new }
+        return ::Set.new if keys.any? { |k| data[k].nil? }
+        keys = keys.map { |k| data[k] || ::Set.new }
         keys.inject do |set, key|
           set & key
         end.to_a
@@ -427,12 +390,12 @@ class Redis
       def sinterstore(destination, *keys)
         data_type_check(destination, ::Set)
         result = sinter(*keys)
-        @data[destination] = ::Set.new(result)
+        data[destination] = ::Set.new(result)
       end
 
       def sunion(*keys)
         keys.each { |k| data_type_check(k, ::Set) }
-        keys = keys.map { |k| @data[k] || ::Set.new }
+        keys = keys.map { |k| data[k] || ::Set.new }
         keys.inject(::Set.new) do |set, key|
           set | key
         end.to_a
@@ -441,13 +404,13 @@ class Redis
       def sunionstore(destination, *keys)
         data_type_check(destination, ::Set)
         result = sunion(*keys)
-        @data[destination] = ::Set.new(result)
+        data[destination] = ::Set.new(result)
       end
 
       def sdiff(key1, *keys)
         [key1, *keys].each { |k| data_type_check(k, ::Set) }
-        keys = keys.map { |k| @data[k] || ::Set.new }
-        keys.inject(@data[key1]) do |memo, set|
+        keys = keys.map { |k| data[k] || ::Set.new }
+        keys.inject(data[key1]) do |memo, set|
           memo - set
         end.to_a
       end
@@ -455,23 +418,23 @@ class Redis
       def sdiffstore(destination, key1, *keys)
         data_type_check(destination, ::Set)
         result = sdiff(key1, *keys)
-        @data[destination] = ::Set.new(result)
+        data[destination] = ::Set.new(result)
       end
 
       def srandmember(key)
         data_type_check(key, ::Set)
-        return nil unless @data[key]
-        @data[key].to_a[rand(@data[key].size)]
+        return nil unless data[key]
+        data[key].to_a[rand(data[key].size)]
       end
 
       def del(*keys)
         keys = keys.flatten(1)
         raise Redis::CommandError, "ERR wrong number of arguments for 'del' command" if keys.empty?
-        old_count = @data.keys.size
+        old_count = data.keys.size
         keys.each do |key|
-          @data.delete(key)
+          data.delete(key)
         end
-        deleted_count = old_count - @data.keys.size
+        deleted_count = old_count - data.keys.size
       end
 
       def setnx(key, value)
@@ -484,10 +447,10 @@ class Redis
       end
 
       def rename(key, new_key)
-        return unless @data[key]
-        @data[new_key] = @data[key]
-        @data.expires[new_key] = @data.expires[key] if @data.expires.include?(key)
-        @data.delete(key)
+        return unless data[key]
+        data[new_key] = data[key]
+        data.expires[new_key] = data.expires[key] if data.expires.include?(key)
+        data.delete(key)
       end
 
       def renamenx(key, new_key)
@@ -500,13 +463,13 @@ class Redis
       end
 
       def expire(key, ttl)
-        return unless @data[key]
-        @data.expires[key] = Time.now + ttl
+        return unless data[key]
+        data.expires[key] = Time.now + ttl
         true
       end
 
       def ttl(key)
-        if @data.expires.include?(key) && (ttl = @data.expires[key].to_i - Time.now.to_i) > 0
+        if data.expires.include?(key) && (ttl = data.expires[key].to_i - Time.now.to_i) > 0
           ttl
         else
           -1
@@ -514,23 +477,23 @@ class Redis
       end
 
       def expireat(key, timestamp)
-        @data.expires[key] = Time.at(timestamp)
+        data.expires[key] = Time.at(timestamp)
         true
       end
 
       def persist(key)
-        !!@data.expires.delete(key)
+        !!data.expires.delete(key)
       end
 
       def hset(key, field, value)
         data_type_check(key, Hash)
         field = field.to_s
-        if @data[key]
-          result = !@data[key].include?(field)
-          @data[key][field] = value.to_s
+        if data[key]
+          result = !data[key].include?(field)
+          data[key][field] = value.to_s
           result
         else
-          @data[key] = { field => value.to_s }
+          data[key] = { field => value.to_s }
           true
         end
       end
@@ -538,16 +501,16 @@ class Redis
       def hsetnx(key, field, value)
         data_type_check(key, Hash)
         field = field.to_s
-        return false if @data[key] && @data[key][field]
+        return false if data[key] && data[key][field]
         hset(key, field, value)
       end
 
       def hmset(key, *fields)
         raise Redis::CommandError, "wrong number of arguments for 'hmset' command" if fields.empty? || fields.size.odd?
         data_type_check(key, Hash)
-        @data[key] ||= {}
+        data[key] ||= {}
         fields.each_slice(2) do |field|
-          @data[key][field[0].to_s] = field[1].to_s
+          data[key][field[0].to_s] = field[1].to_s
         end
       end
 
@@ -557,8 +520,8 @@ class Redis
         values = []
         fields.map do |field|
           field = field.to_s
-          if @data[key]
-            @data[key][field]
+          if data[key]
+            data[key][field]
           else
             nil
           end
@@ -567,30 +530,30 @@ class Redis
 
       def hlen(key)
         data_type_check(key, Hash)
-        return 0 unless @data[key]
-        @data[key].size
+        return 0 unless data[key]
+        data[key].size
       end
 
       def hvals(key)
         data_type_check(key, Hash)
-        return [] unless @data[key]
-        @data[key].values
+        return [] unless data[key]
+        data[key].values
       end
 
       def hincrby(key, field, increment)
         data_type_check(key, Hash)
-        if @data[key]
-          @data[key][field] = (@data[key][field.to_s].to_i + increment.to_i).to_s
+        if data[key]
+          data[key][field] = (data[key][field.to_s].to_i + increment.to_i).to_s
         else
-          @data[key] = { field => increment.to_s }
+          data[key] = { field => increment.to_s }
         end
-        @data[key][field].to_i
+        data[key][field].to_i
       end
 
       def hexists(key, field)
         data_type_check(key, Hash)
-        return false unless @data[key]
-        @data[key].key?(field)
+        return false unless data[key]
+        data[key].key?(field)
       end
 
       def sync ; end
@@ -604,36 +567,36 @@ class Redis
       end
 
       def set(key, value)
-        @data[key] = value.to_s
+        data[key] = value.to_s
         "OK"
       end
 
       def setbit(key, offset, bit)
-        old_val = @data[key] ? @data[key].unpack('B*')[0].split("") : []
+        old_val = data[key] ? data[key].unpack('B*')[0].split("") : []
         size_increment = [((offset/8)+1)*8-old_val.length, 0].max
         old_val += Array.new(size_increment).map{"0"}
         original_val = old_val[offset]
         old_val[offset] = bit.to_s
         new_val = ""
         old_val.each_slice(8){|b| new_val = new_val + b.join("").to_i(2).chr }
-        @data[key] = new_val
+        data[key] = new_val
         original_val
       end
 
       def setex(key, seconds, value)
-        @data[key] = value.to_s
+        data[key] = value.to_s
         expire(key, seconds)
       end
 
       def setrange(key, offset, value)
-        return unless @data[key]
-        s = @data[key][offset,value.size]
-        @data[key][s] = value
+        return unless data[key]
+        s = data[key][offset,value.size]
+        data[key][s] = value
       end
 
       def mset(*pairs)
         pairs.each_slice(2) do |pair|
-          @data[pair[0].to_s] = pair[1].to_s
+          data[pair[0].to_s] = pair[1].to_s
         end
         "OK"
       end
@@ -641,7 +604,7 @@ class Redis
       def msetnx(*pairs)
         keys = []
         pairs.each_with_index{|item, index| keys << item.to_s if index % 2 == 0}
-        return if keys.any?{|key| @data.key?(key) }
+        return if keys.any?{|key| data.key?(key) }
         mset(*pairs)
         true
       end
@@ -651,27 +614,27 @@ class Redis
       end
 
       def incr(key)
-        @data.merge!({ key => (@data[key].to_i + 1).to_s || "1"})
-        @data[key].to_i
+        data.merge!({ key => (data[key].to_i + 1).to_s || "1"})
+        data[key].to_i
       end
 
       def incrby(key, by)
-        @data.merge!({ key => (@data[key].to_i + by.to_i).to_s || by })
-        @data[key].to_i
+        data.merge!({ key => (data[key].to_i + by.to_i).to_s || by })
+        data[key].to_i
       end
 
       def decr(key)
-        @data.merge!({ key => (@data[key].to_i - 1).to_s || "-1"})
-        @data[key].to_i
+        data.merge!({ key => (data[key].to_i - 1).to_s || "-1"})
+        data[key].to_i
       end
 
       def decrby(key, by)
-        @data.merge!({ key => ((@data[key].to_i - by.to_i) || (by.to_i * -1)).to_s })
-        @data[key].to_i
+        data.merge!({ key => ((data[key].to_i - by.to_i) || (by.to_i * -1)).to_s })
+        data[key].to_i
       end
 
       def type(key)
-        case value = @data[key]
+        case value = data[key]
           when nil then "none"
           when String then "string"
           when Hash then "hash"
@@ -687,13 +650,11 @@ class Redis
       def slaveof(host, port) ; end
 
       def exec
-        buffer = @buffer
-        @buffer = nil
-        buffer
+        buffer.tap {|x| self.buffer = nil }
       end
 
       def multi
-        @buffer = []
+        self.buffer = []
         yield if block_given?
         "OK"
       end
@@ -720,17 +681,17 @@ class Redis
         end
 
         data_type_check(key, ZSet)
-        @data[key] ||= ZSet.new
+        data[key] ||= ZSet.new
 
         if args.size == 2
           score, value = args
-          exists = !@data[key].key?(value.to_s)
-          @data[key][value.to_s] = score
+          exists = !data[key].key?(value.to_s)
+          data[key][value.to_s] = score
         else
           # Turn [1, 2, 3, 4] into [[1, 2], [3, 4]] unless it is already
           args = args.each_slice(2).to_a unless args.first.is_a?(Array)
-          exists = args.map(&:last).map { |el| @data[key].key?(el.to_s) }.count(false)
-          args.each { |score, value| @data[key][value.to_s] = score }
+          exists = args.map(&:last).map { |el| data[key].key?(el.to_s) }.count(false)
+          args.each { |score, value| data[key][value.to_s] = score }
         end
 
         exists
@@ -739,70 +700,70 @@ class Redis
       def zrem(key, value)
         data_type_check(key, ZSet)
         exists = false
-        exists = @data[key].delete(value.to_s) if @data[key]
+        exists = data[key].delete(value.to_s) if data[key]
         remove_key_for_empty_collection(key)
         !!exists
       end
 
       def zcard(key)
         data_type_check(key, ZSet)
-        @data[key] ? @data[key].size : 0
+        data[key] ? data[key].size : 0
       end
 
       def zscore(key, value)
         data_type_check(key, ZSet)
-        @data[key] && @data[key][value.to_s].to_s
+        data[key] && data[key][value.to_s].to_s
       end
 
       def zcount(key, min, max)
         data_type_check(key, ZSet)
-        return 0 unless @data[key]
+        return 0 unless data[key]
         zrange_select_by_score(key, min, max).size
       end
 
       def zincrby(key, num, value)
         data_type_check(key, ZSet)
-        @data[key] ||= ZSet.new
-        @data[key][value.to_s] ||= 0
-        @data[key][value.to_s] += num
-        @data[key][value.to_s].to_s
+        data[key] ||= ZSet.new
+        data[key][value.to_s] ||= 0
+        data[key][value.to_s] += num
+        data[key][value.to_s].to_s
       end
 
       def zrank(key, value)
         data_type_check(key, ZSet)
-        @data[key].keys.sort_by {|k| @data[key][k] }.index(value.to_s)
+        data[key].keys.sort_by {|k| data[key][k] }.index(value.to_s)
       end
 
       def zrevrank(key, value)
         data_type_check(key, ZSet)
-        @data[key].keys.sort_by {|k| -@data[key][k] }.index(value.to_s)
+        data[key].keys.sort_by {|k| -data[key][k] }.index(value.to_s)
       end
 
       def zrange(key, start, stop, with_scores = nil)
         data_type_check(key, ZSet)
-        return [] unless @data[key]
+        return [] unless data[key]
 
         if with_scores
-          @data[key].sort_by {|_,v| v }
+          data[key].sort_by {|_,v| v }
         else
-          @data[key].keys.sort_by {|k| @data[key][k] }
+          data[key].keys.sort_by {|k| data[key][k] }
         end[start..stop].flatten.map(&:to_s)
       end
 
       def zrevrange(key, start, stop, with_scores = nil)
         data_type_check(key, ZSet)
-        return [] unless @data[key]
+        return [] unless data[key]
 
         if with_scores
-          @data[key].sort_by {|_,v| -v }
+          data[key].sort_by {|_,v| -v }
         else
-          @data[key].keys.sort_by {|k| -@data[key][k] }
+          data[key].keys.sort_by {|k| -data[key][k] }
         end[start..stop].flatten.map(&:to_s)
       end
 
       def zrangebyscore(key, min, max, *opts)
         data_type_check(key, ZSet)
-        return [] unless @data[key]
+        return [] unless data[key]
 
         range = zrange_select_by_score(key, min, max)
         vals = if opts.include?('WITHSCORES')
@@ -819,7 +780,7 @@ class Redis
 
       def zrevrangebyscore(key, max, min, *opts)
         data_type_check(key, ZSet)
-        return [] unless @data[key]
+        return [] unless data[key]
 
         range = zrange_select_by_score(key, min, max)
         vals = if opts.include?('WITHSCORES')
@@ -836,10 +797,10 @@ class Redis
 
       def zremrangebyscore(key, min, max)
         data_type_check(key, ZSet)
-        return 0 unless @data[key]
+        return 0 unless data[key]
 
         range = zrange_select_by_score(key, min, max)
-        range.each {|k,_| @data[key].delete(k) }
+        range.each {|k,_| data[key].delete(k) }
         range.size
       end
 
@@ -847,31 +808,31 @@ class Redis
         data_type_check(out, ZSet)
 
         hashes = keys.map do |src|
-          case @data[src]
+          case data[src]
           when ::Set
             # Every value has a score of 1
-            Hash[@data[src].map {|k,v| [k, 1]}]
+            Hash[data[src].map {|k,v| [k, 1]}]
           when Hash
-            @data[src]
+            data[src]
           else
             {}
           end
         end
 
-        @data[out] = ZSet.new
+        data[out] = ZSet.new
         values = hashes.inject([]) {|r, h| r.empty? ? h.keys : r & h.keys }
         values.each do |value|
-          @data[out][value] = hashes.inject(0) {|n, h| n + h[value].to_i }
+          data[out][value] = hashes.inject(0) {|n, h| n + h[value].to_i }
         end
 
-        @data[out].size
+        data[out].size
       end
 
       def zremrangebyrank(key, start, stop)
-        sorted_elements = @data[key].sort { |(v_a, r_a), (v_b, r_b)| r_a <=> r_b }
+        sorted_elements = data[key].sort { |(v_a, r_a), (v_b, r_b)| r_a <=> r_b }
         start = sorted_elements.length if start > sorted_elements.length
         elements_to_delete = sorted_elements[start..stop]
-        elements_to_delete.each { |elem, rank| @data[key].delete(elem) }
+        elements_to_delete.each { |elem, rank| data[key].delete(elem) }
         elements_to_delete.size
       end
 
@@ -879,22 +840,22 @@ class Redis
 
         def zrange_select_by_score(key, min, max)
           if min == '-inf' && max == '+inf'
-            @data[key]
+            data[key]
           elsif max == '+inf'
-            @data[key].reject { |_,v| v < min }
+            data[key].reject { |_,v| v < min }
           elsif min == '-inf'
-            @data[key].reject { |_,v| v > max }
+            data[key].reject { |_,v| v > max }
           else
-            @data[key].reject {|_,v| v < min || v > max }
+            data[key].reject {|_,v| v < min || v > max }
           end
         end
 
         def remove_key_for_empty_collection(key)
-          del(key) if @data[key] && @data[key].empty?
+          del(key) if data[key] && data[key].empty?
         end
 
         def data_type_check(key, klass)
-          if @data[key] && !@data[key].is_a?(klass)
+          if data[key] && !data[key].is_a?(klass)
             warn "Operation against a key holding the wrong kind of value: Expected #{klass} at #{key}."
             raise Redis::CommandError.new("ERR Operation against a key holding the wrong kind of value")
           end

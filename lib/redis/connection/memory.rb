@@ -9,19 +9,18 @@ class Redis
     class Memory
       include Redis::Connection::CommandHelper
 
-      attr_accessor :connected, :replies, :buffer
+      attr_accessor :replies, :buffer
 
       def self.instances
         @instances ||= {}
       end
 
       def self.connect(options = {})
-        instance_key = [options[:host], options[:port]]
-        instances[instance_key] ||= self.new(options)
+        key = [options[:host], options[:port]]
+        instances[key] ||= self.new
       end
 
-      def initialize(connected = false)
-        self.connected = connected
+      def initialize
         self.replies = []
         self.buffer = nil
       end
@@ -41,16 +40,13 @@ class Redis
       end
 
       def connected?
-        connected
+        true
       end
 
       def connect_unix(path, timeout)
-        self.connected = true
       end
 
       def disconnect
-        self.connected = false
-        nil
       end
 
       def timeout=(usecs)

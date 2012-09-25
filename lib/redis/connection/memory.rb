@@ -9,7 +9,7 @@ class Redis
     class Memory
       include Redis::Connection::CommandHelper
 
-      attr_accessor :replies, :buffer
+      attr_accessor :buffer
 
       def self.instances
         @instances ||= {}
@@ -18,11 +18,6 @@ class Redis
       def self.connect(options = {})
         key = [options[:host], options[:port]]
         instances[key] ||= self.new
-      end
-
-      def initialize
-        self.replies = []
-        self.buffer = nil
       end
 
       def database_id
@@ -38,6 +33,11 @@ class Redis
       def data
         databases[database_id] ||= ExpiringHash.new
       end
+
+      def replies
+        @replies ||= []
+      end
+      attr_writer :replies
 
       def connected?
         true

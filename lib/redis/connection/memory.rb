@@ -9,7 +9,7 @@ class Redis
     class Memory
       include Redis::Connection::CommandHelper
 
-      attr_accessor :data, :connected, :replies, :buffer
+      attr_accessor :connected, :replies, :buffer
 
       def self.instances
         @instances ||= {}
@@ -21,10 +21,23 @@ class Redis
       end
 
       def initialize(connected = false)
-        self.data = ExpiringHash.new
         self.connected = connected
         self.replies = []
         self.buffer = nil
+      end
+
+      def database_id
+        @database_id ||= 0
+      end
+      attr_writer :database_id
+
+      def databases
+        @databases ||= []
+      end
+      attr_writer :databases
+
+      def data
+        databases[database_id] ||= ExpiringHash.new
       end
 
       def connected?
@@ -73,19 +86,26 @@ class Redis
       # * publish
       # * zremrangebyrank
       # * zunionstore
+
       def flushdb
-        self.data = ExpiringHash.new
+        databases.delete_at(database_id)
+        "OK"
       end
 
       def flushall
-        flushdb
+        self.databases = nil
+        "OK"
       end
 
       def auth(password)
         "OK"
       end
 
-      def select(index) ; end
+      def select(index)
+        data_type_check(index, Integer)
+        self.database_id = index
+        "OK"
+      end
 
       def info
         {

@@ -68,6 +68,7 @@ class Redis
       # * zunionstore
       def flushdb
         @data = ExpiringHash.new
+        "OK"
       end
 
       def flushall

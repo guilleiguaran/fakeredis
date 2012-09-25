@@ -30,7 +30,7 @@ module FakeRedis
       end
 
       it "should store keys separately in each database" do
-        @client.select(0)
+        @client.select(0).should == "OK"
         @client.set("key1", "1")
         @client.set("key2", "2")
 
@@ -67,7 +67,7 @@ module FakeRedis
         @client.set("key4", "4")
         @client.dbsize.should == 2
 
-        @client.flushdb
+        @client.flushdb.should == "OK"
 
         @client.dbsize.should == 0
         @client.select(0)
@@ -85,7 +85,7 @@ module FakeRedis
         @client.set("key4", "4")
         @client.dbsize.should == 2
 
-        @client.flushall
+        @client.flushall.should == "OK"
 
         @client.dbsize.should == 0
         @client.select(0)

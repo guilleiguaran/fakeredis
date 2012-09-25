@@ -33,6 +33,18 @@ module FakeRedis
       @client2.dbsize.should == 2
       @client3.dbsize.should == 1
     end
+
+    it "should connect to a specific database" do
+      @client1 = Redis.new(host: "localhost", port: 1234, db: 0)
+      @client1.set("key1", "1")
+      @client1.select(0)
+      @client1.get("key1").should == "1"
+
+      @client2 = Redis.new(host: "localhost", port: 1234, db: 1)
+      @client2.set("key1", "1")
+      @client2.select(1)
+      @client2.get("key1").should == "1"
+    end
   end
 
     it "should echo the given string" do

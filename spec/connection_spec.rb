@@ -13,9 +13,9 @@ module FakeRedis
     end
 
     it "should re-use the same instance with the same host & port" do
-      @client1 = Redis.new(host: "localhost", port: 1234)
-      @client2 = Redis.new(host: "localhost", port: 1234)
-      @client3 = Redis.new(host: "localhost", port: 5678)
+      @client1 = Redis.new(:host => "localhost", :port => 1234)
+      @client2 = Redis.new(:host => "localhost", :port => 1234)
+      @client3 = Redis.new(:host => "localhost", :port => 5678)
 
       @client1.set("key1", "1")
       @client2.get("key1").should == "1"
@@ -35,12 +35,12 @@ module FakeRedis
     end
 
     it "should connect to a specific database" do
-      @client1 = Redis.new(host: "localhost", port: 1234, db: 0)
+      @client1 = Redis.new(:host => "localhost", :port => 1234, :db => 0)
       @client1.set("key1", "1")
       @client1.select(0)
       @client1.get("key1").should == "1"
 
-      @client2 = Redis.new(host: "localhost", port: 1234, db: 1)
+      @client2 = Redis.new(:host => "localhost", :port => 1234, :db => 1)
       @client2.set("key1", "1")
       @client2.select(1)
       @client2.get("key1").should == "1"

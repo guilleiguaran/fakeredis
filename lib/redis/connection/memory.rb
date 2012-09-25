@@ -519,7 +519,9 @@ class Redis
       end
 
       def hmset(key, *fields)
-        raise Redis::CommandError, "wrong number of arguments for 'hmset' command" if fields.empty? || fields.size.odd?
+        # mapped_hmset gives us [[:k1, "v1", :k2, "v2"]] for `fields`. Fix that.
+        fields = fields[0] if fields.size == 1 && fields[0].is_a?(Array)
+        raise Redis::CommandError, "ERR wrong number of arguments for HMSET" if fields.empty? || fields.size.odd?
         data_type_check(key, Hash)
         data[key] ||= {}
         fields.each_slice(2) do |field|

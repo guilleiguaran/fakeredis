@@ -745,7 +745,7 @@ class Redis
         data_type_check(key, ZSet)
         data[key] ||= ZSet.new
         data[key][value.to_s] ||= 0
-        data[key][value.to_s] += num
+        data[key][value.to_s] += floatify(num)
         data[key][value.to_s].to_s
       end
 
@@ -891,6 +891,15 @@ class Redis
             count = vals.size if count < 0
 
             [offset, count]
+          end
+        end
+
+        # Lifted from redis-rb
+        def floatify(str)
+          if (inf = str.match(/^(-|\+)?inf/i))
+            (inf[1] == "-" ? -1.0 : 1.0) / 0.0
+          else
+            Float str
           end
         end
     end

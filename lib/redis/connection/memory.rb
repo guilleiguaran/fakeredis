@@ -738,14 +738,14 @@ class Redis
       def zcount(key, min, max)
         data_type_check(key, ZSet)
         return 0 unless data[key]
-        zrange_select_by_score(key, min, max).size
+        data[key].select_by_score(min, max).size
       end
 
       def zincrby(key, num, value)
         data_type_check(key, ZSet)
         data[key] ||= ZSet.new
         data[key][value.to_s] ||= 0
-        data[key][value.to_s] += floatify(num)
+        data[key].increment(value.to_s, num)
         data[key][value.to_s].to_s
       end
 
@@ -785,7 +785,7 @@ class Redis
         data_type_check(key, ZSet)
         return [] unless data[key]
 
-        range = zrange_select_by_score(key, min, max)
+        range = data[key].select_by_score(min, max)
         vals = if opts.include?('WITHSCORES')
           range.sort_by {|_,v| v }
         else
@@ -802,7 +802,7 @@ class Redis
         data_type_check(key, ZSet)
         return [] unless data[key]
 
-        range = zrange_select_by_score(key, min, max)
+        range = data[key].select_by_score(min, max)
         vals = if opts.include?('WITHSCORES')
           range.sort_by {|_,v| -v }
         else
@@ -819,7 +819,7 @@ class Redis
         data_type_check(key, ZSet)
         return 0 unless data[key]
 
-        range = zrange_select_by_score(key, min, max)
+        range = data[key].select_by_score(min, max)
         range.each {|k,_| data[key].delete(k) }
         range.size
       end
@@ -858,18 +858,6 @@ class Redis
 
       private
 
-        def zrange_select_by_score(key, min, max)
-          if min == '-inf' && max == '+inf'
-            data[key]
-          elsif max == '+inf'
-            data[key].reject { |_,v| v < min }
-          elsif min == '-inf'
-            data[key].reject { |_,v| v > max }
-          else
-            data[key].reject {|_,v| v < min || v > max }
-          end
-        end
-
         def remove_key_for_empty_collection(key)
           del(key) if data[key] && data[key].empty?
         end
@@ -891,15 +879,6 @@ class Redis
             count = vals.size if count < 0
 
             [offset, count]
-          end
-        end
-
-        # Lifted from redis-rb
-        def floatify(str)
-          if (inf = str.match(/^(-|\+)?inf/i))
-            (inf[1] == "-" ? -1.0 : 1.0) / 0.0
-          else
-            Float str
           end
         end
     end

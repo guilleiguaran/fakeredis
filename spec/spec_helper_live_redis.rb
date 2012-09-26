@@ -5,7 +5,7 @@ Redis::Connection.drivers.pop
 
 RSpec.configure do |config|
   config.before(:each) do
-    Redis.new.flushdb
+    Redis.new.flushall
   end
 end
 

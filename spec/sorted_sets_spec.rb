@@ -1,6 +1,8 @@
 require 'spec_helper'
 
 module FakeRedis
+  Infinity = 1.0/0.0
+
   describe "SortedSetsMethods" do
     before(:each) do
       @client = Redis.new
@@ -12,6 +14,16 @@ module FakeRedis
 
       @client.zadd("key", 2, "val").should be(false)
       @client.zscore("key", "val").should == 2.0
+
+      # These won't pass until redis-rb releases v3.0.2
+      # @client.zadd("key2", "inf", "val").should == true
+      # @client.zscore("key2", "val").should == Infinity
+      #
+      # @client.zadd("key3", "+inf", "val").should == true
+      # @client.zscore("key3", "val").should == Infinity
+      #
+      # @client.zadd("key4", "-inf", "val").should == true
+      # @client.zscore("key4", "val").should == -Infinity
     end
 
     it "should add multiple members to a sorted set, or update its score if it already exists" do
@@ -84,6 +96,13 @@ module FakeRedis
       @client.zadd("key", 1, 1)
       @client.zscore("key", 1).should == 1
     end
+
+    # These won't pass until redis-rb releases v3.0.2
+    # it "should handle infinity values when incrementing a sorted set key" do
+    #   @client.zincrby("bar", "+inf", "s2").should == Infinity
+    #   @client.zincrby("bar", "-inf", "s1").should == -Infinity
+    # end
+
     #it "should intersect multiple sorted sets and store the resulting sorted set in a new key"
 
     it "should return a range of members in a sorted set, by index" do

@@ -57,8 +57,12 @@ class Redis
       end
 
       def write(command)
-        method = command.shift
-        reply = send(method, *command)
+        meffod = command.shift
+        if respond_to?(meffod)
+          reply = send(meffod, *command)
+        else
+          raise Redis::CommandError, "ERR unknown command '#{meffod}'"
+        end
 
         if reply == true
           reply = 1
@@ -67,7 +71,7 @@ class Redis
         end
 
         replies << reply
-        buffer << reply if buffer && method != :multi
+        buffer << reply if buffer && meffod != :multi
         nil
       end
 
@@ -264,7 +268,7 @@ class Redis
       def lset(key, index, value)
         data_type_check(key, Array)
         return unless data[key]
-        raise RuntimeError if index >= data[key].size
+        raise(Redis::CommandError, "ERR index out of range") if index >= data[key].size
         data[key][index] = value
       end
 
@@ -324,8 +328,9 @@ class Redis
 
       def rpoplpush(key1, key2)
         data_type_check(key1, Array)
-        elem = rpop(key1)
-        lpush(key2, elem)
+        rpop(key1).tap do |elem|
+          lpush(key2, elem)
+        end
       end
 
       def lpop(key)
@@ -519,7 +524,9 @@ class Redis
       end
 
       def hmset(key, *fields)
-        raise Redis::CommandError, "wrong number of arguments for 'hmset' command" if fields.empty? || fields.size.odd?
+        # mapped_hmset gives us [[:k1, "v1", :k2, "v2"]] for `fields`. Fix that.
+        fields = fields[0] if mapped_param?(fields)
+        raise Redis::CommandError, "ERR wrong number of arguments for HMSET" if fields.empty? || fields.size.odd?
         data_type_check(key, Hash)
         data[key] ||= {}
         fields.each_slice(2) do |field|
@@ -608,6 +615,8 @@ class Redis
       end
 
       def mset(*pairs)
+        # Handle pairs for mapped_mset command
+        pairs = pairs[0] if mapped_param?(pairs)
         pairs.each_slice(2) do |pair|
           data[pair[0].to_s] = pair[1].to_s
         end
@@ -615,9 +624,11 @@ class Redis
       end
 
       def msetnx(*pairs)
+        # Handle pairs for mapped_msetnx command
+        pairs = pairs[0] if mapped_param?(pairs)
         keys = []
         pairs.each_with_index{|item, index| keys << item.to_s if index % 2 == 0}
-        return if keys.any?{|key| data.key?(key) }
+        return false if keys.any?{|key| data.key?(key) }
         mset(*pairs)
         true
       end
@@ -731,14 +742,14 @@ class Redis
       def zcount(key, min, max)
         data_type_check(key, ZSet)
         return 0 unless data[key]
-        zrange_select_by_score(key, min, max).size
+        data[key].select_by_score(min, max).size
       end
 
       def zincrby(key, num, value)
         data_type_check(key, ZSet)
         data[key] ||= ZSet.new
         data[key][value.to_s] ||= 0
-        data[key][value.to_s] += num
+        data[key].increment(value.to_s, num)
         data[key][value.to_s].to_s
       end
 
@@ -778,7 +789,7 @@ class Redis
         data_type_check(key, ZSet)
         return [] unless data[key]
 
-        range = zrange_select_by_score(key, min, max)
+        range = data[key].select_by_score(min, max)
         vals = if opts.include?('WITHSCORES')
           range.sort_by {|_,v| v }
         else
@@ -795,7 +806,7 @@ class Redis
         data_type_check(key, ZSet)
         return [] unless data[key]
 
-        range = zrange_select_by_score(key, min, max)
+        range = data[key].select_by_score(min, max)
         vals = if opts.include?('WITHSCORES')
           range.sort_by {|_,v| -v }
         else
@@ -812,7 +823,7 @@ class Redis
         data_type_check(key, ZSet)
         return 0 unless data[key]
 
-        range = zrange_select_by_score(key, min, max)
+        range = data[key].select_by_score(min, max)
         range.each {|k,_| data[key].delete(k) }
         range.size
       end
@@ -851,18 +862,6 @@ class Redis
 
       private
 
-        def zrange_select_by_score(key, min, max)
-          if min == '-inf' && max == '+inf'
-            data[key]
-          elsif max == '+inf'
-            data[key].reject { |_,v| v < min }
-          elsif min == '-inf'
-            data[key].reject { |_,v| v > max }
-          else
-            data[key].reject {|_,v| v < min || v > max }
-          end
-        end
-
         def remove_key_for_empty_collection(key)
           del(key) if data[key] && data[key].empty?
         end
@@ -885,6 +884,10 @@ class Redis
 
             [offset, count]
           end
+        end
+
+        def mapped_param? param
+          param.size == 1 && param[0].is_a?(Array)
         end
     end
   end

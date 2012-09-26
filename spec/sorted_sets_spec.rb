@@ -14,6 +14,15 @@ module FakeRedis
 
       @client.zadd("key", 2, "val").should be(false)
       @client.zscore("key", "val").should == 2.0
+
+      @client.zadd("key2", "inf", "val").should == true
+      @client.zscore("key2", "val").should == Infinity
+
+      @client.zadd("key3", "+inf", "val").should == true
+      @client.zscore("key3", "val").should == Infinity
+
+      @client.zadd("key4", "-inf", "val").should == true
+      @client.zscore("key4", "val").should == -Infinity
     end
 
     it "should add multiple members to a sorted set, or update its score if it already exists" do

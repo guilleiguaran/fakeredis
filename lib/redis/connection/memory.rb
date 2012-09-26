@@ -30,8 +30,12 @@ class Redis
       end
       attr_writer :databases
 
+      def find_database id=database_id
+        databases[id] ||= ExpiringHash.new
+      end
+
       def data
-        databases[database_id] ||= ExpiringHash.new
+        find_database
       end
 
       def replies
@@ -125,6 +129,15 @@ class Redis
       def bgsave ; end
 
       def bgreriteaof ; end
+
+      def move key, destination_id
+        raise Redis::CommandError, "ERR source and destination objects are the same" if destination_id == database_id
+        destination = find_database(destination_id)
+        return false unless data.has_key?(key)
+        return false if destination.has_key?(key)
+        destination[key] = data.delete(key)
+        true
+      end
 
       def get(key)
         data_type_check(key, String)

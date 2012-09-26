@@ -173,5 +173,58 @@ module FakeRedis
       lambda { @client.get("key2") }.should raise_error(Redis::CommandError, "ERR Operation against a key holding the wrong kind of value")
       lambda { @client.getset("key2", 1) }.should raise_error(Redis::CommandError, "ERR Operation against a key holding the wrong kind of value")
     end
+
+    it "should move a key from one database to another successfully" do
+      @client.select(0)
+      @client.set("key1", "1")
+
+      @client.move("key1", 1).should == true
+
+      @client.select(0)
+      @client.get("key1").should be_nil
+
+      @client.select(1)
+      @client.get("key1").should == "1"
+    end
+
+    it "should fail to move a key that does not exist in the source database" do
+      @client.select(0)
+      @client.get("key1").should be_nil
+
+      @client.move("key1", 1).should == false
+
+      @client.select(0)
+      @client.get("key1").should be_nil
+
+      @client.select(1)
+      @client.get("key1").should be_nil
+    end
+
+    it "should fail to move a key that exists in the destination database" do
+      @client.select(0)
+      @client.set("key1", "1")
+
+      @client.select(1)
+      @client.set("key1", "2")
+
+      @client.select(0)
+      @client.move("key1", 1).should == false
+
+      @client.select(0)
+      @client.get("key1").should == "1"
+
+      @client.select(1)
+      @client.get("key1").should == "2"
+    end
+
+    it "should fail to move a key to the same database" do
+      @client.select(0)
+      @client.set("key1", "1")
+
+      lambda { @client.move("key1", 0) }.should raise_error(Redis::CommandError, "ERR source and destination objects are the same")
+
+      @client.select(0)
+      @client.get("key1").should == "1"
+    end
   end
 end

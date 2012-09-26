@@ -58,9 +58,9 @@ class Redis
 
       def write(command)
         meffod = command.shift
-        begin
+        if respond_to?(meffod)
           reply = send(meffod, *command)
-        rescue NoMethodError
+        else
           raise Redis::CommandError, "ERR unknown command '#{meffod}'"
         end
 

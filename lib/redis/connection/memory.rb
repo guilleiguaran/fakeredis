@@ -889,10 +889,11 @@ class Redis
         end
       end
 
-      def zinterstore(out, _, *keys)
+      def zinterstore(out, *args)
+        args = weights_aggregate_arguments_handler.new(args)
         data_type_check(out, ZSet)
 
-        hashes = keys.map do |src|
+        hashes = args.keys.map do |src|
           case data[src]
           when ::Set
             # Every value has a score of 1
@@ -905,9 +906,22 @@ class Redis
         end
 
         data[out] = ZSet.new
+        # Find all values that exist in all keys, then add up (with weighted values) and store temporarily
         values = hashes.inject([]) {|r, h| r.empty? ? h.keys : r & h.keys }
-        values.each do |value|
-          data[out][value] = hashes.inject(0) {|n, h| n + h[value].to_i }
+
+        case args.aggregate
+        when :sum
+          values.each_with_index do |value, i|
+            data[out][value] = hashes.inject(0) { |n, h| n + (h[value].to_i * args.weights[i]) }
+          end
+        when :min
+          values.each_with_index do |value, i|
+            data[out][value] = hashes.map { |h| (h[value].to_i * args.weights[i]) }.min
+          end
+        when :max
+          values.each_with_index do |value, i|
+            data[out][value] = hashes.map { |h| (h[value].to_i * args.weights[i]) }.max
+          end
         end
 
         data[out].size

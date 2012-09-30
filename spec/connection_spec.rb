@@ -15,6 +15,10 @@ module FakeRedis
     it "should not error with shutdown" do
       lambda { @client.shutdown }.should_not raise_error
     end
+
+    it "should not error with quit" do
+      lambda { @client.quit }.should_not raise_error
+    end
   end
 
     it "should echo the given string" do

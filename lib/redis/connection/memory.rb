@@ -738,7 +738,7 @@ class Redis
 
       def zscore(key, value)
         data_type_check(key, ZSet)
-        data[key] && data[key][value.to_s].to_s
+        data[key] && data[key][value.to_s]
       end
 
       def zcount(key, min, max)

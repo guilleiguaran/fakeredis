@@ -770,11 +770,17 @@ class Redis
         data_type_check(key, ZSet)
         return [] unless data[key]
 
-        if with_scores
-          data[key].sort_by {|_,v| v }
-        else
-          data[key].keys.sort_by {|k| data[key][k] }
-        end[start..stop].flatten.map(&:to_s)
+        # Sort by score, or if scores are equal, key alphanum
+        results = data[key].sort do |(k1, v1), (k2, v2)|
+          if v1 == v2
+            k1 <=> k2
+          else
+            v1 <=> v2
+          end
+        end
+        # Select just the keys unless we want scores
+        results = results.map(&:first) unless with_scores
+        results[start..stop].flatten.map(&:to_s)
       end
 
       def zrevrange(key, start, stop, with_scores = nil)

@@ -26,6 +26,14 @@ module FakeRedis
       # @client.zscore("key4", "val").should == -Infinity
     end
 
+    it "should return a nil score for value not in a sorted set or empty key" do
+      @client.zadd "key", 1, "val"
+
+      @client.zscore("key", "val").should be == 1.0
+      @client.zscore("key", "val2").should be_nil
+      @client.zscore("key2", "val").should be_nil
+    end
+
     it "should add multiple members to a sorted set, or update its score if it already exists" do
       @client.zadd("key", [1, "val", 2, "val2"]).should be == 2
       @client.zscore("key", "val").should be == 1
@@ -103,8 +111,6 @@ module FakeRedis
     #   @client.zincrby("bar", "-inf", "s1").should == -Infinity
     # end
 
-    #it "should intersect multiple sorted sets and store the resulting sorted set in a new key"
-
     it "should return a range of members in a sorted set, by index" do
       @client.zadd("key", 1, "one")
       @client.zadd("key", 2, "two")
@@ -176,26 +182,79 @@ module FakeRedis
       @client.zrevrank("key", "four").should be_nil
     end
 
-    it "should create intersections between multiple (sorted) sets and store the resulting sorted set in a new key" do
-      @client.zadd("key1", 1, "one")
-      @client.zadd("key1", 2, "two")
-      @client.zadd("key1", 3, "three")
-      @client.zadd("key2", 5, "two")
-      @client.zadd("key2", 7, "three")
-      @client.sadd("key3", 'one')
-      @client.sadd("key3", 'two')
+    describe "#zinterstore" do
+      before do
+        @client.zadd("key1", 1, "one")
+        @client.zadd("key1", 2, "two")
+        @client.zadd("key1", 3, "three")
+        @client.zadd("key2", 5, "two")
+        @client.zadd("key2", 7, "three")
+        @client.sadd("key3", 'one')
+        @client.sadd("key3", 'two')
+      end
 
-      @client.zinterstore("out", ["key1", "key2"]).should == 2
-      @client.zrange("out", 0, 100, :with_scores => true).should == [['two', 7], ['three', 10]]
+      it "should intersect two keys with custom scores" do
+        @client.zinterstore("out", ["key1", "key2"]).should == 2
+        @client.zrange("out", 0, -1, :with_scores => true).should == [['two', (2 + 5)], ['three', (3 + 7)]]
+      end
 
-      @client.zinterstore("out", ["key1", "key3"]).should == 2
-      @client.zrange("out", 0, 100, :with_scores => true).should == [['one', 2], ['two', 3]]
+      it "should intersect two keys with a default score" do
+        @client.zinterstore("out", ["key1", "key3"]).should == 2
+        @client.zrange("out", 0, -1, :with_scores => true).should == [['one', (1 + 1)], ['two', (2 + 1)]]
+      end
 
-      @client.zinterstore("out", ["key1", "key2", "key3"]).should == 1
-      @client.zrange("out", 0, 100, :with_scores => true).should == [['two', 8]]
+      it "should intersect more than two keys" do
+        @client.zinterstore("out", ["key1", "key2", "key3"]).should == 1
+        @client.zrange("out", 0, -1, :with_scores => true).should == [['two', (2 + 5 + 1)]]
+      end
 
-      @client.zinterstore("out", ["key1", "no_key"]).should == 0
-      @client.zrange("out", 0, 100, :with_scores => true).should == []
+      it "should not intersect an unknown key" do
+        @client.zinterstore("out", ["key1", "no_key"]).should == 0
+        @client.zrange("out", 0, -1, :with_scores => true).should == []
+      end
+
+      it "should intersect two keys by minimum values" do
+        @client.zinterstore("out", ["key1", "key2"], :aggregate => :min).should == 2
+        @client.zrange("out", 0, -1, :with_scores => true).should == [["two", 2], ["three", 3]]
+      end
+
+      it "should intersect two keys by maximum values" do
+        @client.zinterstore("out", ["key1", "key2"], :aggregate => :max).should == 2
+        @client.zrange("out", 0, -1, :with_scores => true).should == [["two", 5], ["three", 7]]
+      end
+
+      it "should intersect two keys by explicitly summing values" do
+        @client.zinterstore("out", %w(key1 key2), :aggregate => :sum).should == 2
+        @client.zrange("out", 0, -1, :with_scores => true).should == [["two", (2 + 5)], ["three", (3 + 7)]]
+      end
+
+      it "should intersect two keys with weighted values" do
+        @client.zinterstore("out", %w(key1 key2), :weights => [10, 1]).should == 2
+        @client.zrange("out", 0, -1, :with_scores => true).should == [["two", (2 * 10 + 5)], ["three", (3 * 10 + 7)]]
+      end
+
+      it "should intersect two keys with weighted minimum values" do
+        @client.zinterstore("out", %w(key1 key2), :weights => [10, 1], :aggregate => :min).should == 2
+        @client.zrange("out", 0, -1, :with_scores => true).should == [["two", 5], ["three", 7]]
+      end
+
+      it "should intersect two keys with weighted maximum values" do
+        @client.zinterstore("out", %w(key1 key2), :weights => [10, 1], :aggregate => :max).should == 2
+        @client.zrange("out", 0, -1, :with_scores => true).should == [["two", (2 * 10)], ["three", (3 * 10)]]
+      end
+
+      it "should error without enough weights given" do
+        lambda { @client.zinterstore("out", %w(key1 key2), :weights => []) }.should raise_error(Redis::CommandError, "ERR syntax error")
+        lambda { @client.zinterstore("out", %w(key1 key2), :weights => [10]) }.should raise_error(Redis::CommandError, "ERR syntax error")
+      end
+
+      it "should error with too many weights given" do
+        lambda { @client.zinterstore("out", %w(key1 key2), :weights => [10, 1, 1]) }.should raise_error(Redis::CommandError, "ERR syntax error")
+      end
+
+      it "should error with an invalid aggregate" do
+        lambda { @client.zinterstore("out", %w(key1 key2), :aggregate => :invalid) }.should raise_error(Redis::CommandError, "ERR syntax error")
+      end
     end
 
     context "zremrangebyscore" do
@@ -230,6 +289,81 @@ module FakeRedis
 
         @client.zremrangebyrank("key", 25, -1).should == 0
         @client.zcard('key').should == 3
+      end
+    end
+
+    describe "#zunionstore" do
+      before do
+        @client.zadd("key1", 1, "val1")
+        @client.zadd("key1", 2, "val2")
+        @client.zadd("key1", 3, "val3")
+        @client.zadd("key2", 5, "val2")
+        @client.zadd("key2", 7, "val3")
+        @client.sadd("key3", "val1")
+        @client.sadd("key3", "val2")
+      end
+
+      it "should union two keys with custom scores" do
+        @client.zunionstore("out", %w(key1 key2)).should == 3
+        @client.zrange("out", 0, -1, :with_scores => true).should == [["val1", 1], ["val2", (2 + 5)], ["val3", (3 + 7)]]
+      end
+
+      it "should union two keys with a default score" do
+        @client.zunionstore("out", %w(key1 key3)).should == 3
+        @client.zrange("out", 0, -1, :with_scores => true).should == [["val1", (1 + 1)], ["val2", (2 + 1)], ["val3", 3]]
+      end
+
+      it "should union more than two keys" do
+        @client.zunionstore("out", %w(key1 key2 key3)).should == 3
+        @client.zrange("out", 0, -1, :with_scores => true).should == [["val1", (1 + 1)], ["val2", (2 + 5 + 1)], ["val3", (3 + 7)]]
+      end
+
+      it "should union with an unknown key" do
+        @client.zunionstore("out", %w(key1 no_key)).should == 3
+        @client.zrange("out", 0, -1, :with_scores => true).should == [["val1", 1], ["val2", 2], ["val3", 3]]
+      end
+
+      it "should union two keys by minimum values" do
+        @client.zunionstore("out", %w(key1 key2), :aggregate => :min).should == 3
+        @client.zrange("out", 0, -1, :with_scores => true).should == [["val1", 1], ["val2", 2], ["val3", 3]]
+      end
+
+      it "should union two keys by maximum values" do
+        @client.zunionstore("out", %w(key1 key2), :aggregate => :max).should == 3
+        @client.zrange("out", 0, -1, :with_scores => true).should == [["val1", 1], ["val2", 5], ["val3", 7]]
+      end
+
+      it "should union two keys by explicitly summing values" do
+        @client.zunionstore("out", %w(key1 key2), :aggregate => :sum).should == 3
+        @client.zrange("out", 0, -1, :with_scores => true).should == [["val1", 1], ["val2", (2 + 5)], ["val3", (3 + 7)]]
+      end
+
+      it "should union two keys with weighted values" do
+        @client.zunionstore("out", %w(key1 key2), :weights => [10, 1]).should == 3
+        @client.zrange("out", 0, -1, :with_scores => true).should == [["val1", (1 * 10)], ["val2", (2 * 10 + 5)], ["val3", (3 * 10 + 7)]]
+      end
+
+      it "should union two keys with weighted minimum values" do
+        @client.zunionstore("out", %w(key1 key2), :weights => [10, 1], :aggregate => :min).should == 3
+        @client.zrange("out", 0, -1, :with_scores => true).should == [["val2", 5], ["val3", 7], ["val1", (1 * 10)]]
+      end
+
+      it "should union two keys with weighted maximum values" do
+        @client.zunionstore("out", %w(key1 key2), :weights => [10, 1], :aggregate => :max).should == 3
+        @client.zrange("out", 0, -1, :with_scores => true).should == [["val1", (1 * 10)], ["val2", (2 * 10)], ["val3", (3 * 10)]]
+      end
+
+      it "should error without enough weights given" do
+        lambda { @client.zunionstore("out", %w(key1 key2), :weights => []) }.should raise_error(Redis::CommandError, "ERR syntax error")
+        lambda { @client.zunionstore("out", %w(key1 key2), :weights => [10]) }.should raise_error(Redis::CommandError, "ERR syntax error")
+      end
+
+      it "should error with too many weights given" do
+        lambda { @client.zunionstore("out", %w(key1 key2), :weights => [10, 1, 1]) }.should raise_error(Redis::CommandError, "ERR syntax error")
+      end
+
+      it "should error with an invalid aggregate" do
+        lambda { @client.zunionstore("out", %w(key1 key2), :aggregate => :invalid) }.should raise_error(Redis::CommandError, "ERR syntax error")
       end
     end
 

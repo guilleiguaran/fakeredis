@@ -2,12 +2,15 @@ require 'set'
 require 'redis/connection/registry'
 require 'redis/connection/command_helper'
 require "fakeredis/expiring_hash"
+require "fakeredis/sorted_set_argument_handler"
+require "fakeredis/sorted_set_store"
 require "fakeredis/zset"
 
 class Redis
   module Connection
     class Memory
       include Redis::Connection::CommandHelper
+      include FakeRedis
 
       attr_accessor :buffer
 
@@ -736,7 +739,7 @@ class Redis
 
       def zscore(key, value)
         data_type_check(key, ZSet)
-        data[key] && data[key][value.to_s].to_s
+        data[key] && data[key][value.to_s]
       end
 
       def zcount(key, min, max)
@@ -828,27 +831,17 @@ class Redis
         range.size
       end
 
-      def zinterstore(out, _, *keys)
+      def zinterstore(out, *args)
         data_type_check(out, ZSet)
+        args_handler = SortedSetArgumentHandler.new(args)
+        data[out] = SortedSetIntersectStore.new(args_handler, data).call
+        data[out].size
+      end
 
-        hashes = keys.map do |src|
-          case data[src]
-          when ::Set
-            # Every value has a score of 1
-            Hash[data[src].map {|k,v| [k, 1]}]
-          when Hash
-            data[src]
-          else
-            {}
-          end
-        end
-
-        data[out] = ZSet.new
-        values = hashes.inject([]) {|r, h| r.empty? ? h.keys : r & h.keys }
-        values.each do |value|
-          data[out][value] = hashes.inject(0) {|n, h| n + h[value].to_i }
-        end
-
+      def zunionstore(out, *args)
+        data_type_check(out, ZSet)
+        args_handler = SortedSetArgumentHandler.new(args)
+        data[out] = SortedSetUnionStore.new(args_handler, data).call
         data[out].size
       end
 

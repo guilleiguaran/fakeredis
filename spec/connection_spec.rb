@@ -11,6 +11,10 @@ module FakeRedis
     it "should authenticate to the server" do
       @client.auth("pass").should be == "OK"
     end
+
+    it "should not error with shutdown" do
+      lambda { @client.shutdown }.should_not raise_error
+    end
   end
 
     it "should echo the given string" do

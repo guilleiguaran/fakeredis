@@ -122,6 +122,15 @@ module FakeRedis
       @client.zrange("key", 1, 2, :with_scores => true).should == [["two", 2], ["three", 3]]
     end
 
+    it "should sort zrange results logically" do
+      @client.zadd("key", 5, "val2")
+      @client.zadd("key", 5, "val3")
+      @client.zadd("key", 5, "val1")
+
+      @client.zrange("key", 0, -1).should be == %w(val1 val2 val3)
+      @client.zrange("key", 0, -1, :with_scores => true).should be == [["val1", 5], ["val2", 5], ["val3", 5]]
+    end
+
     it "should return a reversed range of members in a sorted set, by index" do
       @client.zadd("key", 1, "one")
       @client.zadd("key", 2, "two")

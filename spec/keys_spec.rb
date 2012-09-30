@@ -50,7 +50,7 @@ module FakeRedis
       @client.ttl("key1").should be == 2
     end
 
-    it 'should not have an expiration after re-set' do
+    it "should not have an expiration after re-set" do
       @client.set("key1", "1")
       @client.expireat("key1", Time.now.to_i + 2)
       @client.set("key1", "1")
@@ -64,7 +64,7 @@ module FakeRedis
 
       @client.ttl("key1").should be == -1
     end
-    
+
     it "should not find a key if expired" do
       @client.set("key1", "1")
       @client.expireat("key1", Time.now.to_i)

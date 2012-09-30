@@ -3,6 +3,7 @@ require 'redis/connection/registry'
 require 'redis/connection/command_helper'
 require "fakeredis/expiring_hash"
 require "fakeredis/sorted_set_argument_handler"
+require "fakeredis/sorted_set_store"
 require "fakeredis/zset"
 
 class Redis
@@ -876,6 +877,13 @@ class Redis
           end
         end
 
+        data[out].size
+      end
+
+      def zunionstore(out, *args)
+        data_type_check(out, ZSet)
+        args_handler = SortedSetArgumentHandler.new(args)
+        data[out] = SortedSetUnionStore.new(args_handler, data).call
         data[out].size
       end
 

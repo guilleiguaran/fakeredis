@@ -8,6 +8,7 @@ class Redis
   module Connection
     class Memory
       include Redis::Connection::CommandHelper
+      include FakeRedis
 
       attr_accessor :buffer
 

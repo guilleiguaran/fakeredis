@@ -300,7 +300,7 @@ module FakeRedis
         @client.zadd("key2", 5, "val2")
         @client.zadd("key2", 7, "val3")
         @client.sadd("key3", "val1")
-        @client.sadd("key3", "val2")
+        @client.sadd("key3", "val3")
       end
 
       it "should union two keys with custom scores" do
@@ -310,12 +310,12 @@ module FakeRedis
 
       it "should union two keys with a default score" do
         @client.zunionstore("out", %w(key1 key3)).should == 3
-        @client.zrange("out", 0, -1, :with_scores => true).should == [["val1", (1 + 1)], ["val2", (2 + 1)], ["val3", 3]]
+        @client.zrange("out", 0, -1, :with_scores => true).should == [["val1", (1 + 1)], ["val2", 2], ["val3", (3 + 1)]]
       end
 
       it "should union more than two keys" do
         @client.zunionstore("out", %w(key1 key2 key3)).should == 3
-        @client.zrange("out", 0, -1, :with_scores => true).should == [["val1", (1 + 1)], ["val2", (2 + 5 + 1)], ["val3", (3 + 7)]]
+        @client.zrange("out", 0, -1, :with_scores => true).should == [["val1", (1 + 1)], ["val2", (2 + 5)], ["val3", (3 + 7 + 1)]]
       end
 
       it "should union with an unknown key" do

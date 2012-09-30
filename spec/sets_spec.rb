@@ -7,15 +7,15 @@ module FakeRedis
     end
 
     it "should add a member to a set" do
-      @client.sadd("key", "value").should == true
-      @client.sadd("key", "value").should == false
+      @client.sadd("key", "value").should be == true
+      @client.sadd("key", "value").should be == false
 
-      @client.smembers("key").should == ["value"]
+      @client.smembers("key").should be == ["value"]
     end
 
     it "should add multiple members to a set" do
-      @client.sadd("key", %w(value other something more)).should == 4
-      @client.sadd("key", %w(and additional values)).should == 3
+      @client.sadd("key", %w(value other something more)).should be == 4
+      @client.sadd("key", %w(and additional values)).should be == 3
       @client.smembers("key").should =~ ["value", "other", "something", "more", "and", "additional", "values"]
     end
 
@@ -23,7 +23,7 @@ module FakeRedis
       @client.sadd("key", "val1")
       @client.sadd("key", "val2")
 
-      @client.scard("key").should == 2
+      @client.scard("key").should be == 2
     end
 
     it "should subtract multiple sets" do
@@ -63,7 +63,7 @@ module FakeRedis
       @client.sadd("key3", "c")
       @client.sadd("key3", "e")
 
-      @client.sinter("key1", "key2", "key3").should == ["c"]
+      @client.sinter("key1", "key2", "key3").should be == ["c"]
     end
 
     it "should intersect multiple sets and store the resulting set in a key" do
@@ -76,15 +76,15 @@ module FakeRedis
       @client.sadd("key3", "c")
       @client.sadd("key3", "e")
       @client.sinterstore("key", "key1", "key2", "key3")
-      @client.smembers("key").should == ["c"]
+      @client.smembers("key").should be == ["c"]
     end
 
     it "should determine if a given value is a member of a set" do
       @client.sadd("key1", "a")
 
-      @client.sismember("key1", "a").should == true
-      @client.sismember("key1", "b").should == false
-      @client.sismember("key2", "a").should == false
+      @client.sismember("key1", "a").should be == true
+      @client.sismember("key1", "b").should be == false
+      @client.sismember("key2", "a").should be == false
     end
 
     it "should get all the members in a set" do
@@ -100,10 +100,10 @@ module FakeRedis
       @client.sadd("key1", "a")
       @client.sadd("key1", "b")
       @client.sadd("key2", "c")
-      @client.smove("key1", "key2", "a").should == true
-      @client.smove("key1", "key2", "a").should == false
+      @client.smove("key1", "key2", "a").should be == true
+      @client.smove("key1", "key2", "a").should be == false
 
-      @client.smembers("key1").should == ["b"]
+      @client.smembers("key1").should be == ["b"]
       @client.smembers("key2").should =~ ["c", "a"]
     end
 
@@ -126,10 +126,10 @@ module FakeRedis
     it "should remove a member from a set" do
       @client.sadd("key1", "a")
       @client.sadd("key1", "b")
-      @client.srem("key1", "a").should == true
-      @client.srem("key1", "a").should == false
+      @client.srem("key1", "a").should be == true
+      @client.srem("key1", "a").should be == false
 
-      @client.smembers("key1").should == ["b"]
+      @client.smembers("key1").should be == ["b"]
     end
 
     it "should remove the set's key once it's empty" do
@@ -138,7 +138,7 @@ module FakeRedis
       @client.srem("key1", "b")
       @client.srem("key1", "a")
 
-      @client.exists("key1").should == false
+      @client.exists("key1").should be == false
     end
 
     it "should add multiple sets" do

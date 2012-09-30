@@ -12,7 +12,7 @@ module FakeRedis
       @client.hdel("key1", "k1")
 
       @client.hget("key1", "k1").should be_nil
-      @client.hget("key1", "k2").should == "val2"
+      @client.hget("key1", "k2").should be == "val2"
     end
 
     it "should remove a hash with no keys left" do
@@ -21,7 +21,7 @@ module FakeRedis
       @client.hdel("key1", "k1")
       @client.hdel("key1", "k2")
 
-      @client.exists("key1").should == false
+      @client.exists("key1").should be == false
     end
 
     it "should convert key to a string via to_s for hset" do
@@ -29,7 +29,7 @@ module FakeRedis
       m.stub(:to_s).and_return("foo")
 
       @client.hset("key1", m, "bar")
-      @client.hget("key1", "foo").should == "bar"
+      @client.hget("key1", "foo").should be == "bar"
     end
 
     it "should convert key to a string via to_s for hget" do
@@ -37,7 +37,7 @@ module FakeRedis
       m.stub(:to_s).and_return("foo")
 
       @client.hset("key1", "foo", "bar")
-      @client.hget("key1", m).should == "bar"
+      @client.hget("key1", m).should be == "bar"
     end
 
     it "should determine if a hash field exists" do
@@ -50,25 +50,25 @@ module FakeRedis
     it "should get the value of a hash field" do
       @client.hset("key1", "index", "value")
 
-      @client.hget("key1", "index").should == "value"
+      @client.hget("key1", "index").should be == "value"
     end
 
     it "should get all the fields and values in a hash" do
       @client.hset("key1", "i1", "val1")
       @client.hset("key1", "i2", "val2")
 
-      @client.hgetall("key1").should == {"i1" => "val1", "i2" => "val2"}
+      @client.hgetall("key1").should be == {"i1" => "val1", "i2" => "val2"}
     end
 
     it "should increment the integer value of a hash field by the given number" do
       @client.hset("key1", "cont1", "5")
-      @client.hincrby("key1", "cont1", "5").should == 10
-      @client.hget("key1", "cont1").should == "10"
+      @client.hincrby("key1", "cont1", "5").should be == 10
+      @client.hget("key1", "cont1").should be == "10"
     end
 
     it "should increment non existing hash keys" do
       @client.hget("key1", "cont2").should be_nil
-      @client.hincrby("key1", "cont2", "5").should == 5
+      @client.hincrby("key1", "cont2", "5").should be == 5
     end
 
     it "should get all the fields in a hash" do
@@ -76,14 +76,14 @@ module FakeRedis
       @client.hset("key1", "i2", "val2")
 
       @client.hkeys("key1").should =~ ["i1", "i2"]
-      @client.hkeys("key2").should == []
+      @client.hkeys("key2").should be == []
     end
 
     it "should get the number of fields in a hash" do
       @client.hset("key1", "i1", "val1")
       @client.hset("key1", "i2", "val2")
 
-      @client.hlen("key1").should == 2
+      @client.hlen("key1").should be == 2
     end
 
     it "should get the values of all the given hash fields" do
@@ -91,7 +91,7 @@ module FakeRedis
       @client.hset("key1", "i2", "val2")
 
       @client.hmget("key1", "i1", "i2", "i3").should =~ ["val1", "val2", nil]
-      @client.hmget("key2", "i1", "i2").should == [nil, nil]
+      @client.hmget("key2", "i1", "i2").should be == [nil, nil]
     end
 
     it "throws an argument error when you don't ask for any keys" do
@@ -116,34 +116,34 @@ module FakeRedis
     it "should set multiple hash fields to multiple values" do
       @client.hmset("key", "k1", "value1", "k2", "value2")
 
-      @client.hget("key", "k1").should == "value1"
-      @client.hget("key", "k2").should == "value2"
+      @client.hget("key", "k1").should be == "value1"
+      @client.hget("key", "k2").should be == "value2"
     end
 
     it "should set multiple hash fields from a ruby hash to multiple values" do
       @client.mapped_hmset("foo", :k1 => "value1", :k2 => "value2")
 
-      @client.hget("foo", "k1").should == "value1"
-      @client.hget("foo", "k2").should == "value2"
+      @client.hget("foo", "k1").should be == "value1"
+      @client.hget("foo", "k2").should be == "value2"
     end
 
     it "should set the string value of a hash field" do
-      @client.hset("key1", "k1", "val1").should == true
-      @client.hset("key1", "k1", "val1").should == false
+      @client.hset("key1", "k1", "val1").should be == true
+      @client.hset("key1", "k1", "val1").should be == false
 
-      @client.hget("key1", "k1").should == "val1"
+      @client.hget("key1", "k1").should be == "val1"
     end
 
     it "should set the value of a hash field, only if the field does not exist" do
       @client.hset("key1", "k1", "val1")
-      @client.hsetnx("key1", "k1", "value").should == false
-      @client.hsetnx("key1", "k2", "val2").should == true
-      @client.hsetnx("key1", :k1, "value").should == false
-      @client.hsetnx("key1", :k3, "val3").should == true
+      @client.hsetnx("key1", "k1", "value").should be == false
+      @client.hsetnx("key1", "k2", "val2").should be == true
+      @client.hsetnx("key1", :k1, "value").should be == false
+      @client.hsetnx("key1", :k3, "val3").should be == true
 
-      @client.hget("key1", "k1").should == "val1"
-      @client.hget("key1", "k2").should == "val2"
-      @client.hget("key1", "k3").should == "val3"
+      @client.hget("key1", "k1").should be == "val1"
+      @client.hget("key1", "k2").should be == "val2"
+      @client.hget("key1", "k3").should be == "val3"
     end
 
     it "should get all the values in a hash" do

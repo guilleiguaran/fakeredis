@@ -13,7 +13,7 @@ module FakeRedis
         @client.mget("key1", "key2")
       end
 
-      transaction.should == ["OK", "OK", ["1", "2"]]
+      transaction.should be == ["OK", "OK", ["1", "2"]]
     end
   end
 end

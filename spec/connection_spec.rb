@@ -45,6 +45,10 @@ module FakeRedis
       @client2.select(1)
       @client2.get("key1").should == "1"
     end
+
+    it "should not error with shutdown" do
+      lambda { @client.shutdown }.should_not raise_error
+    end
   end
 
     it "should not error with a disconnected client" do

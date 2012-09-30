@@ -305,36 +305,36 @@ module FakeRedis
       before do
         @client.zadd("key1", 1, "val1")
         @client.zadd("key1", 2, "val2")
-        @client.zadd("key1", 4, "val3")
+        @client.zadd("key1", 3, "val3")
         @client.zadd("key2", 5, "val2")
         @client.zadd("key2", 7, "val3")
         @client.sadd("key3", "val1")
-        @client.sadd("key3", "val3")
+        @client.sadd("key3", "val2")
       end
 
       it "should union two keys with custom scores" do
         @client.zunionstore("out", %w(key1 key2)).should == 3
-        @client.zrange("out", 0, -1, :with_scores => true).should == [["val1", 1], ["val2", (2 + 5)], ["val3", (4 + 7)]]
+        @client.zrange("out", 0, -1, :with_scores => true).should == [["val1", 1], ["val2", (2 + 5)], ["val3", (3 + 7)]]
       end
 
       it "should union two keys with a default score" do
         @client.zunionstore("out", %w(key1 key3)).should == 3
-        @client.zrange("out", 0, -1, :with_scores => true).should == [["val1", (1 + 1)], ["val2", 2], ["val3", (4 + 1)]]
+        @client.zrange("out", 0, -1, :with_scores => true).should == [["val1", (1 + 1)], ["val2", (2 + 1)], ["val3", 3]]
       end
 
       it "should union more than two keys" do
         @client.zunionstore("out", %w(key1 key2 key3)).should == 3
-        @client.zrange("out", 0, -1, :with_scores => true).should == [["val1", (1 + 1)], ["val2", (2 + 5)], ["val3", (4 + 7 + 1)]]
+        @client.zrange("out", 0, -1, :with_scores => true).should == [["val1", (1 + 1)], ["val2", (2 + 5 + 1)], ["val3", (3 + 7)]]
       end
 
       it "should union with an unknown key" do
         @client.zunionstore("out", %w(key1 no_key)).should == 3
-        @client.zrange("out", 0, -1, :with_scores => true).should == [["val1", 1], ["val2", 2], ["val3", 4]]
+        @client.zrange("out", 0, -1, :with_scores => true).should == [["val1", 1], ["val2", 2], ["val3", 3]]
       end
 
       it "should union two keys by minimum values" do
         @client.zunionstore("out", %w(key1 key2), :aggregate => :min).should == 3
-        @client.zrange("out", 0, -1, :with_scores => true).should == [["val1", 1], ["val2", 2], ["val3", 4]]
+        @client.zrange("out", 0, -1, :with_scores => true).should == [["val1", 1], ["val2", 2], ["val3", 3]]
       end
 
       it "should union two keys by maximum values" do
@@ -344,12 +344,12 @@ module FakeRedis
 
       it "should union two keys by explicitly summing values" do
         @client.zunionstore("out", %w(key1 key2), :aggregate => :sum).should == 3
-        @client.zrange("out", 0, -1, :with_scores => true).should == [["val1", 1], ["val2", (2 + 5)], ["val3", (4 + 7)]]
+        @client.zrange("out", 0, -1, :with_scores => true).should == [["val1", 1], ["val2", (2 + 5)], ["val3", (3 + 7)]]
       end
 
       it "should union two keys with weighted values" do
         @client.zunionstore("out", %w(key1 key2), :weights => [10, 1]).should == 3
-        @client.zrange("out", 0, -1, :with_scores => true).should == [["val1", (1 * 10)], ["val2", (2 * 10 + 5)], ["val3", (4 * 10 + 7)]]
+        @client.zrange("out", 0, -1, :with_scores => true).should == [["val1", (1 * 10)], ["val2", (2 * 10 + 5)], ["val3", (3 * 10 + 7)]]
       end
 
       it "should union two keys with weighted minimum values" do
@@ -359,7 +359,7 @@ module FakeRedis
 
       it "should union two keys with weighted maximum values" do
         @client.zunionstore("out", %w(key1 key2), :weights => [10, 1], :aggregate => :max).should == 3
-        @client.zrange("out", 0, -1, :with_scores => true).should == [["val1", (1 * 10)], ["val2", (2 * 10)], ["val3", (4 * 10)]]
+        @client.zrange("out", 0, -1, :with_scores => true).should == [["val1", (1 * 10)], ["val2", (2 * 10)], ["val3", (3 * 10)]]
       end
 
       it "should error without enough weights given" do

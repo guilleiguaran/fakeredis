@@ -455,7 +455,7 @@ class Redis
         keys.each do |key|
           data.delete(key)
         end
-        deleted_count = old_count - data.keys.size
+        old_count - data.keys.size
       end
 
       def setnx(key, value)
@@ -540,7 +540,6 @@ class Redis
       def hmget(key, *fields)
         raise Redis::CommandError, "wrong number of arguments for 'hmget' command" if fields.empty?
         data_type_check(key, Hash)
-        values = []
         fields.map do |field|
           field = field.to_s
           if data[key]
@@ -661,7 +660,7 @@ class Redis
       end
 
       def type(key)
-        case value = data[key]
+        case data[key]
           when nil then "none"
           when String then "string"
           when Hash then "hash"
@@ -718,7 +717,7 @@ class Redis
           # Turn [1, 2, 3, 4] into [[1, 2], [3, 4]] unless it is already
           args = args.each_slice(2).to_a unless args.first.is_a?(Array)
           exists = args.map(&:last).map { |el| data[key].key?(el.to_s) }.count(false)
-          args.each { |score, value| data[key][value.to_s] = score }
+          args.each { |s, v| data[key][v.to_s] = s }
         end
 
         exists
@@ -852,7 +851,7 @@ class Redis
       end
 
       def zremrangebyrank(key, start, stop)
-        sorted_elements = data[key].sort { |(v_a, r_a), (v_b, r_b)| r_a <=> r_b }
+        sorted_elements = data[key].sort_by { |k, v| v }
         start = sorted_elements.length if start > sorted_elements.length
         elements_to_delete = sorted_elements[start..stop]
         elements_to_delete.each { |elem, rank| data[key].delete(elem) }

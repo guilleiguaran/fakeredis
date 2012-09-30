@@ -832,51 +832,9 @@ class Redis
       end
 
       def zinterstore(out, *args)
-        args = SortedSetArgumentHandler.new(args)
         data_type_check(out, ZSet)
-
-        hashes = args.keys.map do |src|
-          case data[src]
-          when ::Set
-            # Every value has a score of 1
-            Hash[data[src].map {|k,v| [k, 1]}]
-          when Hash
-            data[src]
-          else
-            {}
-          end
-        end
-
-        data[out] = ZSet.new
-        # Find all values that exist in all keys, then add up (with weighted values) and store temporarily
-        values = hashes.inject([]) {|r, h| r.empty? ? h.keys : r & h.keys }
-
-        # Apply the weightings to the hash
-        # Do nothing if all weights are 1, as n * 1 is n
-        computed_values = hashes if args.weights.all? {|weight| weight == 1 }
-        # Otherwise, multiply the values in each hash by that hash's weighting
-        computed_values ||= hashes.each_with_index.map do |hash, index|
-          weight = args.weights[index]
-          Hash[hash.map {|k, v| [k, (v * weight)]}]
-        end
-
-        case args.aggregate
-        when :sum
-          values.each do |value|
-            data[out][value] = computed_values.inject(0) do |n, hash|
-              n + hash[value]
-            end
-          end
-        when :min
-          values.each do |value|
-            data[out][value] = computed_values.map {|h| h[value] }.min
-          end
-        when :max
-          values.each do |value|
-            data[out][value] = computed_values.map {|h| h[value] }.max
-          end
-        end
-
+        args_handler = SortedSetArgumentHandler.new(args)
+        data[out] = SortedSetIntersectStore.new(args_handler, data).call
         data[out].size
       end
 

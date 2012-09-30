@@ -66,6 +66,12 @@ module FakeRedis
     end
   end
 
+  class SortedSetIntersectStore < SortedSetStore
+    def selected_keys
+      @values ||= hashes.inject([]) { |r, h| r.empty? ? h.keys : (r & h.keys) }
+    end
+  end
+
   class SortedSetUnionStore < SortedSetStore
     def selected_keys
       @values ||= hashes.map(&:keys).flatten.uniq

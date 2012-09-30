@@ -87,12 +87,10 @@ class Redis
       # * brpop
       # * brpoplpush
       # * discard
-      # * move
+      # * sort
       # * subscribe
       # * psubscribe
       # * publish
-      # * zremrangebyrank
-      # * zunionstore
 
       def flushdb
         databases.delete_at(database_id)

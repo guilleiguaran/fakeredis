@@ -850,18 +850,29 @@ class Redis
         # Find all values that exist in all keys, then add up (with weighted values) and store temporarily
         values = hashes.inject([]) {|r, h| r.empty? ? h.keys : r & h.keys }
 
+        # Apply the weightings to the hash
+        # Do nothing if all weights are 1, as n * 1 is n
+        computed_values = hashes if args.weights.all? {|weight| weight == 1 }
+        # Otherwise, multiply the values in each hash by that hash's weighting
+        computed_values ||= hashes.each_with_index.map do |hash, index|
+          weight = args.weights[index]
+          Hash[hash.map {|k, v| [k, (v * weight)]}]
+        end
+
         case args.aggregate
         when :sum
-          values.each_with_index do |value, i|
-            data[out][value] = hashes.inject(0) { |n, h| n + (h[value].to_i * args.weights[i]) }
+          values.each do |value|
+            data[out][value] = computed_values.inject(0) do |n, hash|
+              n + hash[value]
+            end
           end
         when :min
-          values.each_with_index do |value, i|
-            data[out][value] = hashes.map { |h| (h[value].to_i * args.weights[i]) }.min
+          values.each do |value|
+            data[out][value] = computed_values.map {|h| h[value] }.min
           end
         when :max
-          values.each_with_index do |value, i|
-            data[out][value] = hashes.map { |h| (h[value].to_i * args.weights[i]) }.max
+          values.each do |value|
+            data[out][value] = computed_values.map {|h| h[value] }.max
           end
         end
 

@@ -12,15 +12,29 @@ class Redis
       include Redis::Connection::CommandHelper
       include FakeRedis
 
-      attr_accessor :buffer
+      attr_accessor :buffer, :options
 
-      def self.instances
-        @instances ||= {}
+      # Tracks all databases for all instances across the current process.
+      # We have to be able to handle two clients with the same host/port accessing
+      # different databases at once without overwriting each other. So we store our
+      # "data" outside the client instances, in this class level instance method.
+      # Client instances access it with a key made up of their host/port, and then select
+      # which DB out of the array of them they want. Allows the access we need.
+      def self.databases
+        @databases ||= Hash.new {|h,k| h[k] = [] }
+      end
+
+      # Used for resetting everything in specs
+      def self.reset_all_databases
+        @databases = nil
       end
 
       def self.connect(options = {})
-        key = [options[:host], options[:port]]
-        instances[key] ||= self.new
+        new(options)
+      end
+
+      def initialize(options = {})
+        self.options = options
       end
 
       def database_id
@@ -28,10 +42,13 @@ class Redis
       end
       attr_writer :database_id
 
-      def databases
-        @databases ||= []
+      def database_instance_key
+        [options[:host], options[:port]].hash
       end
-      attr_writer :databases
+
+      def databases
+        self.class.databases[database_instance_key]
+      end
 
       def find_database id=database_id
         databases[id] ||= ExpiringHash.new
@@ -98,7 +115,7 @@ class Redis
       end
 
       def flushall
-        self.databases = nil
+        self.class.databases[database_instance_key] = []
         "OK"
       end
 

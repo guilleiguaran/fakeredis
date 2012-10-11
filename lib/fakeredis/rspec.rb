@@ -17,7 +17,7 @@ require 'fakeredis'
 RSpec.configure do |c|
 
   c.before do    
-    Redis::Connection::Memory.instances.values.each(&:flushall)
+    Redis::Connection::Memory.reset_all_databases
   end
 
 end

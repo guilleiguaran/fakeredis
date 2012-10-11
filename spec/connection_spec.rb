@@ -55,6 +55,19 @@ module FakeRedis
     end
   end
 
+    it "should handle multiple clients using the same db instance" do
+      @client1 = Redis.new(:host => "localhost", :port => 6379, :db => 1)
+      @client2 = Redis.new(:host => "localhost", :port => 6379, :db => 2)
+
+      @client1.set("key1", "one")
+      @client1.get("key1").should be == "one"
+
+      @client2.set("key2", "two")
+      @client2.get("key2").should be == "two"
+
+      @client1.get("key1").should be == "one"
+    end
+
     it "should not error with a disconnected client" do
       @client1 = Redis.new
       @client1.client.disconnect

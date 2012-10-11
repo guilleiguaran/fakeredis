@@ -15,15 +15,15 @@ module FakeRedis
       @client.zadd("key", 2, "val").should be(false)
       @client.zscore("key", "val").should be == 2.0
 
-      # These won't pass until redis-rb releases v3.0.2
-      # @client.zadd("key2", "inf", "val").should be == true
-      # @client.zscore("key2", "val").should be == Infinity
-      #
-      # @client.zadd("key3", "+inf", "val").should be == true
-      # @client.zscore("key3", "val").should be == Infinity
-      #
-      # @client.zadd("key4", "-inf", "val").should be == true
-      # @client.zscore("key4", "val").should be == -Infinity
+      # These assertions only work in redis-rb v3.0.2 or higher
+      @client.zadd("key2", "inf", "val").should be == true
+      @client.zscore("key2", "val").should be == Infinity
+
+      @client.zadd("key3", "+inf", "val").should be == true
+      @client.zscore("key3", "val").should be == Infinity
+
+      @client.zadd("key4", "-inf", "val").should be == true
+      @client.zscore("key4", "val").should be == -Infinity
     end
 
     it "should return a nil score for value not in a sorted set or empty key" do

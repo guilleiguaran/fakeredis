@@ -37,8 +37,12 @@ class Redis
       end
 
       def write(command)
-        method = command.shift
-        reply = send(method, *command)
+        meffod = command.shift
+        begin
+          reply = send(meffod, *command)
+        rescue NoMethodError
+          raise RuntimeError, "ERR unknown command '#{meffod}'"
+        end
 
         if reply == true
           reply = 1
@@ -47,7 +51,7 @@ class Redis
         end
 
         @replies << reply
-        @buffer << reply if @buffer && method != :multi
+        @buffer << reply if @buffer && meffod != :multi
         nil
       end
 

@@ -229,7 +229,7 @@ class Redis
       def lset(key, index, value)
         data_type_check(key, Array)
         return unless @data[key]
-        raise RuntimeError if index >= @data[key].size
+        raise RuntimeError, "ERR index out of range" if index >= @data[key].size
         @data[key][index] = value
       end
 
@@ -285,8 +285,9 @@ class Redis
 
       def rpoplpush(key1, key2)
         data_type_check(key1, Array)
-        elem = rpop(key1)
-        lpush(key2, elem)
+        rpop(key1).tap do |elem|
+          lpush(key2, elem)
+        end
       end
 
       def lpop(key)

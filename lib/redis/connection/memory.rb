@@ -812,7 +812,8 @@ class Redis
         hashes = keys.map do |src|
           case @data[src]
           when ::Set
-            Hash[@data[src].zip([0] * @data[src].size)]
+            # Every value has a score of 1
+            Hash[@data[src].map {|k,v| [k, 1]}]
           when Hash
             @data[src]
           else

@@ -68,6 +68,12 @@ module FakeRedis
       @client.zadd("key", 1, 1)
       @client.zscore("key", 1).should == "1"
     end
+
+    it "should handle infinity values when incrementing a sorted set key" do
+      @client.zincrby("bar", "+inf", "s2").should == "inf"
+      @client.zincrby("bar", "-inf", "s1").should == "-inf"
+    end
+
     #it "should intersect multiple sorted sets and store the resulting sorted set in a new key"
 
     it "should return a range of members in a sorted set, by index" do

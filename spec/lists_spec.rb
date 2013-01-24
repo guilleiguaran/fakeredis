@@ -106,6 +106,8 @@ module FakeRedis
       @client.lset("key1", 0, "four")
       @client.lset("key1", -2, "five")
       @client.lrange("key1", 0, -1).should == ["four", "five", "three"]
+
+      lambda { @client.lset("key1", 4, "six") }.should raise_error(RuntimeError, "ERR index out of range")
     end
 
     it "should trim a list to the specified range" do
@@ -130,7 +132,8 @@ module FakeRedis
       @client.rpush("key1", "one")
       @client.rpush("key1", "two")
       @client.rpush("key1", "three")
-      @client.rpoplpush("key1", "key2")
+
+      @client.rpoplpush("key1", "key2").should be == "three"
 
       @client.lrange("key1", 0, -1).should == ["one", "two"]
       @client.lrange("key2", 0, -1).should == ["three"]

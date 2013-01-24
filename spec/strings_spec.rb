@@ -150,8 +150,23 @@ module FakeRedis
     end
 
     it "should set multiple keys to multiple values, only if none of the keys exist" do
-      @client.msetnx(:key1, "value1", :key2, "value2")
-      @client.msetnx(:key1, "value3", :key2, "value4")
+      @client.msetnx(:key1, "value1", :key2, "value2").should == 1
+      @client.msetnx(:key1, "value3", :key2, "value4").should == 0
+
+      @client.get("key1").should == "value1"
+      @client.get("key2").should == "value2"
+    end
+
+    it "should set multiple keys to multiple values with a hash" do
+      @client.mapped_mset(:key1 => "value1", :key2 => "value2")
+
+      @client.get("key1").should == "value1"
+      @client.get("key2").should == "value2"
+    end
+
+    it "should set multiple keys to multiple values with a hash, only if none of the keys exist" do
+      @client.mapped_msetnx(:key1 => "value1", :key2 => "value2").should == 1
+      @client.mapped_msetnx(:key1 => "value3", :key2 => "value4").should == 0
 
       @client.get("key1").should == "value1"
       @client.get("key2").should == "value2"

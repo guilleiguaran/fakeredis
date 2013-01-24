@@ -107,7 +107,7 @@ module FakeRedis
     it 'raises an argument error when not passed any fields' do
       @client.set("key3", "value3")
 
-      lambda { @client.mget }.should raise_error(ArgumentError)
+      lambda { @client.mget }.should raise_error(RuntimeError, "ERR wrong number of arguments for 'mget' command")
     end
 
     it "should set multiple keys to multiple values" do

@@ -14,12 +14,16 @@ module FakeRedis
       @client.zscore("key", "val").should == "2"
     end
 
+    it 'errors adding multiple things to a set' do
+      lambda { @client.zadd("key", [[1, "val"], [2, 'val2']]) }.should raise_error(ArgumentError, "wrong number of arguments (2 for 3)")
+    end
+
     it "should allow floats as scores when adding or updating" do
       @client.zadd("key", 4.321, "val").should be(true)
-      @client.zscore("key", "val").should == "4.321"
+      @client.zscore("key", "val").should =~ /^4.32/
 
       @client.zadd("key", 54.3210, "val").should be(false)
-      @client.zscore("key", "val").should == "54.321"
+      @client.zscore("key", "val").should =~ /^54.32/
     end
 
     it "should remove members from sorted sets" do
@@ -134,7 +138,7 @@ module FakeRedis
       @client.zrevrank("key", "four").should be_nil
     end
 
-    it "should create untersections between multiple (sorted) sets and store the resulting sorted set in a new key" do
+    it "should create intersections between multiple (sorted) sets and store the resulting sorted set in a new key" do
       @client.zadd("key1", 1, "one")
       @client.zadd("key1", 2, "two")
       @client.zadd("key1", 3, "three")
@@ -147,10 +151,10 @@ module FakeRedis
       @client.zrange("out", 0, 100, :with_scores => true).should == ['two', '7', 'three', '10']
 
       @client.zinterstore("out", ["key1", "key3"]).should == 2
-      @client.zrange("out", 0, 100, :with_scores => true).should == ['one', '1', 'two', '2']
+      @client.zrange("out", 0, 100, :with_scores => true).should == ['one', '2', 'two', '3']
 
       @client.zinterstore("out", ["key1", "key2", "key3"]).should == 1
-      @client.zrange("out", 0, 100, :with_scores => true).should == ['two', '7']
+      @client.zrange("out", 0, 100, :with_scores => true).should == ['two', '8']
 
       @client.zinterstore("out", ["key1", "no_key"]).should == 0
       @client.zrange("out", 0, 100, :with_scores => true).should == []

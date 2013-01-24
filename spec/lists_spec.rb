@@ -137,7 +137,7 @@ module FakeRedis
       @client.rpushx("key2", "two")
 
       @client.lrange("key1", 0, -1).should == ["one", "two"]
-      @client.lrange("key2", 0, -1).should == nil
+      @client.lrange("key2", 0, -1).should == []
     end
   end
 end

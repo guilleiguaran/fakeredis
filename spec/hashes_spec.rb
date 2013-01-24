@@ -95,17 +95,17 @@ module FakeRedis
     end
 
     it "throws an argument error when you don't ask for any keys" do
-      lambda { @client.hmget("key1") }.should raise_error(ArgumentError)
+      lambda { @client.hmget("key1") }.should raise_error(RuntimeError, "ERR wrong number of arguments for 'hmget' command")
     end
 
     it "should reject an empty list of values" do
-      lambda { @client.hmset("key") }.should raise_error(ArgumentError)
+      lambda { @client.hmset("key") }.should raise_error(RuntimeError, "ERR wrong number of arguments for 'hmset' command")
       @client.exists("key").should be_false
     end
 
     it 'rejects an insert with a key but no value' do
-      lambda { @client.hmset("key", 'foo') }.should raise_error(ArgumentError)
-      lambda { @client.hmset("key", 'foo', 3, 'bar') }.should raise_error(ArgumentError)
+      lambda { @client.hmset("key", 'foo') }.should raise_error(RuntimeError, "ERR wrong number of arguments for 'hmset' command")
+      lambda { @client.hmset("key", 'foo', 3, 'bar') }.should raise_error(RuntimeError, "ERR wrong number of arguments for HMSET")
       @client.exists("key").should be_false
     end
 

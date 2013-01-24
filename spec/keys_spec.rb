@@ -146,5 +146,13 @@ module FakeRedis
       @client.setex("key2", 30, 1)
       @client.get("key2").should == "1"
     end
+
+    it "should only operate against keys containing string values" do
+      @client.sadd("key1", "one")
+      lambda { @client.get("key1") }.should raise_error(RuntimeError, "ERR Operation against a key holding the wrong kind of value")
+
+      @client.hset("key2", "one", "two")
+      lambda { @client.get("key2") }.should raise_error(RuntimeError, "ERR Operation against a key holding the wrong kind of value")
+    end
   end
 end

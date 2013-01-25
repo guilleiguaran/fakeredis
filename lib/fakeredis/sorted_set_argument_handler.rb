@@ -39,7 +39,7 @@ module FakeRedis
     # Only allows assigning a value *once* - raises Redis::CommandError if a second is given
     def aggregate=(str)
       raise(RuntimeError, "ERR syntax error") if (defined?(@aggregate) && @aggregate)
-      @aggregate = str.downcase.to_sym
+      @aggregate = str.to_s.downcase.to_sym
     end
 
     # Decides how to handle an item, depending on where we are in the arguments

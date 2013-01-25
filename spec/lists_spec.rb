@@ -23,13 +23,13 @@ module FakeRedis
       @client.lrange("key1", 0, -1).should be == ["v1", "v2", "v3"]
     end
 
-    it 'should not allow multiple values to be added to a list in a single rpush' do
+    it "should not allow multiple values to be added to a list in a single rpush" do
       # redis-rb v2.2.2 calls #to_s on the second argument
       @client.rpush('key1', [1, 2, 3])
       @client.lrange('key1', 0, -1).should be == [[1, 2, 3].to_s]
     end
 
-    it 'should allow multiple values to be added to a list in a single lpush' do
+    it "should allow multiple values to be added to a list in a single lpush" do
       # redis-rb v2.2.2 calls #to_s on the second argument
       @client.lpush('key1', [1, 2, 3])
       @client.lrange('key1', 0, -1).should be == [[1, 2, 3].to_s]
@@ -119,7 +119,7 @@ module FakeRedis
       @client.lrange("key1", 0, -1).should be == ["two", "three"]
     end
 
-    it "should remove and get the last element in a list" do
+    it "should remove and return the last element in a list" do
       @client.rpush("key1", "one")
       @client.rpush("key1", "two")
       @client.rpush("key1", "three")

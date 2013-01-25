@@ -24,7 +24,7 @@ module FakeRedis
       @client.exists("key1").should be == false
     end
 
-    it "should convert key to a string via to_s for hset" do
+    it "should convert key to a string for hset" do
       m = double("key")
       m.stub(:to_s).and_return("foo")
 
@@ -32,7 +32,7 @@ module FakeRedis
       @client.hget("key1", "foo").should be == "bar"
     end
 
-    it "should convert key to a string via to_s for hget" do
+    it "should convert key to a string for hget" do
       m = double("key")
       m.stub(:to_s).and_return("foo")
 
@@ -94,7 +94,7 @@ module FakeRedis
       @client.hmget("key2", "i1", "i2").should be == [nil, nil]
     end
 
-    it "throws an argument error when you don't ask for any keys" do
+    it "should throw an argument error when you don't ask for any keys" do
       lambda { @client.hmget("key1") }.should raise_error(RuntimeError, "ERR wrong number of arguments for 'hmget' command")
     end
 
@@ -103,7 +103,7 @@ module FakeRedis
       @client.exists("key").should be_false
     end
 
-    it 'rejects an insert with a key but no value' do
+    it "rejects an insert with a key but no value" do
       lambda { @client.hmset("key", 'foo') }.should raise_error(RuntimeError, "ERR wrong number of arguments for 'hmset' command")
       lambda { @client.hmset("key", 'foo', 3, 'bar') }.should raise_error(RuntimeError, "ERR wrong number of arguments for HMSET")
       @client.exists("key").should be_false

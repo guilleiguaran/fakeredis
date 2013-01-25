@@ -31,7 +31,7 @@ module FakeRedis
       @client.zscore("key2", "val").should be_nil
     end
 
-    it 'errors adding multiple things to a set' do
+    it "errors adding multiple things to a set" do
       lambda { @client.zadd("key", [[1, "val"], [2, 'val2']]) }.should raise_error(ArgumentError)
     end
 
@@ -259,7 +259,7 @@ module FakeRedis
     end
 
     context '#zremrangebyrank' do
-      it 'removes all elements with in the given range' do
+      it "removes all elements with in the given range" do
         @client.zadd("key", 1, "one")
         @client.zadd("key", 2, "two")
         @client.zadd("key", 3, "three")
@@ -268,7 +268,7 @@ module FakeRedis
         @client.zcard('key').should be == 1
       end
 
-      it 'handles out of range requests' do
+      it "handles out of range requests" do
         @client.zadd("key", 1, "one")
         @client.zadd("key", 2, "two")
         @client.zadd("key", 3, "three")

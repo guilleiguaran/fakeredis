@@ -136,7 +136,7 @@ module FakeRedis
       @client.mget("key1", "key2", "key3").should be == ["value1", "value2", "value3"]
     end
 
-    it 'raises an argument error when not passed any fields' do
+    it "raises an argument error when not passed any fields" do
       @client.set("key3", "value3")
 
       lambda { @client.mget }.should raise_error(RuntimeError, "ERR wrong number of arguments for 'mget' command")

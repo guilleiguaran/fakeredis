@@ -643,6 +643,7 @@ class Redis
         data_type_check(key, ZSet)
         @data[key] ||= ZSet.new
         exists = @data[key].key?(value.to_s)
+        score = "inf" if score == "+inf"
         @data[key][value.to_s] = score
         !exists
       end

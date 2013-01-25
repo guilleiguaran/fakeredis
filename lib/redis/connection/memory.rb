@@ -475,6 +475,9 @@ class Redis
       end
 
       def hmset(key, *fields)
+        # mapped_hmset gives us [[:k1, "v1", :k2, "v2"]] for `fields`. Fix that.
+        fields = fields[0] if fields.size == 1 && fields[0].is_a?(Array)
+        fields = fields[0] if mapped_param?(fields)
         raise RuntimeError, "ERR wrong number of arguments for HMSET" if fields.size > 2 && fields.size.odd?
         raise RuntimeError, "ERR wrong number of arguments for 'hmset' command" if fields.empty? || fields.size.odd?
         data_type_check(key, Hash)
@@ -565,6 +568,8 @@ class Redis
       end
 
       def mset(*pairs)
+        # Handle pairs for mapped_mset command
+        pairs = pairs[0] if mapped_param?(pairs)
         pairs.each_slice(2) do |pair|
           @data[pair[0].to_s] = pair[1].to_s
         end
@@ -572,9 +577,11 @@ class Redis
       end
 
       def msetnx(*pairs)
+        # Handle pairs for mapped_mset command
+        pairs = pairs[0] if mapped_param?(pairs)
         keys = []
         pairs.each_with_index{|item, index| keys << item.to_s if index % 2 == 0}
-        return if keys.any?{|key| @data.key?(key) }
+        return false if keys.any? {|key| @data.key?(key) }
         mset(*pairs)
         true
       end
@@ -820,6 +827,10 @@ class Redis
 
             [offset, count]
           end
+        end
+
+        def mapped_param? param
+          param.size == 1 && param[0].is_a?(Array)
         end
     end
   end

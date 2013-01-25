@@ -675,7 +675,12 @@ class Redis
         data_type_check(key, ZSet)
         @data[key] ||= ZSet.new
         @data[key][value.to_s] ||= 0
-        @data[key][value.to_s] += num
+        if %w(+inf -inf).include?(num)
+          num = "inf" if num == "+inf"
+          @data[key][value.to_s] = num
+        elsif ! %w(+inf -inf).include?(@data[key][value.to_s])
+          @data[key][value.to_s] += num
+        end
         @data[key][value.to_s].to_s
       end
 

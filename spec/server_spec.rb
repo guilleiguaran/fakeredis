@@ -12,11 +12,11 @@ module FakeRedis
       @client.set("key2", "2")
       @client.set("key2", "two")
 
-      @client.dbsize.should == 2
+      @client.dbsize.should be == 2
     end
 
     it "should get information and statistics about the server" do
-      @client.info.key?("redis_version").should == true
+      @client.info.key?("redis_version").should be == true
     end
 
     it "should handle non-existent methods" do
@@ -37,22 +37,22 @@ module FakeRedis
         @client.select(0)
         @client.set("key1", "1")
         @client.set("key2", "2")
-        @client.dbsize.should == 2
+        @client.dbsize.should be == 2
 
-        @client.flushdb.should == "OK"
+        @client.flushdb.should be == "OK"
 
-        @client.dbsize.should == 0
+        @client.dbsize.should be == 0
       end
 
       it "should flush all databases" do
         @client.select(0)
         @client.set("key3", "3")
         @client.set("key4", "4")
-        @client.dbsize.should == 2
+        @client.dbsize.should be == 2
 
-        @client.flushall.should == "OK"
+        @client.flushall.should be == "OK"
 
-        @client.dbsize.should == 0
+        @client.dbsize.should be == 0
       end
     end
   end

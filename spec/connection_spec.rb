@@ -9,16 +9,16 @@ module FakeRedis
 
   if fakeredis?
     it "should authenticate to the server" do
-      @client.auth("pass").should == "OK"
+      @client.auth("pass").should be == "OK"
     end
   end
 
     it "should echo the given string" do
-      @client.echo("something").should == "something"
+      @client.echo("something").should be == "something"
     end
 
     it "should ping the server" do
-      @client.ping.should == "PONG"
+      @client.ping.should be == "PONG"
     end
   end
 end

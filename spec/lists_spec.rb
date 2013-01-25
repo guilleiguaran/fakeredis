@@ -26,13 +26,13 @@ module FakeRedis
     it 'should not allow multiple values to be added to a list in a single rpush' do
       # redis-rb v2.2.2 calls #to_s on the second argument
       @client.rpush('key1', [1, 2, 3])
-      @client.lrange('key1', 0, -1).should == [%{[1, 2, 3]}]
+      @client.lrange('key1', 0, -1).should == [[1, 2, 3].to_s]
     end
 
     it 'should allow multiple values to be added to a list in a single lpush' do
       # redis-rb v2.2.2 calls #to_s on the second argument
       @client.lpush('key1', [1, 2, 3])
-      @client.lrange('key1', 0, -1).should == [%{[1, 2, 3]}]
+      @client.lrange('key1', 0, -1).should == [[1, 2, 3].to_s]
     end
 
     it "should get the length of a list" do

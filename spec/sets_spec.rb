@@ -16,7 +16,7 @@ module FakeRedis
     it "should not add multiple members to a set" do
       # redis.rb v2.2.2 just calls #to_s on the second argument
       @client.sadd("key", %w(value other something more)).should be_true
-      @client.smembers("key").should == [%{["value", "other", "something", "more"]}]
+      @client.smembers("key").should == [%w(value other something more).to_s]
     end
 
     it "should get the number of members in a set" do

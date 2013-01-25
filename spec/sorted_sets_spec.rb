@@ -24,7 +24,7 @@ module FakeRedis
     end
 
     it 'errors adding multiple things to a set' do
-      lambda { @client.zadd("key", [[1, "val"], [2, 'val2']]) }.should raise_error(ArgumentError, "wrong number of arguments (2 for 3)")
+      lambda { @client.zadd("key", [[1, "val"], [2, 'val2']]) }.should raise_error(ArgumentError)
     end
 
     it "should allow floats as scores when adding or updating" do

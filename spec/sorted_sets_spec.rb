@@ -23,6 +23,14 @@ module FakeRedis
       @client.zscore("key4", "val").should == "-inf"
     end
 
+    it "should return a nil score for value not in a sorted set or empty key" do
+      @client.zadd "key", 1, "val"
+
+      @client.zscore("key", "val").should be == "1"
+      @client.zscore("key", "val2").should be_nil
+      @client.zscore("key2", "val").should be_nil
+    end
+
     it 'errors adding multiple things to a set' do
       lambda { @client.zadd("key", [[1, "val"], [2, 'val2']]) }.should raise_error(ArgumentError)
     end
@@ -82,8 +90,6 @@ module FakeRedis
       @client.zincrby("bar", "+inf", "s2").should == "inf"
       @client.zincrby("bar", "-inf", "s1").should == "-inf"
     end
-
-    #it "should intersect multiple sorted sets and store the resulting sorted set in a new key"
 
     it "should return a range of members in a sorted set, by index" do
       @client.zadd("key", 1, "one")

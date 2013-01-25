@@ -68,11 +68,11 @@ class Redis
       # * brpoplpush
       # * discard
       # * move
+      # * sort
       # * subscribe
       # * psubscribe
       # * publish
-      # * zremrangebyrank
-      # * zunionstore
+
       def flushdb
         @data = ExpiringHash.new
         "OK"

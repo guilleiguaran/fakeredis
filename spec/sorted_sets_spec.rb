@@ -153,26 +153,78 @@ module FakeRedis
       @client.zrevrank("key", "four").should be_nil
     end
 
-    it "should create intersections between multiple (sorted) sets and store the resulting sorted set in a new key" do
-      @client.zadd("key1", 1, "one")
-      @client.zadd("key1", 2, "two")
-      @client.zadd("key1", 3, "three")
-      @client.zadd("key2", 5, "two")
-      @client.zadd("key2", 7, "three")
-      @client.sadd("key3", 'one')
-      @client.sadd("key3", 'two')
+    describe "#zinterstore" do
+      before do
+        @client.zadd("key1", 1, "one")
+        @client.zadd("key1", 2, "two")
+        @client.zadd("key1", 3, "three")
+        @client.zadd("key2", 5, "two")
+        @client.zadd("key2", 7, "three")
+        @client.sadd("key3", 'one')
+        @client.sadd("key3", 'two')
+      end
 
-      @client.zinterstore("out", ["key1", "key2"]).should == 2
-      @client.zrange("out", 0, 100, :with_scores => true).should == ['two', '7', 'three', '10']
+      it "should intersect two keys with custom scores" do
+        @client.zinterstore("out", ["key1", "key2"]).should == 2
+        @client.zrange("out", 0, -1, :with_scores => true).should == ['two', (2 + 5).to_s, 'three', (3 + 7).to_s]
+      end
 
-      @client.zinterstore("out", ["key1", "key3"]).should == 2
-      @client.zrange("out", 0, 100, :with_scores => true).should == ['one', '2', 'two', '3']
+      it "should intersect two keys with a default score" do
+        @client.zinterstore("out", ["key1", "key3"]).should == 2
+        @client.zrange("out", 0, -1, :with_scores => true).should == ['one', (1 + 1).to_s, 'two', (2 + 1).to_s]
+      end
 
-      @client.zinterstore("out", ["key1", "key2", "key3"]).should == 1
-      @client.zrange("out", 0, 100, :with_scores => true).should == ['two', '8']
+      it "should intersect more than two keys" do
+        @client.zinterstore("out", ["key1", "key2", "key3"]).should == 1
+        @client.zrange("out", 0, -1, :with_scores => true).should == ['two', (2 + 5 + 1).to_s]
+      end
 
-      @client.zinterstore("out", ["key1", "no_key"]).should == 0
-      @client.zrange("out", 0, 100, :with_scores => true).should == []
+      it "should not intersect an unknown key" do
+        @client.zinterstore("out", ["key1", "no_key"]).should == 0
+        @client.zrange("out", 0, -1, :with_scores => true).should == []
+      end
+
+      it "should intersect two keys by minimum values" do
+        @client.zinterstore("out", ["key1", "key2"], :aggregate => :min).should == 2
+        @client.zrange("out", 0, -1, :with_scores => true).should == ["two", "2", "three", "3"]
+      end
+
+      it "should intersect two keys by maximum values" do
+        @client.zinterstore("out", ["key1", "key2"], :aggregate => :max).should == 2
+        @client.zrange("out", 0, -1, :with_scores => true).should == ["two", "5", "three", "7"]
+      end
+
+      it "should intersect two keys by explicitly summing values" do
+        @client.zinterstore("out", %w(key1 key2), :aggregate => :sum).should == 2
+        @client.zrange("out", 0, -1, :with_scores => true).should == ["two", (2 + 5).to_s, "three", (3 + 7).to_s]
+      end
+
+      it "should intersect two keys with weighted values" do
+        @client.zinterstore("out", %w(key1 key2), :weights => [10, 1]).should == 2
+        @client.zrange("out", 0, -1, :with_scores => true).should == ["two", (2 * 10 + 5).to_s, "three", (3 * 10 + 7).to_s]
+      end
+
+      it "should intersect two keys with weighted minimum values" do
+        @client.zinterstore("out", %w(key1 key2), :weights => [10, 1], :aggregate => :min).should == 2
+        @client.zrange("out", 0, -1, :with_scores => true).should == ["two", "5", "three", "7"]
+      end
+
+      it "should intersect two keys with weighted maximum values" do
+        @client.zinterstore("out", %w(key1 key2), :weights => [10, 1], :aggregate => :max).should == 2
+        @client.zrange("out", 0, -1, :with_scores => true).should == ["two", (2 * 10).to_s, "three", (3 * 10).to_s]
+      end
+
+      it "should error without enough weights given" do
+        lambda { @client.zinterstore("out", %w(key1 key2), :weights => [10]) }.should raise_error(RuntimeError, "ERR syntax error")
+      end
+
+      it "should error with too many weights given" do
+        lambda { @client.zinterstore("out", %w(key1 key2), :weights => [10, 1, 1]) }.should raise_error(RuntimeError, "ERR syntax error")
+      end
+
+      it "should error with an invalid aggregate" do
+        lambda { @client.zinterstore("out", %w(key1 key2), :aggregate => :invalid) }.should raise_error(RuntimeError, "ERR syntax error")
+      end
     end
 
     context "zremrangebyscore" do

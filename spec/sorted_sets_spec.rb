@@ -215,6 +215,7 @@ module FakeRedis
       end
 
       it "should error without enough weights given" do
+        lambda { @client.zinterstore("out", %w(key1 key2), :weights => []) }.should raise_error(RuntimeError, "ERR syntax error")
         lambda { @client.zinterstore("out", %w(key1 key2), :weights => [10]) }.should raise_error(RuntimeError, "ERR syntax error")
       end
 

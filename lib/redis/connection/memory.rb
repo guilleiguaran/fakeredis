@@ -8,6 +8,7 @@ class Redis
   module Connection
     class Memory
       include Redis::Connection::CommandHelper
+      include FakeRedis
 
       def initialize
         @data = ExpiringHash.new

@@ -1,8 +1,4 @@
-class Redis
-  module Connection
-    class Memory
-      class ZSet < Hash
-      end
-    end
+module FakeRedis
+  class ZSet < Hash
   end
 end

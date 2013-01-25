@@ -2,6 +2,7 @@ require 'set'
 require 'redis/connection/registry'
 require 'redis/connection/command_helper'
 require "fakeredis/expiring_hash"
+require "fakeredis/sorted_set_argument_handler"
 require "fakeredis/zset"
 
 class Redis
@@ -768,69 +769,8 @@ class Redis
         range.size
       end
 
-      def weights_aggregate_arguments_handler
-        Class.new do
-          attr_accessor :type, :number_of_keys, :keys
-          attr_reader :aggregate
-          attr_writer :weights
-
-          def initialize args
-            self.number_of_keys = args.shift
-            self.keys = args.shift(number_of_keys)
-
-            args.inject(self) {|handler, item| handler.handle(item) }
-
-            self.weights = Array.new(number_of_keys) { 1 } if self.weights.empty?
-            self.aggregate ||= :sum
-
-            raise(RuntimeError, "ERR syntax error") unless weights.size == number_of_keys
-          end
-
-          def weights
-            @weights ||= []
-          end
-
-          # Only allows assigning a variable *once*
-          def aggregate=(str)
-            if (defined?(@aggregate) && @aggregate) || ![:min, :max, :sum].include?(str.downcase.to_sym)
-              raise(RuntimeError, "ERR syntax error")
-            end
-            @aggregate = str
-          end
-
-          def handle(item)
-            case item
-            when "WEIGHTS"
-              self.type = :weights
-            when "AGGREGATE"
-              self.type = :aggregate
-            when nil
-              # This should never be called, raise a syntax error if we manage to hit it
-              raise(RuntimeError, "ERR syntax error")
-            else
-              send "handle_#{type}", item
-            end
-            self
-          end
-
-          def handle_weights(item)
-            self.weights << item
-          end
-
-          def handle_aggregate(item)
-            self.aggregate = item
-          end
-
-          def inject_block
-            lambda do |handler, item|
-              handler.handle(item)
-            end
-          end
-        end
-      end
-
       def zinterstore(out, *args)
-        args = weights_aggregate_arguments_handler.new(args)
+        args = SortedSetArgumentHandler.new(args)
         data_type_check(out, ZSet)
 
         hashes = args.keys.map do |src|

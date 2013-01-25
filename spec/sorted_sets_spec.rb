@@ -12,6 +12,15 @@ module FakeRedis
 
       @client.zadd("key", 2, "val").should be(false)
       @client.zscore("key", "val").should == "2"
+
+      @client.zadd("key2", "inf", "val").should == true
+      @client.zscore("key2", "val").should == "inf"
+
+      @client.zadd("key3", "+inf", "val").should == true
+      @client.zscore("key3", "val").should == "inf"
+
+      @client.zadd("key4", "-inf", "val").should == true
+      @client.zscore("key4", "val").should == "-inf"
     end
 
     it 'errors adding multiple things to a set' do

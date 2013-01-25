@@ -782,7 +782,7 @@ class Redis
             self.weights = Array.new(number_of_keys) { 1 } if self.weights.empty?
             self.aggregate ||= :sum
 
-            raise(Redis::CommandError, "ERR syntax error") unless weights.size == number_of_keys
+            raise(RuntimeError, "ERR syntax error") unless weights.size == number_of_keys
           end
 
           def weights
@@ -792,7 +792,7 @@ class Redis
           # Only allows assigning a variable *once*
           def aggregate=(str)
             if (defined?(@aggregate) && @aggregate) || ![:min, :max, :sum].include?(str.downcase.to_sym)
-              raise(Redis::CommandError, "ERR syntax error")
+              raise(RuntimeError, "ERR syntax error")
             end
             @aggregate = str
           end
@@ -805,7 +805,7 @@ class Redis
               self.type = :aggregate
             when nil
               # This should never be called, raise a syntax error if we manage to hit it
-              raise(Redis::CommandError, "ERR syntax error")
+              raise(RuntimeError, "ERR syntax error")
             else
               send "handle_#{type}", item
             end
@@ -828,10 +828,11 @@ class Redis
         end
       end
 
-      def zinterstore(out, _, *keys)
+      def zinterstore(out, *args)
+        args = weights_aggregate_arguments_handler.new(args)
         data_type_check(out, ZSet)
 
-        hashes = keys.map do |src|
+        hashes = args.keys.map do |src|
           case @data[src]
           when ::Set
             # Every value has a score of 1
@@ -844,9 +845,22 @@ class Redis
         end
 
         @data[out] = ZSet.new
+        # Find all values that exist in all keys, then add up (with weighted values) and store temporarily
         values = hashes.inject([]) {|r, h| r.empty? ? h.keys : r & h.keys }
-        values.each do |value|
-          @data[out][value] = hashes.inject(0) {|n, h| n + h[value].to_i }
+
+        case args.aggregate
+        when :sum
+          values.each_with_index do |value, i|
+            @data[out][value] = hashes.inject(0) { |n, h| n + (h[value].to_i * args.weights[i]) }
+          end
+        when :min
+          values.each_with_index do |value, i|
+            @data[out][value] = hashes.map { |h| (h[value].to_i * args.weights[i]) }.min
+          end
+        when :max
+          values.each_with_index do |value, i|
+            @data[out][value] = hashes.map { |h| (h[value].to_i * args.weights[i]) }.max
+          end
         end
 
         @data[out].size

@@ -7,16 +7,26 @@ module FakeRedis
       @client = Redis.new
     end
 
+  if fakeredis?
     it "should authenticate to the server" do
-      @client.auth("pass").should == "OK"
+      @client.auth("pass").should be == "OK"
     end
 
+    it "should not error with shutdown" do
+      lambda { @client.shutdown }.should_not raise_error
+    end
+
+    it "should not error with quit" do
+      lambda { @client.quit }.should_not raise_error
+    end
+  end
+
     it "should echo the given string" do
-      @client.echo("something").should == "something"
+      @client.echo("something").should be == "something"
     end
 
     it "should ping the server" do
-      @client.ping.should == "PONG"
+      @client.ping.should be == "PONG"
     end
   end
 end

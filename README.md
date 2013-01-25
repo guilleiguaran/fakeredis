@@ -1,4 +1,4 @@
-# FakeRedis [![Build Status](http://travis-ci.org/guilleiguaran/fakeredis.png)](http://travis-ci.org/guilleiguaran/fakeredis)
+# FakeRedis [![Build Status](https://secure.travis-ci.org/guilleiguaran/fakeredis.png)](http://travis-ci.org/guilleiguaran/fakeredis)
 This a fake implementation of redis-rb for machines without Redis or test environments
 
 
@@ -11,6 +11,18 @@ Install the gem:
 Add it to your Gemfile:
 
     gem "fakeredis"
+
+
+## Versions
+
+FakeRedis currently supports redis-rb v3.0.0 or later, if you are using
+redis-rb v2.2.x install the version 0.3.x:
+
+    gem install fakeredis -v "~> 0.3.0"
+
+or use the branch 0-3-x on your Gemfile:
+
+    gem "fakeredis", :git => "git://github.com/guilleiguaran/fakeredis.git", :branch => "0-3-x"
 
 
 ## Usage
@@ -38,7 +50,7 @@ Require this either in your Gemfile or in RSpec's support scripts. So either:
     group :test do
       gem "rspec"
       gem "fakeredis", :require => "fakeredis/rspec"
-    end 
+    end
 
 Or:
 
@@ -52,6 +64,8 @@ Or:
 * [obrie](https://github.com/obrie)
 * [jredville](https://github.com/jredville)
 * [redsquirrel](https://github.com/redsquirrel)
+* [dpick](https://github.com/dpick)
+* [caius](https://github.com/caius) 
 * [Travis-CI](http://travis-ci.org/) (Travis-CI also uses Fakeredis in its tests!!!)
 
 

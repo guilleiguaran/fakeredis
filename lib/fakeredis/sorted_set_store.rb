@@ -25,7 +25,7 @@ module FakeRedis
 
     # Apply the weightings to the hashes
     def computed_values
-      unless @computed_values
+      unless defined?(@computed_values) && @computed_values
         # Do nothing if all weights are 1, as n * 1 is n
         @computed_values = hashes if weights.all? {|weight| weight == 1 }
         # Otherwise, multiply the values in each hash by that hash's weighting

@@ -82,5 +82,5 @@ Or:
 
 ## Copyright
 
-Copyright (c) 2011-2012 Guillermo Iguaran. See LICENSE for
+Copyright (c) 2011-2013 Guillermo Iguaran. See LICENSE for
 further details.

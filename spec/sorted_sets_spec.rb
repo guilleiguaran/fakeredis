@@ -106,10 +106,10 @@ module FakeRedis
     end
 
     # These won't pass until redis-rb releases v3.0.2
-    # it "should handle infinity values when incrementing a sorted set key" do
-    #   @client.zincrby("bar", "+inf", "s2").should be == Infinity
-    #   @client.zincrby("bar", "-inf", "s1").should be == -Infinity
-    # end
+    it "should handle infinity values when incrementing a sorted set key" do
+      @client.zincrby("bar", "+inf", "s2").should be == Infinity
+      @client.zincrby("bar", "-inf", "s1").should be == -Infinity
+    end
 
     it "should return a range of members in a sorted set, by index" do
       @client.zadd("key", 1, "one")

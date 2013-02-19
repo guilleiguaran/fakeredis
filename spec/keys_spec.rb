@@ -164,6 +164,20 @@ module FakeRedis
       @client.get("key3").should be == "1"
     end
 
+    it "should convert the key into a string before storing" do
+      @client.set(123, "foo")
+      @client.keys.should include("123")
+      @client.get("123").should be == "foo"
+
+      @client.setex(456, 30, "foo")
+      @client.keys.should include("456")
+      @client.get("456").should be == "foo"
+
+      @client.getset(789, "foo")
+      @client.keys.should include("789")
+      @client.get("789").should be == "foo"
+    end
+
     it "should only operate against keys containing string values" do
       @client.sadd("key1", "one")
       lambda { @client.get("key1") }.should raise_error(Redis::CommandError, "ERR Operation against a key holding the wrong kind of value")

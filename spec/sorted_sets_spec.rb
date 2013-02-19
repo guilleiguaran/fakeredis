@@ -276,6 +276,17 @@ module FakeRedis
         @client.zcard("key").should be == 1
       end
 
+      it "should remove items by score with infinity" do # Issue #50
+        @client.zadd("key", 10.0, "one")
+        @client.zadd("key", 20.0, "two")
+        @client.zadd("key", 30.0, "three")
+        @client.zremrangebyscore("key", "-inf", "+inf").should be == 3
+        @client.zcard("key").should be == 0
+        @client.zscore("key", "one").should be_nil
+        @client.zscore("key", "two").should be_nil
+        @client.zscore("key", "three").should be_nil
+      end
+
       it "should return 0 if the key didn't exist" do
         @client.zremrangebyscore("key", 0, 2).should be == 0
       end

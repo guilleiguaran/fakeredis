@@ -68,6 +68,17 @@ module FakeRedis
       @client.zrem("key", "val").should be(true)
     end
 
+    it "should remove multiple members from sorted sets" do
+      @client.zrem("key2", %w(val)).should be == 0
+      @client.zrem("key2", %w(val val2 val3)).should be == 0
+
+      @client.zadd("key2", 1, "val")
+      @client.zadd("key2", 1, "val2")
+      @client.zadd("key2", 1, "val3")
+
+      @client.zrem("key2", %w(val val2 val3 val4)).should be == 3
+    end
+
     it "should remove sorted set's key when it is empty" do
       @client.zadd("key", 1, "val")
       @client.zrem("key", "val")

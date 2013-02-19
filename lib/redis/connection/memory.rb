@@ -742,10 +742,15 @@ class Redis
 
       def zrem(key, value)
         data_type_check(key, ZSet)
-        exists = false
-        exists = data[key].delete(value.to_s) if data[key]
+        values = Array(value)
+        return 0 unless data[key]
+
+        response = values.map do |v|
+          data[key].delete(v) if data[key].has_key?(v)
+        end.compact.size
+
         remove_key_for_empty_collection(key)
-        !!exists
+        response
       end
 
       def zcard(key)

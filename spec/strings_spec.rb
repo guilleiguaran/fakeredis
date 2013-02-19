@@ -134,6 +134,15 @@ module FakeRedis
       @client.set("key3", "value3")
 
       @client.mget("key1", "key2", "key3").should be == ["value1", "value2", "value3"]
+      @client.mget(["key1", "key2", "key3"]).should be == ["value1", "value2", "value3"]
+    end
+
+    it "returns nil for non existent keys" do
+      @client.set("key1", "value1")
+      @client.set("key3", "value3")
+
+      @client.mget("key1", "key2", "key3", "key4").should be == ["value1", nil, "value3", nil]
+      @client.mget(["key1", "key2", "key3", "key4"]).should be == ["value1", nil, "value3", nil]
     end
 
     it 'raises an argument error when not passed any fields' do

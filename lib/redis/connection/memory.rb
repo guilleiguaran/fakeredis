@@ -186,6 +186,8 @@ class Redis
 
       def mget(*keys)
         raise Redis::CommandError, "wrong number of arguments for 'mget' command" if keys.empty?
+        # We work with either an array, or list of arguments
+        keys = keys.first if keys.size == 1
         data.values_at(*keys)
       end
 

@@ -726,7 +726,7 @@ class Redis
         data_type_check(key, ZSet)
         data[key] ||= ZSet.new
 
-        if args.size == 2
+        if args.size == 2 && !(Array === args.first)
           score, value = args
           exists = !data[key].key?(value.to_s)
           data[key][value.to_s] = score

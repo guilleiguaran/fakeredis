@@ -44,6 +44,10 @@ module FakeRedis
       @client.zscore("key", "val2").should be == 2
       @client.zscore("key", "val3").should be == 3
       @client.zscore("key", "val4").should be == 4
+
+      @client.zadd("key", [[5, "val5"], [3, "val6"]]).should be == 2
+      @client.zscore("key", "val5").should be == 5
+      @client.zscore("key", "val6").should be == 3
     end
 
     it "should error with wrong number of arguments when adding members" do

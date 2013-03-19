@@ -546,11 +546,31 @@ class Redis
       def hmset(key, *fields)
         # mapped_hmset gives us [[:k1, "v1", :k2, "v2"]] for `fields`. Fix that.
         fields = fields[0] if mapped_param?(fields)
-        raise Redis::CommandError, "ERR wrong number of arguments for HMSET" if fields.empty? || fields.size.odd?
+        if fields.empty?
+          raise Redis::CommandError, "ERR wrong number of arguments for HMSET"
+        end
+
+        is_list_of_arrays = fields.all?{|field| field.instance_of?(Array)}
+
+        if fields.size.odd? and !is_list_of_arrays
+          raise Redis::CommandError, "ERR wrong number of arguments for HMSET"
+        end
+
+        if is_list_of_arrays and !fields.all?{|field| field.length == 2}
+          raise Redis::CommandError, "ERR wrong number of arguments for HMSET"
+        end
+
         data_type_check(key, Hash)
         data[key] ||= {}
-        fields.each_slice(2) do |field|
-          data[key][field[0].to_s] = field[1].to_s
+
+        if (is_list_of_arrays)
+          fields.each do |pair|
+            data[key][pair[0].to_s] = pair[1].to_s
+          end
+        else
+          fields.each_slice(2) do |field|
+            data[key][field[0].to_s] = field[1].to_s
+          end
         end
       end
 

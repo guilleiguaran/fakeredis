@@ -153,5 +153,12 @@ module FakeRedis
       @client.hvals("key1").should =~ ["val1", "val2"]
     end
 
+    it "should accept a list of array pairs as arguments and not throw an invalid argument number error" do
+      @client.hmset("key1", [:k1, "val1"], [:k2, "val2"], [:k3, "val3"])
+      @client.hget("key1", :k1).should be == "val1"
+      @client.hget("key1", :k2).should be == "val2"
+      @client.hget("key1", :k3).should be == "val3"
+    end
+
   end
 end

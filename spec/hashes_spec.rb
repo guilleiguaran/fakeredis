@@ -160,5 +160,9 @@ module FakeRedis
       @client.hget("key1", :k3).should be == "val3"
     end
 
+    it "should reject a list of arrays that contain an invalid number of arguments" do
+      expect { @client.hmset("key1", [:k1, "val1"], [:k2, "val2", "bogus val"]) }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for HMSET")
+    end
+
   end
 end

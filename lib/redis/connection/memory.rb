@@ -550,16 +550,20 @@ class Redis
           raise Redis::CommandError, "ERR wrong number of arguments for HMSET"
         end
 
-        is_array_of_pairs = fields.all?{|field| field.instance_of?(Array) and field.length == 2}
+        is_list_of_arrays = fields.all?{|field| field.instance_of?(Array)}
 
-        if fields.size.odd? and !is_array_of_pairs
+        if fields.size.odd? and !is_list_of_arrays
+          raise Redis::CommandError, "ERR wrong number of arguments for HMSET"
+        end
+
+        if is_list_of_arrays and !fields.all?{|field| field.length == 2}
           raise Redis::CommandError, "ERR wrong number of arguments for HMSET"
         end
 
         data_type_check(key, Hash)
         data[key] ||= {}
 
-        if (is_array_of_pairs)
+        if (is_list_of_arrays)
           fields.each do |pair|
             data[key][pair[0].to_s] = pair[1].to_s
           end

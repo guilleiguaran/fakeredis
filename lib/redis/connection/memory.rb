@@ -563,7 +563,7 @@ class Redis
         data_type_check(key, Hash)
         data[key] ||= {}
 
-        if (is_list_of_arrays)
+        if is_list_of_arrays
           fields.each do |pair|
             data[key][pair[0].to_s] = pair[1].to_s
           end

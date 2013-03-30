@@ -789,6 +789,7 @@ class Redis
         return 0 unless data[key]
         data[key].select_by_score(min, max).size
       end
+      alias ZCOUNT zcount
 
       def zincrby(key, num, value)
         data_type_check(key, ZSet)

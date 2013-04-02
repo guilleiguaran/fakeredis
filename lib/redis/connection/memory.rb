@@ -77,7 +77,7 @@ class Redis
       end
 
       def write(command)
-        meffod = command.shift
+        meffod = command.shift.downcase
         if respond_to?(meffod)
           reply = send(meffod, *command)
         else
@@ -899,25 +899,6 @@ class Redis
         elements_to_delete = sorted_elements[start..stop]
         elements_to_delete.each { |elem, rank| data[key].delete(elem) }
         elements_to_delete.size
-      end
-
-      def method_missing(name, *args)
-        name_alias = name.downcase
-        if respond_to?(name_alias)
-          send(name_alias, *args)
-        else
-          super
-        end
-      end
-
-      alias o_respond_to? respond_to?
-      def respond_to?(name)
-        name_alias = name.downcase
-        if o_respond_to?(name_alias)
-          true
-        else
-          super
-        end
       end
 
       private

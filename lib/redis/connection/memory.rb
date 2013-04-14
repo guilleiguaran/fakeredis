@@ -77,7 +77,7 @@ class Redis
       end
 
       def write(command)
-        meffod = command.shift
+        meffod = command.shift.to_s.downcase.to_sym
         if respond_to?(meffod)
           reply = send(meffod, *command)
         else

@@ -206,6 +206,14 @@ module FakeRedis
       @client.zrevrank("key", "four").should be_nil
     end
 
+    it "should not raise errors for zrank() on accessing a non-existing key in a sorted set" do
+      @client.zrank("no_such_key", "no_suck_id").should be_nil
+    end
+
+    it "should not raise errors for zrevrank() on accessing a non-existing key in a sorted set" do
+      @client.zrevrank("no_such_key", "no_suck_id").should be_nil
+    end
+
     describe "#zinterstore" do
       before do
         @client.zadd("key1", 1, "one")

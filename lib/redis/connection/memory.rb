@@ -802,14 +802,14 @@ class Redis
         data_type_check(key, ZSet)
         z = data[key]
         return unless z
-        z.keys.sort_by {|k| data[key][k] }.index(value.to_s)
+        z.keys.sort_by {|k| z[k] }.index(value.to_s)
       end
 
       def zrevrank(key, value)
         data_type_check(key, ZSet)
         z = data[key]
         return unless z
-        data[key].keys.sort_by {|k| -data[key][k] }.index(value.to_s)
+        z.keys.sort_by {|k| -z[k] }.index(value.to_s)
       end
 
       def zrange(key, start, stop, with_scores = nil)

@@ -185,7 +185,7 @@ class Redis
       end
 
       def mget(*keys)
-        raise Redis::CommandError, "wrong number of arguments for 'mget' command" if keys.empty?
+        raise_argument_error('mget') if keys.empty?
         # We work with either an array, or list of arguments
         keys = keys.first if keys.size == 1
         data.values_at(*keys)
@@ -281,14 +281,14 @@ class Redis
         case where
           when :before then data[key].insert(index, value)
           when :after  then data[key].insert(index + 1, value)
-          else raise Redis::CommandError, "ERR syntax error"
+          else raise_syntax_error
         end
       end
 
       def lset(key, index, value)
         data_type_check(key, Array)
         return unless data[key]
-        raise(Redis::CommandError, "ERR index out of range") if index >= data[key].size
+        raise Redis::CommandError, "ERR index out of range" if index >= data[key].size
         data[key][index] = value
       end
 
@@ -374,6 +374,7 @@ class Redis
       def sadd(key, value)
         data_type_check(key, ::Set)
         value = Array(value)
+        raise_argument_error('sadd') if value.empty?
 
         result = if data[key]
           old_set = data[key].dup
@@ -467,7 +468,8 @@ class Redis
 
       def del(*keys)
         keys = keys.flatten(1)
-        raise Redis::CommandError, "ERR wrong number of arguments for 'del' command" if keys.empty?
+        raise_argument_error('del') if keys.empty?
+
         old_count = data.keys.size
         keys.each do |key|
           data.delete(key)
@@ -546,19 +548,12 @@ class Redis
       def hmset(key, *fields)
         # mapped_hmset gives us [[:k1, "v1", :k2, "v2"]] for `fields`. Fix that.
         fields = fields[0] if mapped_param?(fields)
-        if fields.empty?
-          raise Redis::CommandError, "ERR wrong number of arguments for HMSET"
-        end
+        raise_argument_error('hmset') if fields.empty?
 
         is_list_of_arrays = fields.all?{|field| field.instance_of?(Array)}
 
-        if fields.size.odd? and !is_list_of_arrays
-          raise Redis::CommandError, "ERR wrong number of arguments for HMSET"
-        end
-
-        if is_list_of_arrays and !fields.all?{|field| field.length == 2}
-          raise Redis::CommandError, "ERR wrong number of arguments for HMSET"
-        end
+        raise_argument_error('hmset') if fields.size.odd? and !is_list_of_arrays
+        raise_argument_error('hmset') if is_list_of_arrays and !fields.all?{|field| field.length == 2}
 
         data_type_check(key, Hash)
         data[key] ||= {}
@@ -575,7 +570,8 @@ class Redis
       end
 
       def hmget(key, *fields)
-        raise Redis::CommandError, "wrong number of arguments for 'hmget' command" if fields.empty?
+        raise_argument_error('hmget')  if fields.empty?
+
         data_type_check(key, Hash)
         fields.map do |field|
           field = field.to_s
@@ -656,6 +652,8 @@ class Redis
       def mset(*pairs)
         # Handle pairs for mapped_mset command
         pairs = pairs[0] if mapped_param?(pairs)
+        raise_argument_error('mset') if pairs.empty? || pairs.size.odd?
+
         pairs.each_slice(2) do |pair|
           data[pair[0].to_s] = pair[1].to_s
         end
@@ -733,13 +731,13 @@ class Redis
       def zadd(key, *args)
         if !args.first.is_a?(Array)
           if args.size < 2
-            raise Redis::CommandError, "ERR wrong number of arguments for 'zadd' command"
+            raise_argument_error('zadd')
           elsif args.size.odd?
-            raise Redis::CommandError, "ERR syntax error"
+            raise_syntax_error
           end
         else
           unless args.all? {|pair| pair.size == 2 }
-            raise(Redis::CommandError, "ERR syntax error")
+            raise_syntax_error
           end
         end
 
@@ -902,6 +900,13 @@ class Redis
       end
 
       private
+        def raise_argument_error command
+          raise Redis::CommandError, "ERR wrong number of arguments for '#{command}' command"
+        end
+
+        def raise_syntax_error
+          raise Redis::CommandError, "ERR syntax error"
+        end
 
         def remove_key_for_empty_collection(key)
           del(key) if data[key] && data[key].empty?

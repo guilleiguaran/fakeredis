@@ -158,6 +158,15 @@ module FakeRedis
       @client.get("key2").should be == "value2"
     end
 
+    it "should raise error if command arguments count is wrong" do
+      expect { @client.mset }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for 'mset' command")
+      expect { @client.mset(:key1) }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for 'mset' command")
+      expect { @client.mset(:key1, "value", :key2) }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for 'mset' command")
+
+      @client.get("key1").should be_nil
+      @client.get("key2").should be_nil
+    end
+
     it "should set multiple keys to multiple values, only if none of the keys exist" do
       @client.msetnx(:key1, "value1", :key2, "value2").should be == true
       @client.msetnx(:key1, "value3", :key2, "value4").should be == false

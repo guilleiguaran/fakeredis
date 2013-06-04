@@ -13,6 +13,12 @@ module FakeRedis
       @client.smembers("key").should be == ["value"]
     end
 
+    it "should raise error if command arguments count is not enough" do
+      expect { @client.sadd("key", []) }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for 'sadd' command")
+
+      @client.smembers("key").should be_empty
+    end
+
     it "should add multiple members to a set" do
       @client.sadd("key", %w(value other something more)).should be == 4
       @client.sadd("key", %w(and additional values)).should be == 3

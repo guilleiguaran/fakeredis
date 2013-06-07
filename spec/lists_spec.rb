@@ -123,6 +123,39 @@ module FakeRedis
       @client.lrange("key1", 0, -1).should be == ["two", "three"]
     end
 
+
+    context "when the list is smaller than the requested trim" do
+      before { @client.rpush("listOfOne", "one") }
+
+      context "trimming with a negative start (specifying a max)" do
+        before { @client.ltrim("listOfOne", -5, -1) }
+
+        it "returns the unmodified list" do
+          @client.lrange("listOfOne", 0, -1).should be == ["one"]
+        end
+      end
+    end
+
+    context "when the list is larger than the requested trim" do
+      before do
+        @client.rpush("maxTest", "one")
+        @client.rpush("maxTest", "two")
+        @client.rpush("maxTest", "three")
+        @client.rpush("maxTest", "four")
+        @client.rpush("maxTest", "five")
+        @client.rpush("maxTest", "six")
+      end
+
+      context "trimming with a negative start (specifying a max)" do
+        before { @client.ltrim("maxTest", -5, -1) }
+
+        it "should trim a list to the specified maximum size" do
+          @client.lrange("maxTest", 0, -1).should be == ["two","three", "four", "five", "six"]
+        end
+      end
+    end
+
+
     it "should remove and return the last element in a list" do
       @client.rpush("key1", "one")
       @client.rpush("key1", "two")

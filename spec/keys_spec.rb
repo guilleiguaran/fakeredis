@@ -164,6 +164,10 @@ module FakeRedis
       @client.get("key3").should be == "1"
     end
 
+    it "should return 'OK' for the setex command" do
+      @client.setex("key4", 30, 1).should be == "OK"
+    end
+
     it "should convert the key into a string before storing" do
       @client.set(123, "foo")
       @client.keys.should include("123")

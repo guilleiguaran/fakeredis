@@ -652,6 +652,7 @@ class Redis
       def setex(key, seconds, value)
         data[key] = value.to_s
         expire(key, seconds)
+        "OK"
       end
 
       def setrange(key, offset, value)

@@ -429,6 +429,8 @@ class Redis
       end
 
       def sinter(*keys)
+        raise_argument_error('sinter') if keys.empty?
+
         keys.each { |k| data_type_check(k, ::Set) }
         return ::Set.new if keys.any? { |k| data[k].nil? }
         keys = keys.map { |k| data[k] || ::Set.new }

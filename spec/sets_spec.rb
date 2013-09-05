@@ -15,6 +15,7 @@ module FakeRedis
 
     it "should raise error if command arguments count is not enough" do
       expect { @client.sadd("key", []) }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for 'sadd' command")
+      expect { @client.sinter(*[]) }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for 'sinter' command")
 
       @client.smembers("key").should be_empty
     end

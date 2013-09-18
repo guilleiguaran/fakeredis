@@ -164,5 +164,14 @@ module FakeRedis
       expect { @client.hmset("key1", [:k1, "val1"], [:k2, "val2", "bogus val"]) }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for 'hmset' command")
     end
 
+    it "should convert a integer field to string for hdel" do
+      @client.hset("key1", "1", 1)
+      @client.hdel("key1", 1).should_not be_nil
+    end
+
+    it "should convert a intger field to string for hexists" do
+      @client.hset("key1", "1", 1)
+      @client.hexists("key1", 1).should be_true
+    end
   end
 end

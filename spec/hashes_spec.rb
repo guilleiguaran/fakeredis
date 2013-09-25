@@ -173,5 +173,10 @@ module FakeRedis
       @client.hset("key1", "1", 1)
       @client.hexists("key1", 1).should be_true
     end
+
+    it "should convert a integer field name to string for hincrby" do
+      @client.hset("key1", 1, 0)
+      @client.hincrby("key1", 1, 1).should be(1)
+    end
   end
 end

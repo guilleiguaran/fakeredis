@@ -611,8 +611,9 @@ class Redis
 
       def hincrby(key, field, increment)
         data_type_check(key, Hash)
+        field = field.to_s
         if data[key]
-          data[key][field] = (data[key][field.to_s].to_i + increment.to_i).to_s
+          data[key][field] = (data[key][field].to_i + increment.to_i).to_s
         else
           data[key] = { field => increment.to_s }
         end

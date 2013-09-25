@@ -212,6 +212,7 @@ class Redis
       end
 
       def hdel(key, field)
+        field = field.to_s
         data_type_check(key, Hash)
         data[key] && data[key].delete(field)
         remove_key_for_empty_collection(key)
@@ -610,8 +611,9 @@ class Redis
 
       def hincrby(key, field, increment)
         data_type_check(key, Hash)
+        field = field.to_s
         if data[key]
-          data[key][field] = (data[key][field.to_s].to_i + increment.to_i).to_s
+          data[key][field] = (data[key][field].to_i + increment.to_i).to_s
         else
           data[key] = { field => increment.to_s }
         end
@@ -621,7 +623,7 @@ class Redis
       def hexists(key, field)
         data_type_check(key, Hash)
         return false unless data[key]
-        data[key].key?(field)
+        data[key].key?(field.to_s)
       end
 
       def sync ; end

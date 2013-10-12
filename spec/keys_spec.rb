@@ -102,7 +102,10 @@ module FakeRedis
       @client.set("akeyd", "4")
       @client.set("key1", "5")
 
+      @client.mset("database", 1, "above", 2, "suitability", 3, "able", 4)
+
       @client.keys("key:*").should =~ ["key:a", "key:b", "key:c"]
+      @client.keys("ab*").should =~ ["above", "able"]
     end
 
     it "should remove the expiration from a key" do

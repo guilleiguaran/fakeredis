@@ -9,24 +9,16 @@ require "fakeredis/zset"
 class Redis
   module Connection
     class Memory
+      NAMESPACE = "fakeredis"
+      
       include Redis::Connection::CommandHelper
       include FakeRedis
 
       attr_accessor :buffer, :options
 
-      # Tracks all databases for all instances across the current process.
-      # We have to be able to handle two clients with the same host/port accessing
-      # different databases at once without overwriting each other. So we store our
-      # "data" outside the client instances, in this class level instance method.
-      # Client instances access it with a key made up of their host/port, and then select
-      # which DB out of the array of them they want. Allows the access we need.
-      def self.databases
-        @databases ||= Hash.new {|h,k| h[k] = [] }
-      end
-
       # Used for resetting everything in specs
       def self.reset_all_databases
-        @databases = nil
+        Rails.cache.delete(NAMESPACE)
       end
 
       def self.connect(options = {})
@@ -47,7 +39,7 @@ class Redis
       end
 
       def databases
-        self.class.databases[database_instance_key]
+        @database ||= Rails.cache.read(NAMESPACE) || {}
       end
 
       def find_database id=database_id
@@ -80,6 +72,7 @@ class Redis
         meffod = command.shift.to_s.downcase.to_sym
         if respond_to?(meffod)
           reply = send(meffod, *command)
+          Rails.cache.write(NAMESPACE, @database)
         else
           raise Redis::CommandError, "ERR unknown command '#{meffod}'"
         end

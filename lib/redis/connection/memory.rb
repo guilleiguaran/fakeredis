@@ -131,7 +131,7 @@ class Redis
 
       def info
         {
-          "redis_version" => "0.07",
+          "redis_version" => "2.6.16",
           "connected_clients" => "1",
           "connected_slaves" => "0",
           "used_memory" => "3187",

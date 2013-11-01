@@ -46,6 +46,13 @@ module FakeRedis
       @client.sdiff("key1", "key2", "key3").should =~ ["b", "d"]
     end
 
+    it "should subtract from a nonexistent set" do
+      @client.sadd("key2", "a")
+      @client.sadd("key2", "b")
+
+      @client.sdiff("key1", "key2").should == []
+    end
+
     it "should subtract multiple sets and store the resulting set in a key" do
       @client.sadd("key1", "a")
       @client.sadd("key1", "b")

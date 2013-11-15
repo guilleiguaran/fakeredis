@@ -421,5 +421,11 @@ module FakeRedis
     #it "should get the score associated with the given member in a sorted set"
 
     #it "should add multiple sorted sets and store the resulting sorted set in a new key"
+
+    it "zrem should remove members add by zadd" do
+      @client.zadd("key1", 1, 3)
+      @client.zrem("key1", 3)
+      @client.zscore("key1", 3).should be_nil
+    end
   end
 end

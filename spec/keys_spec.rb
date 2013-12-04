@@ -312,5 +312,61 @@ module FakeRedis
       cursor.should == "0"
       all_keys.uniq.size.should == 100
     end
+
+    context "with extended options" do
+      it "uses ex option to set the expire time, in seconds" do
+        now = Time.now
+        Time.stub({ :now => now })
+        ttl = 7
+
+        @client.set("key1", "1", { :ex => ttl }).should == "OK"
+        @client.client.connection.find_database.expires["key1"].should == now + ttl
+      end
+
+      it "uses px option to set the expire time, in miliseconds" do
+        now = Time.now
+        Time.stub({ :now => now })
+        ttl = 7000
+
+        @client.set("key1", "1", { :px => ttl }).should == "OK"
+        @client.client.connection.find_database.expires["key1"].should == now + (ttl / 1000)
+      end
+
+      # Note that the redis-rb implementation will always give PX last.
+      # Redis seems to process each expiration option and the last one wins.
+      it "prefers the finer-grained PX expiration option over EX" do
+        now = Time.now
+        Time.stub({ :now => now })
+        ttl_px = 5555
+        ttl_ex = 10
+
+        @client.set("key1", "1", { :px => ttl_px, :ex => ttl_ex })
+        @client.client.connection.find_database.expires["key1"].should == now + (ttl_px / 1000.0)
+
+        @client.set("key1", "1", { :ex => ttl_ex, :px => ttl_px })
+        @client.client.connection.find_database.expires["key1"].should == now + (ttl_px / 1000.0)
+      end
+
+      it "uses nx option to only set the key if it does not already exist" do
+        @client.set("key1", "1", { :nx => true }).should == true
+        @client.set("key1", "2", { :nx => true }).should == false
+
+        @client.get("key1").should == "1"
+      end
+
+      it "uses xx option to only set the key if it already exists" do
+        @client.set("key2", "1", { :xx => true }).should == false
+        @client.set("key2", "2")
+        @client.set("key2", "1", { :xx => true }).should == true
+
+        @client.get("key2").should == "1"
+      end
+
+      it "does not set the key if both xx and nx option are specified" do
+        @client.set("key2", "1", { :nx => true, :xx => true }).should == false
+        @client.get("key2").should be_nil
+      end
+    end
   end
 end
+

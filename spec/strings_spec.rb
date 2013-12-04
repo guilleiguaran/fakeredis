@@ -232,5 +232,27 @@ module FakeRedis
       @client.strlen("key1").should be == 3
     end
 
+    describe 'Bit operations' do
+      context '#bitcount' do
+        before do
+          @client.setbit('key1', 10, 1)
+          @client.setbit('key1', 8, 1)
+          @client.setbit('key1', 15, 1)
+        end
+
+        it 'should return zero if key does not exists' do
+          @client.bitcount('other_key').should be(0)
+        end
+
+        it 'should count all bits' do        
+          @client.bitcount('key1').should be(3)
+        end
+
+        it 'should count bits only in the given range' do
+          @client.bitcount('key1', 0, 8).should be(1)
+        end
+      end
+
+    end
   end
 end

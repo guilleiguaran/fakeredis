@@ -525,7 +525,7 @@ class Redis
         if data.expires.include?(key) && (ttl = data.expires[key].to_i - Time.now.to_i) > 0
           ttl
         else
-          -1
+          exists(key) ? -1 : -2
         end
       end
 

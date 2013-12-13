@@ -205,12 +205,12 @@ module FakeRedis
 
     it "should only operate against keys containing string values" do
       @client.sadd("key1", "one")
-      lambda { @client.get("key1") }.should raise_error(Redis::CommandError, "ERR Operation against a key holding the wrong kind of value")
-      lambda { @client.getset("key1", 1) }.should raise_error(Redis::CommandError, "ERR Operation against a key holding the wrong kind of value")
+      lambda { @client.get("key1") }.should raise_error(Redis::CommandError, "WRONGTYPE Operation against a key holding the wrong kind of value")
+      lambda { @client.getset("key1", 1) }.should raise_error(Redis::CommandError, "WRONGTYPE Operation against a key holding the wrong kind of value")
 
       @client.hset("key2", "one", "two")
-      lambda { @client.get("key2") }.should raise_error(Redis::CommandError, "ERR Operation against a key holding the wrong kind of value")
-      lambda { @client.getset("key2", 1) }.should raise_error(Redis::CommandError, "ERR Operation against a key holding the wrong kind of value")
+      lambda { @client.get("key2") }.should raise_error(Redis::CommandError, "WRONGTYPE Operation against a key holding the wrong kind of value")
+      lambda { @client.getset("key2", 1) }.should raise_error(Redis::CommandError, "WRONGTYPE Operation against a key holding the wrong kind of value")
     end
 
     it "should move a key from one database to another successfully" do

@@ -110,7 +110,7 @@ module FakeRedis
     end
 
     it "should reject the wrong number of arguments" do
-      lambda { @client.hmset("hash", "foo1", "bar1", "foo2", "bar2", "foo3") }.should raise_error(Redis::CommandError, "ERR wrong number of arguments for 'hmset' command")
+      lambda { @client.hmset("hash", "foo1", "bar1", "foo2", "bar2", "foo3") }.should raise_error(Redis::CommandError, "ERR wrong number of arguments for HMSET")
     end
 
     it "should set multiple hash fields to multiple values" do
@@ -161,7 +161,7 @@ module FakeRedis
     end
 
     it "should reject a list of arrays that contain an invalid number of arguments" do
-      expect { @client.hmset("key1", [:k1, "val1"], [:k2, "val2", "bogus val"]) }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for 'hmset' command")
+      expect { @client.hmset("key1", [:k1, "val1"], [:k2, "val2", "bogus val"]) }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for HMSET")
     end
 
     it "should convert a integer field name to string for hdel" do

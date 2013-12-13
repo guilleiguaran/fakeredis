@@ -150,10 +150,28 @@ module FakeRedis
     end
 
     it "should determine the type stored at key" do
-      @client.set("key1", "1")
-
-      @client.type("key1").should be == "string"
+      # Non-existing key
       @client.type("key0").should be == "none"
+
+      # String
+      @client.set("key1", "1")
+      @client.type("key1").should be == "string"
+
+      # List
+      @client.lpush("key2", "1")
+      @client.type("key2").should be == "list"
+
+      # Set
+      @client.sadd("key3", "1")
+      @client.type("key3").should be == "set"
+
+      # Sorted Set
+      @client.zadd("key4", 1.0, "1")
+      @client.type("key4").should be == "zset"
+
+      # Hash
+      @client.hset("key5", "a", "1")
+      @client.type("key5").should be == "hash"
     end
 
     it "should convert the value into a string before storing" do

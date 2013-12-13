@@ -5,4 +5,4 @@ rvm:
   - 2.0.0
   - ree
   - jruby
-  - rbx-19mode
+  - rbx

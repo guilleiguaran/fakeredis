@@ -182,10 +182,10 @@ module FakeRedis
       @client.zrevrangebyscore("key", 100, 0).should be == ["three", "two", "one"]
       @client.zrevrangebyscore("key", 2, 1).should be == ["two", "one"]
       @client.zrevrangebyscore("key", 1, 2).should be == []
-      @client.zrevrangebyscore("key", 2, 1, :with_scores => true).should be == [["two", 2], ["one", 1]]
+      @client.zrevrangebyscore("key", 2, 1, :with_scores => true).should be == [["two", 2.0], ["one", 1.0]]
       @client.zrevrangebyscore("key", 100, 0, :limit => [0, 1]).should be == ["three"]
       @client.zrevrangebyscore("key", 100, 0, :limit => [0, -1]).should be == ["three", "two", "one"]
-      @client.zrevrangebyscore("key", 100, 0, :limit => [1, -1], :with_scores => true).should be == [["two", 2], ["one", 1]]
+      @client.zrevrangebyscore("key", 100, 0, :limit => [1, -1], :with_scores => true).should be == [["two", 2.0], ["one", 1.0]]
     end
 
     it "should determine the index of a member in a sorted set" do

@@ -713,6 +713,7 @@ class Redis
         case data[key]
           when nil then "none"
           when String then "string"
+          when ZSet then "zset"
           when Hash then "hash"
           when Array then "list"
           when ::Set then "set"

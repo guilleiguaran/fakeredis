@@ -525,7 +525,7 @@ class Redis
         if data.expires.include?(key) && (ttl = data.expires[key].to_i - Time.now.to_i) > 0
           ttl
         else
-          -1
+          exists(key) ? -1 : -2
         end
       end
 
@@ -667,7 +667,9 @@ class Redis
       def mset(*pairs)
         # Handle pairs for mapped_mset command
         pairs = pairs[0] if mapped_param?(pairs)
-        raise_argument_error('mset') if pairs.empty? || pairs.size.odd?
+        raise_argument_error('mset') if pairs.empty? || pairs.size == 1
+        # We have to reply with a different error message here to be consistent with redis-rb 3.0.6 / redis-server 2.8.1
+        raise_argument_error("mset", "mset_odd") if pairs.size.odd?
 
         pairs.each_slice(2) do |pair|
           data[pair[0].to_s] = pair[1].to_s
@@ -872,6 +874,7 @@ class Redis
       end
 
       def zrevrangebyscore(key, max, min, *opts)
+        opts = opts.flatten
         data_type_check(key, ZSet)
         return [] unless data[key]
 
@@ -920,8 +923,14 @@ class Redis
       end
 
       private
-        def raise_argument_error command
-          raise Redis::CommandError, "ERR wrong number of arguments for '#{command}' command"
+        def raise_argument_error(command, match_string=command)
+          error_message = if %w(hmset mset_odd).include?(match_string.downcase)
+            "ERR wrong number of arguments for #{command.upcase}"
+          else
+            "ERR wrong number of arguments for '#{command}' command"
+          end
+
+          raise Redis::CommandError, error_message
         end
 
         def raise_syntax_error
@@ -935,7 +944,7 @@ class Redis
         def data_type_check(key, klass)
           if data[key] && !data[key].is_a?(klass)
             warn "Operation against a key holding the wrong kind of value: Expected #{klass} at #{key}."
-            raise Redis::CommandError.new("ERR Operation against a key holding the wrong kind of value")
+            raise Redis::CommandError.new("WRONGTYPE Operation against a key holding the wrong kind of value")
           end
         end
 

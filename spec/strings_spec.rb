@@ -161,7 +161,7 @@ module FakeRedis
     it "should raise error if command arguments count is wrong" do
       expect { @client.mset }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for 'mset' command")
       expect { @client.mset(:key1) }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for 'mset' command")
-      expect { @client.mset(:key1, "value", :key2) }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for 'mset' command")
+      expect { @client.mset(:key1, "value", :key2) }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for MSET")
 
       @client.get("key1").should be_nil
       @client.get("key2").should be_nil

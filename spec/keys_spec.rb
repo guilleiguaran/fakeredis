@@ -58,11 +58,11 @@ module FakeRedis
       @client.ttl("key1").should be == -1
     end
 
-    it "should not have a ttl if expired" do
+    it "should not have a ttl if expired (and thus key does not exist)" do
       @client.set("key1", "1")
       @client.expireat("key1", Time.now.to_i)
 
-      @client.ttl("key1").should be == -1
+      @client.ttl("key1").should be == -2
     end
 
     it "should not find a key if expired" do
@@ -205,12 +205,12 @@ module FakeRedis
 
     it "should only operate against keys containing string values" do
       @client.sadd("key1", "one")
-      lambda { @client.get("key1") }.should raise_error(Redis::CommandError, "ERR Operation against a key holding the wrong kind of value")
-      lambda { @client.getset("key1", 1) }.should raise_error(Redis::CommandError, "ERR Operation against a key holding the wrong kind of value")
+      lambda { @client.get("key1") }.should raise_error(Redis::CommandError, "WRONGTYPE Operation against a key holding the wrong kind of value")
+      lambda { @client.getset("key1", 1) }.should raise_error(Redis::CommandError, "WRONGTYPE Operation against a key holding the wrong kind of value")
 
       @client.hset("key2", "one", "two")
-      lambda { @client.get("key2") }.should raise_error(Redis::CommandError, "ERR Operation against a key holding the wrong kind of value")
-      lambda { @client.getset("key2", 1) }.should raise_error(Redis::CommandError, "ERR Operation against a key holding the wrong kind of value")
+      lambda { @client.get("key2") }.should raise_error(Redis::CommandError, "WRONGTYPE Operation against a key holding the wrong kind of value")
+      lambda { @client.getset("key2", 1) }.should raise_error(Redis::CommandError, "WRONGTYPE Operation against a key holding the wrong kind of value")
     end
 
     it "should move a key from one database to another successfully" do

@@ -58,11 +58,11 @@ module FakeRedis
       @client.ttl("key1").should be == -1
     end
 
-    it "should not have a ttl if expired" do
+    it "should not have a ttl if expired (and thus key does not exist)" do
       @client.set("key1", "1")
       @client.expireat("key1", Time.now.to_i)
 
-      @client.ttl("key1").should be == -1
+      @client.ttl("key1").should be == -2
     end
 
     it "should not find a key if expired" do

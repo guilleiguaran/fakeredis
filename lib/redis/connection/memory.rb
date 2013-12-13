@@ -874,6 +874,7 @@ class Redis
       end
 
       def zrevrangebyscore(key, max, min, *opts)
+        opts = opts.flatten
         data_type_check(key, ZSet)
         return [] unless data[key]
 

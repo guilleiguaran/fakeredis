@@ -627,7 +627,7 @@ class Redis
         else
           data[key] = { field => increment.to_s }
         end
-        data[key][field].to_f
+        data[key][field]
       end
 
       def hexists(key, field)

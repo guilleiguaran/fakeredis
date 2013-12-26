@@ -15,5 +15,13 @@ module FakeRedis
 
       transaction.should be == ["OK", "OK", ["1", "2"]]
     end
+
+    it "should execute all command after multi" do
+      @client.multi
+      @client.set("key1", "1")
+      @client.set("key2", "2")
+      @client.mget("key1", "key2")
+      @client.exec.should be == ["OK", "OK", ["1", "2"]]
+    end
   end
 end

@@ -16,7 +16,7 @@ class Redis
       include SortMethod
       include TransactionCommands
 
-      attr_accessor :buffer, :options
+      attr_accessor :options
 
       # Tracks all databases for all instances across the current process.
       # We have to be able to handle two clients with the same host/port accessing
@@ -95,7 +95,6 @@ class Redis
         end
 
         replies << reply
-        buffer << reply if buffer && meffod != :multi
         nil
       end
 
@@ -107,7 +106,6 @@ class Redis
       # * blpop
       # * brpop
       # * brpoplpush
-      # * discard
       # * subscribe
       # * psubscribe
       # * publish

@@ -5,6 +5,7 @@ require "fakeredis/expiring_hash"
 require "fakeredis/sort_method"
 require "fakeredis/sorted_set_argument_handler"
 require "fakeredis/sorted_set_store"
+require "fakeredis/transaction_commands"
 require "fakeredis/zset"
 
 class Redis
@@ -13,6 +14,7 @@ class Redis
       include Redis::Connection::CommandHelper
       include FakeRedis
       include SortMethod
+      include TransactionCommands
 
       attr_accessor :buffer, :options
 
@@ -754,24 +756,6 @@ class Redis
       def shutdown; end
 
       def slaveof(host, port) ; end
-
-      def exec
-        buffer.tap {|x| self.buffer = nil }
-      end
-
-      def multi
-        self.buffer = []
-        yield if block_given?
-        "OK"
-      end
-
-      def watch(_)
-        "OK"
-      end
-
-      def unwatch
-        "OK"
-      end
 
       def scan(start_cursor, *args)
         match = "*"

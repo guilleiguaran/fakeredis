@@ -71,6 +71,17 @@ module FakeRedis
       @client.hincrby("key1", "cont2", "5").should be == 5
     end
 
+    it "should increment the float value of a hash field by the given float" do
+      @client.hset("key1", "cont1", 5.0)
+      @client.hincrbyfloat("key1", "cont1", 4.1).should be == 9.1
+      @client.hget("key1", "cont1").should be == "9.1"
+    end
+
+    it "should increment non existing hash keys" do
+      @client.hget("key1", "cont2").should be_nil
+      @client.hincrbyfloat("key1", "cont2", 5.5).should be == 5.5
+    end
+
     it "should get all the fields in a hash" do
       @client.hset("key1", "i1", "val1")
       @client.hset("key1", "i2", "val2")

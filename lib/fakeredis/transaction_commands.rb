@@ -21,6 +21,9 @@ module FakeRedis
       :zremrangebyscore, :zrevrange, :zrevrangebyscore, :zrevrank, :zscan,
       :zscore, :zunionstore
     ]
+    TRANSACTION_REDIS_COMMANDS = [
+      :discard, :exec, :multi, :watch, :unwatch
+    ]
 
     def self.included(klass)
       klass.class_eval do
@@ -114,8 +117,8 @@ module FakeRedis
     #
     def alias_redis_commands!
       self.class.class_eval {
-        all_instance_methods = self.instance_methods(false).map(&:to_sym)
-        REDIS_COMMANDS.each { |m|
+        all_instance_methods = self.instance_methods.map(&:to_sym)
+        (REDIS_COMMANDS - TRANSACTION_REDIS_COMMANDS).each { |m|
           next unless all_instance_methods.include? m
 
           alias_method "real_#{m}".to_sym, m
@@ -130,8 +133,8 @@ module FakeRedis
     # Private: revert `alias_redis_commands!`
     def revert_alias_redis_commands!
       self.class.class_eval {
-        all_instance_methods = self.instance_methods(false).map(&:to_sym)
-        REDIS_COMMANDS.each { |m|
+        all_instance_methods = self.instance_methods.map(&:to_sym)
+        (REDIS_COMMANDS - TRANSACTION_REDIS_COMMANDS).each { |m|
           next unless all_instance_methods.include? m
 
           alias_method m, "real_#{m}".to_sym

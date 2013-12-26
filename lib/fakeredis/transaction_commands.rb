@@ -90,7 +90,9 @@ module FakeRedis
 
       self.in_multi = true
       alias_redis_commands!
+
       yield(self) if block_given?
+
       "OK"
     end
 
@@ -112,7 +114,7 @@ module FakeRedis
     #
     def alias_redis_commands!
       self.class.class_eval {
-        all_instance_methods = self.instance_methods(false)
+        all_instance_methods = self.instance_methods(false).map(&:to_sym)
         REDIS_COMMANDS.each { |m|
           next unless all_instance_methods.include? m
 
@@ -128,7 +130,7 @@ module FakeRedis
     # Private: revert `alias_redis_commands!`
     def revert_alias_redis_commands!
       self.class.class_eval {
-        all_instance_methods = self.instance_methods(false)
+        all_instance_methods = self.instance_methods(false).map(&:to_sym)
         REDIS_COMMANDS.each { |m|
           next unless all_instance_methods.include? m
 

@@ -150,7 +150,7 @@ class Redis
 
       def bgsave ; end
 
-      def bgreriteaof ; end
+      def bgrewriteaof ; end
 
       def move key, destination_id
         raise Redis::CommandError, "ERR source and destination objects are the same" if destination_id == database_id

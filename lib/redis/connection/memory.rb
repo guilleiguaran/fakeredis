@@ -845,11 +845,11 @@ class Redis
         results[start..stop].flatten.map(&:to_s)
       end
 
-      def zrevrange(key, start, stop, with_scores = nil)
+      def zrevrange(key, start, stop, options = {})
         data_type_check(key, ZSet)
         return [] unless data[key]
 
-        if with_scores
+        if options[:with_scores] || options[:withscores]
           data[key].sort_by {|_,v| -v }
         else
           data[key].keys.sort_by {|k| -data[key][k] }

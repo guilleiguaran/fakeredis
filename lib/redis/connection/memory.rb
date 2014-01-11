@@ -619,6 +619,17 @@ class Redis
         data[key][field].to_i
       end
 
+      def hincrbyfloat(key, field, increment)
+        data_type_check(key, Hash)
+        field = field.to_s
+        if data[key]
+          data[key][field] = (data[key][field].to_f + increment.to_f).to_s
+        else
+          data[key] = { field => increment.to_s }
+        end
+        data[key][field]
+      end
+
       def hexists(key, field)
         data_type_check(key, Hash)
         return false unless data[key]

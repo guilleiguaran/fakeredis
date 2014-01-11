@@ -91,6 +91,8 @@ module FakeRedis
       @client.hset("key1", "i2", "val2")
 
       @client.hmget("key1", "i1", "i2", "i3").should =~ ["val1", "val2", nil]
+      @client.hmget("key1", ["i1", "i2", "i3"]).should =~ ["val1", "val2", nil]
+
       @client.hmget("key2", "i1", "i2").should be == [nil, nil]
     end
 

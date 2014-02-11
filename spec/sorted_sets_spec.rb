@@ -164,6 +164,9 @@ module FakeRedis
 
       @client.zrangebyscore("key", 0, 100).should be == ["one", "two", "three"]
       @client.zrangebyscore("key", 1, 2).should be == ["one", "two"]
+      @client.zrangebyscore("key", 1, '(2').should be == ['one']
+      @client.zrangebyscore("key", '(1', 2).should be == ['two']
+      @client.zrangebyscore("key", '(1', '(2').should be == []
       @client.zrangebyscore("key", 0, 100, :withscores => true).should be == [["one", 1], ["two", 2], ["three", 3]]
       @client.zrangebyscore("key", 1, 2, :with_scores => true).should be == [["one", 1], ["two", 2]]
       @client.zrangebyscore("key", 0, 100, :limit => [0, 1]).should be == ["one"]
@@ -172,6 +175,8 @@ module FakeRedis
       @client.zrangebyscore("key", '-inf', '+inf').should be == ["one", "two", "three"]
       @client.zrangebyscore("key", 2, '+inf').should be == ["two", "three"]
       @client.zrangebyscore("key", '-inf', 2).should be == ['one', "two"]
+
+      @client.zrangebyscore("badkey", 1, 2).should be == []
     end
 
     it "should return a reversed range of members in a sorted set, by score" do

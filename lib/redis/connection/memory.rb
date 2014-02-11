@@ -911,6 +911,17 @@ class Redis
         range.size
       end
 
+      def zremrangebyrank(key, start, stop)
+        data_type_check(key, ZSet)
+        return 0 unless data[key]
+
+        sorted_elements = data[key].sort_by { |k, v| v }
+        start = sorted_elements.length if start > sorted_elements.length
+        elements_to_delete = sorted_elements[start..stop]
+        elements_to_delete.each { |elem, rank| data[key].delete(elem) }
+        elements_to_delete.size
+      end
+
       def zinterstore(out, *args)
         data_type_check(out, ZSet)
         args_handler = SortedSetArgumentHandler.new(args)
@@ -923,14 +934,6 @@ class Redis
         args_handler = SortedSetArgumentHandler.new(args)
         data[out] = SortedSetUnionStore.new(args_handler, data).call
         data[out].size
-      end
-
-      def zremrangebyrank(key, start, stop)
-        sorted_elements = data[key].sort_by { |k, v| v }
-        start = sorted_elements.length if start > sorted_elements.length
-        elements_to_delete = sorted_elements[start..stop]
-        elements_to_delete.each { |elem, rank| data[key].delete(elem) }
-        elements_to_delete.size
       end
 
       private

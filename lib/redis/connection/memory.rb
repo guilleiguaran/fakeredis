@@ -473,10 +473,14 @@ class Redis
         data[destination] = ::Set.new(result)
       end
 
-      def srandmember(key)
+      def srandmember(key, number=nil)
         data_type_check(key, ::Set)
         return nil unless data[key]
-        data[key].to_a[rand(data[key].size)]
+        if number.nil?
+          data[key].to_a[rand(data[key].size)]
+        else
+          data[key].to_a.sample(number)
+        end
       end
 
       def del(*keys)

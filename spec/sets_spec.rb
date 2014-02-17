@@ -182,4 +182,55 @@ module FakeRedis
       @client.smembers("key").should =~ ["a", "b", "c", "d", "e"]
     end
   end
+
+  describe 'srandmember' do
+    before(:each) do
+      @client = Redis.new
+    end
+
+    context 'with a set that has three elements' do
+      before do
+        @client.sadd("key1", "a")
+        @client.sadd("key1", "b")
+        @client.sadd("key1", "c")
+      end
+
+      context 'when called without the optional number parameter' do
+        it 'is a random element from the set' do
+          random_element = @client.srandmember("key1")
+
+          ['a', 'b', 'c'].include?(random_element).should be_true
+        end
+      end
+
+      context 'when called with the optional number parameter of 1' do
+        it 'is an array of one random element from the set' do
+          random_elements = @client.srandmember("key1", 1)
+
+          [['a'], ['b'], ['c']].include?(@client.srandmember("key1", 1)).should be_true
+        end
+      end
+
+      context 'when called with the optional number parameter of 2' do
+        it 'is an array of two unique, random elements from the set' do
+          random_elements = @client.srandmember("key1", 2)
+
+          random_elements.count.should == 2
+          random_elements.uniq.count.should == 2
+          random_elements.all? do |element|
+            ['a', 'b', 'c'].include?(element).should be_true
+          end
+        end
+      end
+
+    end
+
+    context 'with an empty set' do
+      before { @client.del("key1") }
+
+      it 'is nil' do
+        expect(@client.srandmember("key1")).to be_nil
+      end
+    end
+  end
 end

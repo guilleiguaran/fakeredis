@@ -478,8 +478,10 @@ class Redis
         return [] unless data[key]
         if number.nil?
           data[key].to_a[rand(data[key].size)]
-        else
+        elsif number >= 0
           data[key].to_a.sample(number)
+        else
+          (1..-number).flat_map { data[key].to_a.sample(1) }
         end
       end
 

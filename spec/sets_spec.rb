@@ -223,6 +223,27 @@ module FakeRedis
         end
       end
 
+      context 'when called with an optional parameter of -100' do
+        it 'is an array of 100 random elements from the set, some of which are repeated' do
+          random_elements = @client.srandmember("key1", -100)
+
+          random_elements.count.should == 100
+          random_elements.uniq.count.should <= 3
+          random_elements.all? do |element|
+            ['a', 'b', 'c'].include?(element).should be_true
+          end
+        end        
+      end
+
+      context 'when called with an optional parameter of 100' do
+        it 'is an array of all of the elements from the set, none of which are repeated' do
+          random_elements = @client.srandmember("key1", 100)
+
+          random_elements.count.should == 3
+          random_elements.uniq.count.should == 3
+          random_elements.should =~ ['a', 'b', 'c']
+        end
+      end
     end
 
     context 'with an empty set' do

@@ -127,7 +127,7 @@ module FakeRedis
 
       ["a", "b"].include?(@client.spop("key1")).should be_true
       ["a", "b"].include?(@client.spop("key1")).should be_true
-      @client.spop("key1").should be_nil
+      @client.spop("key1").should == []
     end
 
     it "should get a random member from a set" do
@@ -228,8 +228,8 @@ module FakeRedis
     context 'with an empty set' do
       before { @client.del("key1") }
 
-      it 'is nil' do
-        expect(@client.srandmember("key1")).to be_nil
+      it 'is an empty array' do
+        @client.srandmember("key1").should == []
       end
     end
   end

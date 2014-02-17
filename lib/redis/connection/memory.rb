@@ -475,7 +475,7 @@ class Redis
 
       def srandmember(key, number=nil)
         data_type_check(key, ::Set)
-        return nil unless data[key]
+        return [] unless data[key]
         if number.nil?
           data[key].to_a[rand(data[key].size)]
         else

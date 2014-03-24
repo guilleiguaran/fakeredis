@@ -4,7 +4,7 @@ module FakeRedis
   describe 'time' do
     before(:each) do
       @client = Redis.new
-      Time.stub(:now).and_return(Time.parse('2014-03-24 15:04:12.888888'))
+      Timecop.freeze('2014-03-24 15:04:12.888888 -0400')
     end
 
     it 'is an array' do

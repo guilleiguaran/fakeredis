@@ -182,4 +182,80 @@ module FakeRedis
       @client.smembers("key").should =~ ["a", "b", "c", "d", "e"]
     end
   end
+
+  describe 'srandmember' do
+    before(:each) do
+      @client = Redis.new
+    end
+
+    context 'with a set that has three elements' do
+      before do
+        @client.sadd("key1", "a")
+        @client.sadd("key1", "b")
+        @client.sadd("key1", "c")
+      end
+
+      context 'when called without the optional number parameter' do
+        it 'is a random element from the set' do
+          random_element = @client.srandmember("key1")
+
+          ['a', 'b', 'c'].include?(random_element).should be_true
+        end
+      end
+
+      context 'when called with the optional number parameter of 1' do
+        it 'is an array of one random element from the set' do
+          random_elements = @client.srandmember("key1", 1)
+
+          [['a'], ['b'], ['c']].include?(@client.srandmember("key1", 1)).should be_true
+        end
+      end
+
+      context 'when called with the optional number parameter of 2' do
+        it 'is an array of two unique, random elements from the set' do
+          random_elements = @client.srandmember("key1", 2)
+
+          random_elements.count.should == 2
+          random_elements.uniq.count.should == 2
+          random_elements.all? do |element|
+            ['a', 'b', 'c'].include?(element).should be_true
+          end
+        end
+      end
+
+      context 'when called with an optional parameter of -100' do
+        it 'is an array of 100 random elements from the set, some of which are repeated' do
+          random_elements = @client.srandmember("key1", -100)
+
+          random_elements.count.should == 100
+          random_elements.uniq.count.should <= 3
+          random_elements.all? do |element|
+            ['a', 'b', 'c'].include?(element).should be_true
+          end
+        end
+      end
+
+      context 'when called with an optional parameter of 100' do
+        it 'is an array of all of the elements from the set, none of which are repeated' do
+          random_elements = @client.srandmember("key1", 100)
+
+          random_elements.count.should == 3
+          random_elements.uniq.count.should == 3
+          random_elements.should =~ ['a', 'b', 'c']
+        end
+      end
+    end
+
+    context 'with an empty set' do
+      before { @client.del("key1") }
+
+      it 'is nil without the extra parameter' do
+        @client.srandmember("key1").should be_nil
+      end
+
+      it 'is an empty array with an extra parameter' do
+        @client.srandmember("key1", 1).should == []
+      end
+    end
+  end
 end

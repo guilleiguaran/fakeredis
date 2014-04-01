@@ -473,10 +473,8 @@ class Redis
         data[destination] = ::Set.new(result)
       end
 
-      def srandmember(key)
-        data_type_check(key, ::Set)
-        return nil unless data[key]
-        data[key].to_a[rand(data[key].size)]
+      def srandmember(key, number=nil)
+        number.nil? ? srandmember_single(key) : srandmember_multiple(key, number)
       end
 
       def del(*keys)
@@ -974,6 +972,25 @@ class Redis
 
         def mapped_param? param
           param.size == 1 && param[0].is_a?(Array)
+        end
+
+        def srandmember_single(key)
+          data_type_check(key, ::Set)
+          return nil unless data[key]
+          data[key].to_a[rand(data[key].size)]
+        end
+
+        def srandmember_multiple(key, number)
+          return [] unless data[key]
+          if number >= 0
+            # replace with `data[key].to_a.sample(number)` when 1.8.7 is deprecated
+            (1..number).inject([]) do |selected, _|
+              available_elements = data[key].to_a - selected
+              selected << available_elements[rand(available_elements.size)]
+            end.compact
+          else
+            (1..-number).map { data[key].to_a[rand(data[key].size)] }.flatten
+          end
         end
     end
   end

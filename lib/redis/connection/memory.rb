@@ -755,6 +755,39 @@ class Redis
         "OK"
       end
 
+      def scan(start_cursor, *args)
+        match = "*"
+        count = 10
+
+        if args.size.odd?
+          raise_argument_error('scan')
+        end
+
+        if idx = args.index("MATCH")
+          match = args[idx + 1]
+        end
+
+        if idx = args.index("COUNT")
+          count = args[idx + 1]
+        end
+
+        start_cursor = start_cursor.to_i
+        data_type_check(start_cursor, Fixnum)
+
+        cursor = start_cursor
+        next_keys = []
+
+        if start_cursor + count >= data.length
+          next_keys = keys(match)[start_cursor..-1]
+          cursor = 0
+        else
+          cursor = start_cursor + 10
+          next_keys = keys(match)[start_cursor..cursor]
+        end
+
+        return "#{cursor}", next_keys
+      end
+
       def zadd(key, *args)
         if !args.first.is_a?(Array)
           if args.size < 2

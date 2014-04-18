@@ -3,7 +3,6 @@ $LOAD_PATH.unshift(File.dirname(__FILE__))
 require 'rspec'
 require 'fakeredis'
 require "fakeredis/rspec"
-require 'timecop'
 
 def fakeredis?
   true

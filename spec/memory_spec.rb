@@ -4,7 +4,7 @@ module FakeRedis
   describe 'time' do
     before(:each) do
       @client = Redis.new
-      Timecop.freeze('2014-03-24 15:04:12.888888 -0400')
+      Time.stub_chain(:now, :to_f).and_return(1397845595.5139461)
     end
 
     it 'is an array' do
@@ -16,12 +16,11 @@ module FakeRedis
     end
 
     it 'has the current time in seconds' do
-      expect(@client.time.first).to eql 1395687852
+      expect(@client.time.first).to eql 1397845595
     end
 
     it 'has the current leftover microseconds' do
-      expect(@client.time.last).to eql 888888
+      expect(@client.time.last).to eql 513946
     end
   end
 end
-

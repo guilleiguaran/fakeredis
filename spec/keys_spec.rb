@@ -265,5 +265,52 @@ module FakeRedis
       @client.select(0)
       @client.get("key1").should be == "1"
     end
+
+    it "should scan all keys in the database" do
+      100.times do |x|
+        @client.set("key#{x}", "#{x}")
+      end
+
+      cursor = 0
+      all_keys = []
+      loop {
+        cursor, keys = @client.scan(cursor)
+        all_keys += keys
+        break if cursor == "0"
+      }
+
+      all_keys.uniq.size.should == 100
+      all_keys[0].should =~ /key\d+/
+    end
+
+    it "should match keys to a pattern when scanning" do
+      50.times do |x|
+        @client.set("key#{x}", "#{x}")
+      end
+
+      @client.set("miss_me", 1)
+      @client.set("pass_me", 2)
+
+      cursor = 0
+      all_keys = []
+      loop {
+        cursor, keys = @client.scan(cursor, :match => "key*")
+        all_keys += keys
+        break if cursor == "0"
+      }
+
+      all_keys.uniq.size.should == 50
+    end
+
+    it "should specify doing more work when scanning" do
+      100.times do |x|
+        @client.set("key#{x}", "#{x}")
+      end
+
+      cursor, all_keys = @client.scan(cursor, :count => 100)
+
+      cursor.should == "0"
+      all_keys.uniq.size.should == 100
+    end
   end
 end

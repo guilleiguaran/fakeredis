@@ -653,7 +653,7 @@ class Redis
         old_val = data[key] ? data[key].unpack('B*')[0].split("") : []
         size_increment = [((offset/8)+1)*8-old_val.length, 0].max
         old_val += Array.new(size_increment).map{"0"}
-        original_val = old_val[offset]
+        original_val = old_val[offset].to_i
         old_val[offset] = bit.to_s
         new_val = ""
         old_val.each_slice(8){|b| new_val = new_val + b.join("").to_i(2).chr }

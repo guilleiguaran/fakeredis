@@ -49,6 +49,30 @@ module FakeRedis
       @client.getbit("key1", 10).should be == 1
     end
 
+    context 'when a bit is previously set to 0' do
+      before { @client.setbit("key1", 10, 0) }
+
+      it 'setting it to 1 returns 0' do
+        expect(@client.setbit("key1", 10, 1)).to eql 0
+      end
+
+      it 'setting it to 0 returns 0' do
+        expect(@client.setbit("key1", 10, 0)).to eql 0
+      end
+    end
+
+    context 'when a bit is previously set to 1' do
+      before { @client.setbit("key1", 10, 1) }
+
+      it 'setting it to 0 returns 1' do
+        expect(@client.setbit("key1", 10, 0)).to eql 1
+      end
+
+      it 'setting it to 1 returns 1' do
+        expect(@client.setbit("key1", 10, 1)).to eql 1
+      end
+    end
+
     it "should get a substring of the string stored at a key" do
       @client.set("key1", "This a message")
 

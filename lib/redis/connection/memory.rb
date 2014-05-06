@@ -244,6 +244,11 @@ class Redis
         Time.now.to_i
       end
 
+      def time
+        microseconds = (Time.now.to_f * 1000000).to_i
+        [ microseconds / 1000000, microseconds % 1000000 ]
+      end
+
       def dbsize
         data.keys.count
       end

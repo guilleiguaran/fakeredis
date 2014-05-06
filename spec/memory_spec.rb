@@ -15,12 +15,14 @@ module FakeRedis
       expect(@client.time.count).to eql 2
     end
 
-    it 'has the current time in seconds' do
-      expect(@client.time.first).to eql 1397845595
-    end
+    if fakeredis?
+      it 'has the current time in seconds' do
+        expect(@client.time.first).to eql 1397845595
+      end
 
-    it 'has the current leftover microseconds' do
-      expect(@client.time.last).to eql 513946
+      it 'has the current leftover microseconds' do
+        expect(@client.time.last).to eql 513946
+      end
     end
   end
 end

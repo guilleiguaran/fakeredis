@@ -9,7 +9,7 @@ module FakeRedis
     it "should delete a hash field" do
       @client.hset("key1", "k1", "val1")
       @client.hset("key1", "k2", "val2")
-      @client.hdel("key1", "k1")
+      @client.hdel("key1", "k1").should be(1)
 
       @client.hget("key1", "k1").should be_nil
       @client.hget("key1", "k2").should be == "val2"
@@ -18,8 +18,8 @@ module FakeRedis
     it "should remove a hash with no keys left" do
       @client.hset("key1", "k1", "val1")
       @client.hset("key1", "k2", "val2")
-      @client.hdel("key1", "k1")
-      @client.hdel("key1", "k2")
+      @client.hdel("key1", "k1").should be(1)
+      @client.hdel("key1", "k2").should be(1)
 
       @client.exists("key1").should be == false
     end

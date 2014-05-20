@@ -176,6 +176,14 @@ module FakeRedis
       @client.lrange("key2", 0, -1).should be == ["three"]
     end
 
+    context 'when the source list is empty' do
+      it 'rpoplpush does not add anything to the destination list' do
+        @client.rpoplpush("source", "destination")
+
+        @client.lrange("destination", 0, -1).should be == []
+      end
+    end
+
     it "should append a value to a list" do
       @client.rpush("key1", "one")
       @client.rpush("key1", "two")

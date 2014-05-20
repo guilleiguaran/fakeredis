@@ -312,5 +312,55 @@ module FakeRedis
       cursor.should == "0"
       all_keys.uniq.size.should == 100
     end
+
+    context "with extended options" do
+      it "uses ex option to set the expire time, in seconds" do
+        ttl = 7
+
+        @client.set("key1", "1", { :ex => ttl }).should == "OK"
+        @client.ttl("key1").should == ttl
+      end
+
+      it "uses px option to set the expire time, in miliseconds" do
+        ttl = 7000
+
+        @client.set("key1", "1", { :px => ttl }).should == "OK"
+        @client.ttl("key1").should == (ttl / 1000)
+      end
+
+      # Note that the redis-rb implementation will always give PX last.
+      # Redis seems to process each expiration option and the last one wins.
+      it "prefers the finer-grained PX expiration option over EX" do
+        ttl_px = 6000
+        ttl_ex = 10
+
+        @client.set("key1", "1", { :px => ttl_px, :ex => ttl_ex })
+        @client.ttl("key1").should == (ttl_px / 1000)
+
+        @client.set("key1", "1", { :ex => ttl_ex, :px => ttl_px })
+        @client.ttl("key1").should == (ttl_px / 1000)
+      end
+
+      it "uses nx option to only set the key if it does not already exist" do
+        @client.set("key1", "1", { :nx => true }).should == true
+        @client.set("key1", "2", { :nx => true }).should == false
+
+        @client.get("key1").should == "1"
+      end
+
+      it "uses xx option to only set the key if it already exists" do
+        @client.set("key2", "1", { :xx => true }).should == false
+        @client.set("key2", "2")
+        @client.set("key2", "1", { :xx => true }).should == true
+
+        @client.get("key2").should == "1"
+      end
+
+      it "does not set the key if both xx and nx option are specified" do
+        @client.set("key2", "1", { :nx => true, :xx => true }).should == false
+        @client.get("key2").should be_nil
+      end
+    end
   end
 end
+

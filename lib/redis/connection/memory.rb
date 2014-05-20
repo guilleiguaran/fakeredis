@@ -650,8 +650,23 @@ class Redis
         set(key, value)
       end
 
-      def set(key, value)
+      def set(key, value, *array_options)
+        option_nx = array_options.delete("NX")
+        option_xx = array_options.delete("XX")
+
+        return false if option_nx && option_xx
+
+        return false if option_nx && exists(key)
+        return false if option_xx && !exists(key)
+
         data[key] = value.to_s
+
+        options = Hash[array_options.each_slice(2).to_a]
+        ttl_in_seconds = options["EX"] if options["EX"]
+        ttl_in_seconds = options["PX"] / 1000.0 if options["PX"]
+
+        expire(key, ttl_in_seconds) if ttl_in_seconds
+
         "OK"
       end
 

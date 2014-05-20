@@ -52,8 +52,9 @@ module FakeRedis
         options[:get] << options_array.shift
       end
 
-      if %w(ASC DESC).include?(options_array.first)
+      if %w(ASC DESC ALPHA).include?(options_array.first)
         options[:order] = options_array.shift
+        options[:order] = "ASC" if options[:order] == "ALPHA"
       end
 
       if options_array.first == "STORE"

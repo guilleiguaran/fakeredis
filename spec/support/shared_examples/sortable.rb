@@ -15,6 +15,10 @@ shared_examples_for "a sortable" do
     it 'orders by descending when specified' do
       @client.sort(@key, :order => "DESC").should == ['2', '1']
     end
+
+    it "orders by ascending when alpha is specified" do
+      @client.sort(@key, :order => "ALPHA").should == ["1", "2"]
+    end
   end
 
   context 'projections' do

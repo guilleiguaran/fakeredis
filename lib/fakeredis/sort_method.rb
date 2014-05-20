@@ -1,7 +1,7 @@
 # Codes are mostly referenced from MockRedis' implementation.
 module FakeRedis
   module SortMethod
-    def sort(key, options = {})
+    def sort(key, *redis_options_array)
       return [] unless key
 
       unless %w(list set zset).include? type(key)
@@ -9,24 +9,60 @@ module FakeRedis
         raise Redis::CommandError.new("WRONGTYPE Operation against a key holding the wrong kind of value")
       end
 
-      by           = options[:by]
-      limit        = options[:limit] || []
-      store        = options[:store]
-      get_patterns = Array(options[:get])
-      order        = options[:order] || "ASC"
-      direction    = order.split.first
+      # redis_options is an array of format [BY pattern] [LIMIT offset count] [GET pattern [GET pattern ...]] [ASC|DESC] [ALPHA] [STORE destination]
+      # Lets nibble it back into a hash
+      options = extract_options_from(redis_options_array)
 
-      projected = project(data[key], by, get_patterns)
-      sorted    = sort_by(projected, direction)
-      sliced    = slice(sorted, limit)
+      # And now to actually do the work of this method
 
-      store ? rpush(store, sliced) : sliced
+      projected = project(data[key], options[:by], options[:get])
+      sorted    = sort_by(projected, options[:order])
+      sliced    = slice(sorted, options[:limit])
+      # We have to flatten it down as redis-rb adds back the array to the return value
+      result = sliced.flatten(1)
+
+      options[:store] ? rpush(options[:store], sliced) : sliced.flatten(1)
     end
 
     private
 
     ASCENDING_SORT  = Proc.new { |a, b| a.first <=> b.first }
     DESCENDING_SORT = Proc.new { |a, b| b.first <=> a.first }
+
+    def extract_options_from(options_array)
+      # Defaults
+      options = {
+        :limit => [],
+        :order => "ASC",
+        :get => []
+      }
+
+      if options_array.first == "BY"
+        options_array.shift
+        options[:by] = options_array.shift
+      end
+
+      if options_array.first == "LIMIT"
+        options_array.shift
+        options[:limit] = [options_array.shift, options_array.shift]
+      end
+
+      while options_array.first == "GET"
+        options_array.shift
+        options[:get] << options_array.shift
+      end
+
+      if %w(ASC DESC).include?(options_array.first)
+        options[:order] = options_array.shift
+      end
+
+      if options_array.first == "STORE"
+        options_array.shift
+        options[:store] = options_array.shift
+      end
+
+      options
+    end
 
     def project(enumerable, by, get_patterns)
       enumerable.map do |*elements|

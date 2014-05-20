@@ -338,6 +338,10 @@ module FakeRedis
         @client.zremrangebyrank("key", 25, -1).should be == 0
         @client.zcard('key').should be == 3
       end
+
+      it "should return 0 if the key didn't exist" do
+        @client.zremrangebyrank("key", 0, 1).should be == 0
+      end
     end
 
     describe "#zunionstore" do

@@ -8,6 +8,10 @@ shared_examples_for "a sortable" do
       @client.sort(@key).should == ['1', '2']
     end
 
+    it 'orders by ascending when specified' do
+      @client.sort(@key, :order => "ASC").should == ['1', '2']
+    end
+
     it 'orders by descending when specified' do
       @client.sort(@key, :order => "DESC").should == ['2', '1']
     end
@@ -51,6 +55,11 @@ shared_examples_for "a sortable" do
     it 'stores into another key' do
       @client.sort(@key, :store => "fake-redis-test:some_bucket").should == 2
       @client.lrange("fake-redis-test:some_bucket", 0, -1).should == ['1', '2']
+    end
+
+    it "stores into another key with other options specified" do
+      @client.sort(@key, :store => "fake-redis-test:some_bucket", :by => "fake-redis-test:weight_*").should == 2
+      @client.lrange("fake-redis-test:some_bucket", 0, -1).should == ['2', '1']
     end
   end
 end

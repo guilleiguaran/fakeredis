@@ -315,36 +315,30 @@ module FakeRedis
 
     context "with extended options" do
       it "uses ex option to set the expire time, in seconds" do
-        now = Time.now
-        Time.stub({ :now => now })
         ttl = 7
 
         @client.set("key1", "1", { :ex => ttl }).should == "OK"
-        @client.client.connection.find_database.expires["key1"].should == now + ttl
+        @client.ttl("key1").should == ttl
       end
 
       it "uses px option to set the expire time, in miliseconds" do
-        now = Time.now
-        Time.stub({ :now => now })
         ttl = 7000
 
         @client.set("key1", "1", { :px => ttl }).should == "OK"
-        @client.client.connection.find_database.expires["key1"].should == now + (ttl / 1000)
+        @client.ttl("key1").should == (ttl / 1000)
       end
 
       # Note that the redis-rb implementation will always give PX last.
       # Redis seems to process each expiration option and the last one wins.
       it "prefers the finer-grained PX expiration option over EX" do
-        now = Time.now
-        Time.stub({ :now => now })
-        ttl_px = 5555
+        ttl_px = 6000
         ttl_ex = 10
 
         @client.set("key1", "1", { :px => ttl_px, :ex => ttl_ex })
-        @client.client.connection.find_database.expires["key1"].should == now + (ttl_px / 1000.0)
+        @client.ttl("key1").should == (ttl_px / 1000)
 
         @client.set("key1", "1", { :ex => ttl_ex, :px => ttl_px })
-        @client.client.connection.find_database.expires["key1"].should == now + (ttl_px / 1000.0)
+        @client.ttl("key1").should == (ttl_px / 1000)
       end
 
       it "uses nx option to only set the key if it does not already exist" do

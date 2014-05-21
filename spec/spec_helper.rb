@@ -4,6 +4,8 @@ require 'rspec'
 require 'fakeredis'
 require "fakeredis/rspec"
 
+require "support/shared_examples/sortable"
+
 def fakeredis?
   true
 end

@@ -2,6 +2,7 @@ require 'set'
 require 'redis/connection/registry'
 require 'redis/connection/command_helper'
 require "fakeredis/expiring_hash"
+require "fakeredis/sort_method"
 require "fakeredis/sorted_set_argument_handler"
 require "fakeredis/sorted_set_store"
 require "fakeredis/zset"
@@ -11,6 +12,7 @@ class Redis
     class Memory
       include Redis::Connection::CommandHelper
       include FakeRedis
+      include SortMethod
 
       attr_accessor :buffer, :options
 
@@ -104,7 +106,6 @@ class Redis
       # * brpop
       # * brpoplpush
       # * discard
-      # * sort
       # * subscribe
       # * psubscribe
       # * publish
@@ -715,10 +716,6 @@ class Redis
         return false if keys.any?{|key| data.key?(key) }
         mset(*pairs)
         true
-      end
-
-      def sort(key)
-        # TODO: Implement
       end
 
       def incr(key)

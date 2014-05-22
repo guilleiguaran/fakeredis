@@ -1,6 +1,7 @@
 require 'set'
 require 'redis/connection/registry'
 require 'redis/connection/command_helper'
+require "fakeredis/command_executor"
 require "fakeredis/expiring_hash"
 require "fakeredis/sort_method"
 require "fakeredis/sorted_set_argument_handler"
@@ -15,6 +16,7 @@ class Redis
       include FakeRedis
       include SortMethod
       include TransactionCommands
+      include CommandExecutor
 
       attr_accessor :options
 
@@ -78,24 +80,6 @@ class Redis
       end
 
       def timeout=(usecs)
-      end
-
-      def write(command)
-        meffod = command.shift.to_s.downcase.to_sym
-        if respond_to?(meffod)
-          reply = send(meffod, *command)
-        else
-          raise Redis::CommandError, "ERR unknown command '#{meffod}'"
-        end
-
-        if reply == true
-          reply = 1
-        elsif reply == false
-          reply = 0
-        end
-
-        replies << reply
-        nil
       end
 
       def read

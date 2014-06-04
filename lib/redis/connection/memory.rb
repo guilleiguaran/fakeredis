@@ -1,10 +1,12 @@
 require 'set'
 require 'redis/connection/registry'
 require 'redis/connection/command_helper'
+require "fakeredis/command_executor"
 require "fakeredis/expiring_hash"
 require "fakeredis/sort_method"
 require "fakeredis/sorted_set_argument_handler"
 require "fakeredis/sorted_set_store"
+require "fakeredis/transaction_commands"
 require "fakeredis/zset"
 
 class Redis
@@ -13,8 +15,10 @@ class Redis
       include Redis::Connection::CommandHelper
       include FakeRedis
       include SortMethod
+      include TransactionCommands
+      include CommandExecutor
 
-      attr_accessor :buffer, :options
+      attr_accessor :options
 
       # Tracks all databases for all instances across the current process.
       # We have to be able to handle two clients with the same host/port accessing
@@ -78,25 +82,6 @@ class Redis
       def timeout=(usecs)
       end
 
-      def write(command)
-        meffod = command.shift.to_s.downcase.to_sym
-        if respond_to?(meffod)
-          reply = send(meffod, *command)
-        else
-          raise Redis::CommandError, "ERR unknown command '#{meffod}'"
-        end
-
-        if reply == true
-          reply = 1
-        elsif reply == false
-          reply = 0
-        end
-
-        replies << reply
-        buffer << reply if buffer && meffod != :multi
-        nil
-      end
-
       def read
         replies.shift
       end
@@ -105,7 +90,6 @@ class Redis
       # * blpop
       # * brpop
       # * brpoplpush
-      # * discard
       # * subscribe
       # * psubscribe
       # * publish
@@ -754,24 +738,6 @@ class Redis
       def shutdown; end
 
       def slaveof(host, port) ; end
-
-      def exec
-        buffer.tap {|x| self.buffer = nil }
-      end
-
-      def multi
-        self.buffer = []
-        yield if block_given?
-        "OK"
-      end
-
-      def watch(_)
-        "OK"
-      end
-
-      def unwatch
-        "OK"
-      end
 
       def scan(start_cursor, *args)
         match = "*"

@@ -154,10 +154,6 @@ module FakeRedis
       @client.get("key4").should be == "3"
     end
 
-    it "should sort the elements in a list, set or sorted set" do
-      pending "SORT Command not implemented yet"
-    end
-
     it "should determine the type stored at key" do
       # Non-existing key
       @client.type("key0").should be == "none"

@@ -505,9 +505,9 @@ class Redis
       end
 
       def expire(key, ttl)
-        return unless data[key]
+        return 0 unless data[key]
         data.expires[key] = Time.now + ttl
-        true
+        1
       end
 
       def ttl(key)

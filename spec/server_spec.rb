@@ -45,13 +45,13 @@ module FakeRedis
 
         @client.select(0)
         @client.dbsize.should be == 2
-        @client.exists("key1").should be_true
-        @client.exists("key3").should be_false
+        @client.exists("key1").should be true
+        @client.exists("key3").should be false
 
         @client.select(1)
         @client.dbsize.should be == 3
-        @client.exists("key4").should be_true
-        @client.exists("key2").should be_false
+        @client.exists("key4").should be true
+        @client.exists("key2").should be false
 
         @client.flushall
         @client.dbsize.should be == 0

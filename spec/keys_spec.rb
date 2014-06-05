@@ -101,7 +101,7 @@ module FakeRedis
       @client.set("key1", "1")
       @client.expireat("key1", Time.now.to_i)
 
-      @client.exists("key1").should be_false
+      @client.exists("key1").should be false
     end
 
     it "should find all keys matching the given pattern" do

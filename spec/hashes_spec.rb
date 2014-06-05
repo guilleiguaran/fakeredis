@@ -43,8 +43,8 @@ module FakeRedis
     it "should determine if a hash field exists" do
       @client.hset("key1", "index", "value")
 
-      @client.hexists("key1", "index").should be_true
-      @client.hexists("key2", "i2").should be_false
+      @client.hexists("key1", "index").should be true
+      @client.hexists("key2", "i2").should be false
     end
 
     it "should get the value of a hash field" do
@@ -113,13 +113,13 @@ module FakeRedis
 
     it "should reject an empty list of values" do
       lambda { @client.hmset("key") }.should raise_error(Redis::CommandError)
-      @client.exists("key").should be_false
+      @client.exists("key").should be false
     end
 
     it "rejects an insert with a key but no value" do
       lambda { @client.hmset("key", 'foo') }.should raise_error(Redis::CommandError)
       lambda { @client.hmset("key", 'foo', 3, 'bar') }.should raise_error(Redis::CommandError)
-      @client.exists("key").should be_false
+      @client.exists("key").should be false
     end
 
     it "should reject the wrong number of arguments" do
@@ -184,7 +184,7 @@ module FakeRedis
 
     it "should convert a integer field name to string for hexists" do
       @client.hset("key1", "1", 1)
-      @client.hexists("key1", 1).should be_true
+      @client.hexists("key1", 1).should be true
     end
 
     it "should convert a integer field name to string for hincrby" do

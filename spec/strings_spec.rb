@@ -101,7 +101,7 @@ module FakeRedis
 
     it "should not change the expire value of the key during incr" do
       @client.set("counter", "1")
-      @client.expire("counter", 600).should be_true
+      @client.expire("counter", 600).should be true
       @client.ttl("counter").should be == 600
       @client.incr("counter").should be == 2
       @client.ttl("counter").should be == 600
@@ -116,7 +116,7 @@ module FakeRedis
 
     it "should not change the expire value of the key during decr" do
       @client.set("counter", "2")
-      @client.expire("counter", 600).should be_true
+      @client.expire("counter", 600).should be true
       @client.ttl("counter").should be == 600
       @client.decr("counter").should be == 1
       @client.ttl("counter").should be == 600
@@ -131,7 +131,7 @@ module FakeRedis
 
     it "should not change the expire value of the key during incrby" do
       @client.set("counter", "1")
-      @client.expire("counter", 600).should be_true
+      @client.expire("counter", 600).should be true
       @client.ttl("counter").should be == 600
       @client.incrby("counter", "5").should be == 6
       @client.ttl("counter").should be == 600
@@ -146,7 +146,7 @@ module FakeRedis
 
     it "should not change the expire value of the key during decrby" do
       @client.set("counter", "8")
-      @client.expire("counter", 600).should be_true
+      @client.expire("counter", 600).should be true
       @client.ttl("counter").should be == 600
       @client.decrby("counter", "3").should be == 5
       @client.ttl("counter").should be == 600

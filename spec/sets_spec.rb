@@ -125,8 +125,8 @@ module FakeRedis
       @client.sadd("key1", "a")
       @client.sadd("key1", "b")
 
-      ["a", "b"].include?(@client.spop("key1")).should be_true
-      ["a", "b"].include?(@client.spop("key1")).should be_true
+      ["a", "b"].include?(@client.spop("key1")).should be true
+      ["a", "b"].include?(@client.spop("key1")).should be true
       @client.spop("key1").should be_nil
     end
 
@@ -134,7 +134,7 @@ module FakeRedis
       @client.sadd("key1", "a")
       @client.sadd("key1", "b")
 
-      ["a", "b"].include?(@client.spop("key1")).should be_true
+      ["a", "b"].include?(@client.spop("key1")).should be true
     end
 
     it "should remove a member from a set" do
@@ -199,7 +199,7 @@ module FakeRedis
         it 'is a random element from the set' do
           random_element = @client.srandmember("key1")
 
-          ['a', 'b', 'c'].include?(random_element).should be_true
+          ['a', 'b', 'c'].include?(random_element).should be true
         end
       end
 
@@ -207,7 +207,7 @@ module FakeRedis
         it 'is an array of one random element from the set' do
           random_elements = @client.srandmember("key1", 1)
 
-          [['a'], ['b'], ['c']].include?(@client.srandmember("key1", 1)).should be_true
+          [['a'], ['b'], ['c']].include?(@client.srandmember("key1", 1)).should be true
         end
       end
 
@@ -218,7 +218,7 @@ module FakeRedis
           random_elements.count.should == 2
           random_elements.uniq.count.should == 2
           random_elements.all? do |element|
-            ['a', 'b', 'c'].include?(element).should be_true
+            ['a', 'b', 'c'].include?(element).should be true
           end
         end
       end
@@ -230,7 +230,7 @@ module FakeRedis
           random_elements.count.should == 100
           random_elements.uniq.count.should <= 3
           random_elements.all? do |element|
-            ['a', 'b', 'c'].include?(element).should be_true
+            ['a', 'b', 'c'].include?(element).should be true
           end
         end
       end

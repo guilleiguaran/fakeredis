@@ -101,7 +101,7 @@ module FakeRedis
       @client.set("key1", "1")
       @client.expireat("key1", Time.now.to_i)
 
-      @client.exists("key1").should be_false
+      @client.exists("key1").should be false
     end
 
     it "should find all keys matching the given pattern" do
@@ -152,10 +152,6 @@ module FakeRedis
       @client.get("key2").should be == "2"
       @client.get("key3").should be == nil
       @client.get("key4").should be == "3"
-    end
-
-    it "should sort the elements in a list, set or sorted set" do
-      pending "SORT Command not implemented yet"
     end
 
     it "should determine the type stored at key" do

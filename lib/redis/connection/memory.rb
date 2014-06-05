@@ -258,17 +258,17 @@ class Redis
         data_type_check(key, Array)
         return unless data[key]
 
-        if start < 0 && data[key].count < start.abs
-          # Example: we have a list of 3 elements and
-          # we give it a ltrim list, -5, -1. This means
-          # it should trim to a max of 5. Since 3 < 5
-          # we should not touch the list. This is consistent
-          # with behavior of real Redis's ltrim with a negative
-          # start argument.
-          data[key]
-        else
+        # Example: we have a list of 3 elements and
+        # we give it a ltrim list, -5, -1. This means
+        # it should trim to a max of 5. Since 3 < 5
+        # we should not touch the list. This is consistent
+        # with behavior of real Redis's ltrim with a negative
+        # start argument.
+        unless start < 0 && data[key].count < start.abs
           data[key] = data[key][start..stop]
         end
+
+        "OK"
       end
 
       def lindex(key, index)

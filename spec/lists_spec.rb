@@ -119,7 +119,7 @@ module FakeRedis
       @client.rpush("key1", "two")
       @client.rpush("key1", "three")
 
-      @client.ltrim("key1", 1, -1)
+      @client.ltrim("key1", 1, -1).should be == "OK"
       @client.lrange("key1", 0, -1).should be == ["two", "three"]
     end
 

@@ -394,7 +394,17 @@ class Redis
 
       def srem(key, value)
         data_type_check(key, ::Set)
-        deleted = !!(data[key] && data[key].delete?(value.to_s))
+        return false unless data[key]
+
+        if value.is_a?(Array)
+          old_size = data[key].size
+          values = value.map(&:to_s)
+          values.each { |value| data[key].delete(value) }
+          deleted = old_size - data[key].size
+        else
+          deleted = !!data[key].delete?(value.to_s)
+        end
+
         remove_key_for_empty_collection(key)
         deleted
       end

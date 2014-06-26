@@ -256,5 +256,22 @@ module FakeRedis
       @client.strlen("key1").should be == 3
     end
 
+    it "should return 0 bits when there's no key" do
+      @client.bitcount("key1").should be == 0
+    end
+
+    it "should count the number of bits of a string" do
+      @client.set("key1", "foobar")
+      @client.bitcount("key1").should be == 26
+    end
+
+    it "should count the number of bits of a string given a range" do
+      @client.set("key1", "foobar")
+
+      @client.bitcount("key1", 0, 0).should be == 4
+      @client.bitcount("key1", 1, 1).should be == 6
+      @client.bitcount("key1", 0, 1).should be == 10
+    end
+
   end
 end

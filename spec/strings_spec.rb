@@ -265,6 +265,11 @@ module FakeRedis
       @client.bitcount("key1").should be == 26
     end
 
+    it "should count correctly with UTF-8 strings" do
+      @client.set("key1", '判')
+      @client.bitcount("key1").should be == 10
+    end
+
     it "should count the number of bits of a string given a range" do
       @client.set("key1", "foobar")
 

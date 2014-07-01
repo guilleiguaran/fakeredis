@@ -15,7 +15,7 @@ Add it to your Gemfile:
 
 ## Versions
 
-FakeRedis currently supports redis-rb v3.0.0 or later, if you are using
+FakeRedis currently supports redis-rb v3.x.y or later, if you are using
 redis-rb v2.2.x install the version 0.3.x:
 
     gem install fakeredis -v "~> 0.3.0"

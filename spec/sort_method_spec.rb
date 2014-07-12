@@ -32,6 +32,12 @@ module FakeRedis
       end
     end
 
+    context "none" do
+      it "should return empty array" do
+        @client.sort("key").should eq []
+      end
+    end
+
     context "list" do
       before do
         @key = "fake-redis-test:list_sort"

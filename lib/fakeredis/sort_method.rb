@@ -22,7 +22,7 @@ module FakeRedis
       # We have to flatten it down as redis-rb adds back the array to the return value
       result = sliced.flatten(1)
 
-      options[:store] ? rpush(options[:store], sliced) : sliced.flatten(1)
+      options[:store] ? rpush(options[:store], sliced) : result
     end
 
     private

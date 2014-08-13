@@ -404,7 +404,7 @@ class Redis
         if value.is_a?(Array)
           old_size = data[key].size
           values = value.map(&:to_s)
-          values.each { |value| data[key].delete(value) }
+          values.each { |v| data[key].delete(v) }
           deleted = old_size - data[key].size
         else
           deleted = !!data[key].delete?(value.to_s)

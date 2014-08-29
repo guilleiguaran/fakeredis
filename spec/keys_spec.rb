@@ -29,6 +29,15 @@ module FakeRedis
       lambda { @client.del [] }.should raise_error(Redis::CommandError, "ERR wrong number of arguments for 'del' command")
     end
 
+    it "should return true when setnx keys that don't exist" do
+      @client.setnx("key1", "1").should == true
+    end
+
+    it "should return false when setnx keys exist" do
+      @client.set("key1", "1")
+      @client.setnx("key1", "1").should == false
+    end
+
     it "should return true when setting expires on keys that exist" do
       @client.set("key1", "1")
       @client.expire("key1", 1).should == true

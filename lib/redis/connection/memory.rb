@@ -202,11 +202,22 @@ class Redis
       end
 
       def hdel(key, field)
-        field = field.to_s
         data_type_check(key, Hash)
-        deleted = data[key] && data[key].delete(field)
+        return 0 unless data[key]
+
+        if field.is_a?(Array)
+          old_keys_count = data[key].size
+          fields = field.map(&:to_s)
+
+          data[key].delete_if { |k, v| fields.include? k }
+          deleted = old_keys_count - data[key].size
+        else
+          field = field.to_s
+          deleted = data[key].delete(field) ? 1 : 0
+        end
+
         remove_key_for_empty_collection(key)
-        deleted ? 1 : 0
+        deleted
       end
 
       def hkeys(key)

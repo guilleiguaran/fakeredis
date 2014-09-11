@@ -15,6 +15,17 @@ module FakeRedis
       @client.hget("key1", "k2").should be == "val2"
     end
 
+    it "should delete array of fields" do
+      @client.hset("key1", "k1", "val1")
+      @client.hset("key1", "k2", "val2")
+      @client.hset("key1", "k3", "val3")
+      @client.hdel("key1", ["k1", "k2"]).should be(2)
+
+      @client.hget("key1", "k1").should be_nil
+      @client.hget("key1", "k2").should be_nil
+      @client.hget("key1", "k3").should be == "val3"
+    end
+
     it "should remove a hash with no keys left" do
       @client.hset("key1", "k1", "val1")
       @client.hset("key1", "k2", "val2")

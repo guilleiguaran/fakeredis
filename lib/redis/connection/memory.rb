@@ -146,6 +146,17 @@ class Redis
         true
       end
 
+      def dump(key)
+        return nil unless exists(key)
+
+        value = data[key]
+
+        Marshal.dump(
+          value: value,
+          version: FakeRedis::VERSION, # Redis includes the version, so we might as well
+        )
+      end
+
       def get(key)
         data_type_check(key, String)
         data[key]

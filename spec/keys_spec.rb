@@ -375,6 +375,28 @@ module FakeRedis
         @client.get("key2").should be_nil
       end
     end
+
+    describe "#dump" do
+      it "returns nil for unknown key" do
+        expect(@client.exists("key1")).to be false
+        expect(@client.dump("key1")).to be nil
+      end
+
+      it "dumps a single known key successfully" do
+        @client.set("key1", "zomgwtf")
+
+        value = @client.dump("key1")
+        expect(value).not_to eq nil
+        expect(value).to be_a_kind_of(String)
+      end
+
+      it "errors with more than one argument" do
+        expect do
+          @client.dump("key1", "key2")
+        end.to raise_error(ArgumentError, /wrong number of arguments/)
+      end
+    end
+
   end
 end
 

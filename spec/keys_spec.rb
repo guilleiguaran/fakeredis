@@ -375,6 +375,99 @@ module FakeRedis
         @client.get("key2").should be_nil
       end
     end
+
+    describe "#dump" do
+      it "returns nil for unknown key" do
+        expect(@client.exists("key1")).to be false
+        expect(@client.dump("key1")).to be nil
+      end
+
+      it "dumps a single known key successfully" do
+        @client.set("key1", "zomgwtf")
+
+        value = @client.dump("key1")
+        expect(value).not_to eq nil
+        expect(value).to be_a_kind_of(String)
+      end
+
+      it "errors with more than one argument" do
+        expect do
+          @client.dump("key1", "key2")
+        end.to raise_error(ArgumentError, /wrong number of arguments/)
+      end
+    end
+
+    describe "#restore" do
+      it "errors with a missing payload" do
+        expect do
+          @client.restore("key1", 0, nil)
+        end.to raise_error(Redis::CommandError, "ERR DUMP payload version or checksum are wrong")
+      end
+
+      it "errors with an invalid payload" do
+        expect do
+          @client.restore("key1", 0, "zomgwtf not valid")
+        end.to raise_error(Redis::CommandError, "ERR DUMP payload version or checksum are wrong")
+      end
+
+      describe "with a dumped value" do
+        before do
+          @client.set("key1", "original value")
+          @dumped_value = @client.dump("key1")
+
+          @client.del("key1")
+          expect(@client.exists("key1")).to be false
+        end
+
+        it "restores to a new key successfully" do
+          response = @client.restore("key1", 0, @dumped_value)
+          expect(response).to eq "OK"
+        end
+
+        it "errors trying to restore to an existing key" do
+          @client.set("key1", "something else")
+
+          expect do
+            @client.restore("key1", 0, @dumped_value)
+          end.to raise_error(Redis::CommandError, "ERR Target key name is busy.")
+        end
+
+        it "restores successfully with a given expire time" do
+          @client.restore("key2", 2000, @dumped_value)
+
+          expect(@client.ttl("key2")).to eq 2
+        end
+
+        it "restores a list successfully" do
+          @client.lpush("key1", "val1")
+          @client.lpush("key1", "val2")
+
+          expect(@client.type("key1")).to eq "list"
+
+          dumped_value = @client.dump("key1")
+
+          response = @client.restore("key2", 0, dumped_value)
+          expect(response).to eq "OK"
+
+          expect(@client.type("key2")).to eq "list"
+        end
+
+        it "restores a set successfully" do
+          @client.sadd("key1", "val1")
+          @client.sadd("key1", "val2")
+
+          expect(@client.type("key1")).to eq "set"
+
+          dumped_value = @client.dump("key1")
+
+          response = @client.restore("key2", 0, dumped_value)
+          expect(response).to eq "OK"
+
+          expect(@client.type("key2")).to eq "set"
+        end
+      end
+    end
+
   end
 end
 

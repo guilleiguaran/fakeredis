@@ -146,6 +146,45 @@ class Redis
         true
       end
 
+      def dump(key)
+        return nil unless exists(key)
+
+        value = data[key]
+
+        Marshal.dump(
+          value: value,
+          version: FakeRedis::VERSION, # Redis includes the version, so we might as well
+        )
+      end
+
+      def restore(key, ttl, serialized_value)
+        raise Redis::CommandError, "ERR Target key name is busy." if exists(key)
+
+        raise Redis::CommandError, "ERR DUMP payload version or checksum are wrong" if serialized_value.nil?
+
+        parsed_value = begin
+          Marshal.load(serialized_value)
+        rescue TypeError
+          raise Redis::CommandError, "ERR DUMP payload version or checksum are wrong"
+        end
+
+        if parsed_value[:version] != FakeRedis::VERSION
+          raise Redis::CommandError, "ERR DUMP payload version or checksum are wrong"
+        end
+
+        # We could figure out what type the key was and set it with the public API here,
+        # or we could just assign the value. If we presume the serialized_value is only ever
+        # a return value from `dump` then we've only been given something that was in
+        # the internal data structure anyway.
+        data[key] = parsed_value[:value]
+
+        # Set a TTL if one has been passed
+        ttl = ttl.to_i # Makes nil into 0
+        expire(key, ttl / 1000) unless ttl.zero?
+
+        "OK"
+      end
+
       def get(key)
         data_type_check(key, String)
         data[key]

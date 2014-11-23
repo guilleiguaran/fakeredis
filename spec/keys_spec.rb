@@ -43,8 +43,17 @@ module FakeRedis
       @client.expire("key1", 1).should == true
     end
 
+    it "should return true when setting pexpires on keys that exist" do
+      @client.set("key1", "1")
+      @client.pexpire("key1", 1).should == true
+    end
+
     it "should return false when attempting to set expires on a key that does not exist" do
       @client.expire("key1", 1).should == false
+    end
+
+    it "should return false when attempting to set pexpires on a key that does not exist" do
+      @client.pexpire("key1", 1).should == false
     end
 
     it "should determine if a key exists" do
@@ -59,6 +68,12 @@ module FakeRedis
       @client.expire("key1", 1)
 
       @client.ttl("key1").should be == 1
+    end
+
+    it "should set a key's time to live in miliseconds" do
+      @client.set("key1", "1")
+      @client.pexpire("key1", 2200)
+      @client.pttl("key1").should be_within(0.2).of(2200)
     end
 
     it "should set the expiration for a key as a UNIX timestamp" do

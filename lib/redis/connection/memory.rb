@@ -575,9 +575,23 @@ class Redis
         1
       end
 
+      def pexpire(key, ttl)
+        return 0 unless data[key]
+        data.expires[key] = Time.now + (ttl / 1000.0)
+        1
+      end
+
       def ttl(key)
         if data.expires.include?(key) && (ttl = data.expires[key].to_i - Time.now.to_i) > 0
           ttl
+        else
+          exists(key) ? -1 : -2
+        end
+      end
+
+      def pttl(key)
+        if data.expires.include?(key) && (ttl = data.expires[key].to_f - Time.now.to_f) > 0
+          ttl * 1000
         else
           exists(key) ? -1 : -2
         end

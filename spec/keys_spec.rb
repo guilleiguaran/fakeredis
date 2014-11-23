@@ -73,7 +73,7 @@ module FakeRedis
     it "should set a key's time to live in miliseconds" do
       @client.set("key1", "1")
       @client.pexpire("key1", 2200)
-      @client.pttl("key1").should be_within(0.2).of(2200)
+      @client.pttl("key1").should be_within(0.5).of(2200)
     end
 
     it "should set the expiration for a key as a UNIX timestamp" do

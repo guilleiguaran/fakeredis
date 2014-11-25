@@ -131,6 +131,12 @@ module FakeRedis
       @client.get("counter").should be == "17"
     end
 
+    it "should increment the float value of a key by the given number" do
+      @client.set("counter", 10.0)
+      @client.incrbyfloat("counter", 2.1).should be == 12.1
+      @client.get("counter").should be == "12.1"
+    end
+
     it "should not change the expire value of the key during incrby" do
       @client.set("counter", "1")
       @client.expire("counter", 600).should be true

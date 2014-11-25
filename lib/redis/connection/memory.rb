@@ -791,6 +791,11 @@ class Redis
         data[key].to_i
       end
 
+      def incrbyfloat(key, by)
+        data.merge!({ key => (data[key].to_f + by.to_f).to_s || by })
+        data[key]
+      end
+
       def decr(key)
         data.merge!({ key => (data[key].to_i - 1).to_s || "-1"})
         data[key].to_i

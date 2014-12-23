@@ -406,9 +406,7 @@ module FakeRedis
       end
 
       it "errors with more than one argument" do
-        expect do
-          @client.dump("key1", "key2")
-        end.to raise_error(ArgumentError, /wrong number of arguments/)
+        expect { @client.dump("key1", "key2") }.to raise_error(ArgumentError)
       end
     end
 

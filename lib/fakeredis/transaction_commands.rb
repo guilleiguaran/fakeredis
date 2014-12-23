@@ -72,7 +72,7 @@ module FakeRedis
       "OK"
     end
 
-    def watch(_)
+    def watch(*_)
       "OK"
     end
 

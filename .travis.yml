@@ -14,3 +14,6 @@ gemfile:
 matrix:
   allow_failures:
     - rvm: rbx-2
+# Use the faster container based infrastructure
+# http://blog.travis-ci.com/2014-12-17-faster-builds-with-container-based-infrastructure/
+sudo: false

@@ -84,3 +84,5 @@ Or:
 
 Copyright (c) 2011-2014 Guillermo Iguaran. See LICENSE for
 further details.
+
+Testing Github Bug

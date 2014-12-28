@@ -955,6 +955,38 @@ class Redis
         results[start..stop].flatten.map(&:to_s)
       end
 
+      def zrangebylex(key, start, stop, *opts)
+        data_type_check(key, ZSet)
+        return [] unless data[key]
+        zset = data[key]
+
+        sorted = if zset.identical_scores?
+          zset.keys.sort { |x, y| x.to_s <=> y.to_s }
+        else
+          zset.keys
+        end
+
+        range = get_range start, stop, sorted.first, sorted.last
+
+        filtered = []
+        sorted.each do |element|
+          filtered << element if (range[0][:value]..range[1][:value]).cover?(element)
+        end
+        filtered.shift if filtered[0] == range[0][:value] && !range[0][:inclusive]
+        filtered.pop if filtered.last == range[1][:value] && !range[1][:inclusive]
+
+        limit = get_limit(opts, filtered)
+        if limit
+          filtered = filtered[limit[0]..-1].take(limit[1])
+        end
+
+        filtered
+      end
+
+      def zrevrangebylex(key, start, stop, *args)
+        zrangebylex(key, stop, start, args).reverse
+      end
+
       def zrevrange(key, start, stop, with_scores = nil)
         data_type_check(key, ZSet)
         return [] unless data[key]
@@ -1059,6 +1091,27 @@ class Redis
             warn "Operation against a key holding the wrong kind of value: Expected #{klass} at #{key}."
             raise Redis::CommandError.new("WRONGTYPE Operation against a key holding the wrong kind of value")
           end
+        end
+
+        def get_range(start, stop, min = -Float::INFINITY, max = Float::INFINITY)
+          range_options = []
+
+          [start, stop].each do |value|
+            case value[0]
+            when "-"
+              range_options << { value: min, inclusive: true }
+            when "+"
+              range_options << { value: max, inclusive: true }
+            when "["
+              range_options << { value: value[1..-1], inclusive: true }
+            when "("
+              range_options << { value: value[1..-1], inclusive: false }
+            else
+              raise Redis::CommandError, "ERR min or max not valid string range item"
+            end
+          end
+
+          range_options
         end
 
         def get_limit(opts, vals)

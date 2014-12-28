@@ -521,7 +521,7 @@ module FakeRedis
         pending "current stable (3.2.0) redis-rb doesn't support limit option"
 
         ranged = @client.zrevrangebylex "myzset", "+", "-", limit: [0, 3]
-        expect(ranged).to eq %w(c d)
+        expect(ranged).to eq %w(d c b)
       end
     end
   end

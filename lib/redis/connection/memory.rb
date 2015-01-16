@@ -368,6 +368,7 @@ class Redis
       end
 
       def rpush(key, value)
+        raise_argument_error('rpush') if value.respond_to?(:each) && value.empty?
         data_type_check(key, Array)
         data[key] ||= []
         [value].flatten.each do |val|
@@ -377,12 +378,14 @@ class Redis
       end
 
       def rpushx(key, value)
+        raise_argument_error('rpushx') if value.respond_to?(:each) && value.empty?
         data_type_check(key, Array)
         return unless data[key]
         rpush(key, value)
       end
 
       def lpush(key, value)
+        raise_argument_error('lpush') if value.respond_to?(:each) && value.empty?
         data_type_check(key, Array)
         data[key] ||= []
         [value].flatten.each do |val|
@@ -392,6 +395,7 @@ class Redis
       end
 
       def lpushx(key, value)
+        raise_argument_error('lpushx') if value.respond_to?(:each) && value.empty?
         data_type_check(key, Array)
         return unless data[key]
         lpush(key, value)

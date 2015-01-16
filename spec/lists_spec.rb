@@ -199,5 +199,13 @@ module FakeRedis
       @client.lrange("key1", 0, -1).should be == ["one", "two"]
       @client.lrange("key2", 0, -1).should be == []
     end
+
+    it 'should not allow pushing empty list of objects' do
+      expect { @client.lpush("key1", []) }.to raise_error(Redis::CommandError, /lpush[^x]/)
+      expect { @client.lpush("key1", 1); @client.lpushx("key1", []) }.to raise_error(Redis::CommandError, /lpushx/)
+
+      expect { @client.rpush("key1", []) }.to raise_error(Redis::CommandError, /rpush[^x]/)
+      expect { @client.rpush("key1", 1); @client.rpushx("key1", []) }.to raise_error(Redis::CommandError, /rpushx/)
+    end
   end
 end

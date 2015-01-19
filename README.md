@@ -57,6 +57,22 @@ Or:
     # spec/support/fakeredis.rb
     require 'fakeredis/rspec'
 
+## Usage with Minitest
+
+Require this either in your Gemfile or in Minitest's support scripts. So
+either: 
+
+    # Gemfile
+    group :test do
+      gem "minitest"
+      gem "fakeredis", :require => "fakeredis/minitest"
+    end
+
+Or:
+
+    # test/test_helper.rb (or test/minitest_config.rb)
+    require 'fakeredis/minitest'
+
 ## Acknowledgements
 
 * [dim](https://github.com/dim)

@@ -285,6 +285,5 @@ module FakeRedis
       @client.bitcount("key1", 1, 1).should be == 6
       @client.bitcount("key1", 0, 1).should be == 10
     end
-
   end
 end

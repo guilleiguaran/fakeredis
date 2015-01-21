@@ -8,6 +8,7 @@ require "fakeredis/sorted_set_argument_handler"
 require "fakeredis/sorted_set_store"
 require "fakeredis/transaction_commands"
 require "fakeredis/zset"
+require "fakeredis/bitop_command"
 
 class Redis
   module Connection
@@ -16,6 +17,7 @@ class Redis
       include FakeRedis
       include SortMethod
       include TransactionCommands
+      include BitopCommand
       include CommandExecutor
 
       attr_accessor :options

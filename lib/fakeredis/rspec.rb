@@ -18,6 +18,7 @@ RSpec.configure do |c|
 
   c.before do    
     Redis::Connection::Memory.reset_all_databases
+    Redis::Connection::Memory.reset_all_channels
   end
 
 end

@@ -36,7 +36,15 @@ class Redis
       def self.reset_all_databases
         @databases = nil
       end
-
+      
+      def self.channels
+        @channels ||= Hash.new {|h,k| h[k] = [] }
+      end
+      
+      def self.reset_all_channels
+        @channels = nil
+      end
+      
       def self.connect(options = {})
         new(options)
       end
@@ -65,7 +73,7 @@ class Redis
       def data
         find_database
       end
-
+      
       def replies
         @replies ||= []
       end
@@ -87,11 +95,6 @@ class Redis
       def read
         replies.shift
       end
-
-      # NOT IMPLEMENTED:
-      # * subscribe
-      # * psubscribe
-      # * publish
 
       def flushdb
         databases.delete_at(database_id)
@@ -1109,6 +1112,80 @@ class Redis
         args_handler = SortedSetArgumentHandler.new(args)
         data[out] = SortedSetUnionStore.new(args_handler, data).call
         data[out].size
+      end
+      
+      def subscribe(*channels)
+        raise_argument_error('subscribe') if channels.empty?()
+        
+        #Create messages for all data from the channels
+        channel_replies = channels.map do |channel| 
+          self.class.channels[channel].slice!(0..-1).map!{|v| ["message", channel, v]}
+        end
+        channel_replies.flatten!(1)
+        channel_replies.compact!()
+        
+        #Put messages into the replies for the future
+        channels.each_with_index do |channel,index|
+          replies << ["subscribe", channel, index+1]
+        end
+        replies.push(*channel_replies)
+        
+        #Add unsubscribe message to stop blocking (see https://github.com/redis/redis-rb/blob/v3.2.1/lib/redis/subscribe.rb#L38)
+        replies.push(self.unsubscribe())
+        
+        replies.pop() #Last reply will be pushed back on
+      end
+      
+      def psubscribe(*patterns)
+        raise_argument_error('psubscribe') if patterns.empty?()
+        
+        #Create messages for all data from the channels
+        channel_replies = self.class.channels.keys.map do |channel|
+          pattern = patterns.find{|p| File.fnmatch(p, channel) }
+          unless pattern.nil?()
+            self.class.channels[channel].slice!(0..-1).map!{|v| ["pmessage", pattern, channel, v]}
+          end
+        end
+        channel_replies.flatten!(1)
+        channel_replies.compact!()
+        
+        #Put messages into the replies for the future
+        patterns.each_with_index do |pattern,index|
+          replies << ["psubscribe", pattern, index+1]
+        end
+        replies.push(*channel_replies)
+        
+        #Add unsubscribe to stop blocking
+        replies.push(self.punsubscribe())
+        
+        replies.pop() #Last reply will be pushed back on
+      end
+      
+      def publish(channel, message)
+        self.class.channels[channel] << message
+        0 #Just fake number of subscribers
+      end
+      
+      def unsubscribe(*channels)
+        if channels.empty?()
+          replies << ["unsubscribe", nil, 0]
+        else
+          channels.each do |channel|
+            replies << ["unsubscribe", channel, 0]
+          end
+        end
+        replies.pop() #Last reply will be pushed back on
+      end
+      
+      def punsubscribe(*patterns)
+        if patterns.empty?()
+          replies << ["punsubscribe", nil, 0]
+        else
+          patterns.each do |pattern|
+            replies << ["punsubscribe", pattern, 0]
+          end
+        end
+        replies.pop() #Last reply will be pushed back on
       end
 
       def zscan(key, start_cursor, *args)

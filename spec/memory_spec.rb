@@ -4,7 +4,7 @@ module FakeRedis
   describe 'time' do
     before(:each) do
       @client = Redis.new
-      Time.stub_chain(:now, :to_f).and_return(1397845595.5139461)
+      allow(Time).to receive_message_chain(:now, :to_f).and_return(1397845595.5139461)
     end
 
     it 'is an array' do

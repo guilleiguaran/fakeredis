@@ -285,6 +285,5 @@ module FakeRedis
       expect(@client.bitcount("key1", 1, 1)).to eq(6)
       expect(@client.bitcount("key1", 0, 1)).to eq(10)
     end
-
   end
 end

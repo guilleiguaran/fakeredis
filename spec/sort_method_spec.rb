@@ -34,7 +34,7 @@ module FakeRedis
 
     context "none" do
       it "should return empty array" do
-        @client.sort("key").should eq []
+        expect(@client.sort("key")).to eq []
       end
     end
 

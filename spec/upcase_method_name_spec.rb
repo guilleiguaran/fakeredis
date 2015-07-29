@@ -8,11 +8,11 @@ module FakeRedis
     end
 
     it "#ZCOUNT" do
-      @client.ZCOUNT("key", 2, 3).should == @client.zcount("key", 2, 3)
+      expect(@client.ZCOUNT("key", 2, 3)).to eq(@client.zcount("key", 2, 3))
     end
 
     it "#ZSCORE" do
-      @client.ZSCORE("key", 2).should == @client.zscore("key", 2)
+      expect(@client.ZSCORE("key", 2)).to eq(@client.zscore("key", 2))
     end
   end
 end

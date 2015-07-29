@@ -20,4 +20,5 @@ Gem::Specification.new do |s|
 
   s.add_runtime_dependency(%q<redis>, ["~> 3.0"])
   s.add_development_dependency(%q<rspec>, ["~> 3.0"])
+  s.add_development_dependency "guard-rspec"
 end

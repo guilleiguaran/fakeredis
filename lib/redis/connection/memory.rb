@@ -976,14 +976,7 @@ class Redis
         data_type_check(key, ZSet)
         return [] unless data[key]
 
-        # Sort by score, or if scores are equal, key alphanum
-        results = data[key].sort do |(k1, v1), (k2, v2)|
-          if v1 == v2
-            k1 <=> k2
-          else
-            v1 <=> v2
-          end
-        end
+        results = sort_keys(data[key])
         # Select just the keys unless we want scores
         results = results.map(&:first) unless with_scores
         results[start..stop].flatten.map(&:to_s)
@@ -1077,7 +1070,7 @@ class Redis
         count = 10
 
         if args.size.odd?
-          raise_argument_error('scan')
+          raise_argument_error('zscan')
         end
 
         if idx = args.index("MATCH")
@@ -1094,13 +1087,7 @@ class Redis
         cursor = start_cursor
         next_keys = []
 
-        sorted_keys = data[key].sort do |(k1, v1), (k2, v2)|
-          if v1 == v2
-            k1 <=> k2
-          else
-            v1 <=> v2
-          end
-        end
+        sorted_keys = sort_keys(data[key])
 
         if start_cursor + count >= sorted_keys.length
           next_keys = sorted_keys.to_a.select { |k| File.fnmatch(match, k[0]) } [start_cursor..-1]
@@ -1171,6 +1158,17 @@ class Redis
             end.compact
           else
             (1..-number).map { data[key].to_a[rand(data[key].size)] }.flatten
+          end
+        end
+
+        def sort_keys(arr)
+          # Sort by score, or if scores are equal, key alphanum
+          sorted_keys = arr.sort do |(k1, v1), (k2, v2)|
+            if v1 == v2
+              k1 <=> k2
+            else
+              v1 <=> v2
+            end
           end
         end
     end

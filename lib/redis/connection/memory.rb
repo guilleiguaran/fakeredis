@@ -1099,6 +1099,20 @@ class Redis
         return "#{cursor}", next_keys.flatten.map(&:to_s)
       end
 
+      # Originally from redis-rb
+      def zscan_each(key, *args, &block)
+        data_type_check(key, ZSet)
+        return [] unless data[key]
+
+        return to_enum(:zscan_each, key, options) unless block_given?
+        cursor = 0
+        loop do
+          cursor, values = zscan(key, cursor, options)
+          values.each(&block)
+          break if cursor == "0"
+        end
+      end
+
       private
         def raise_argument_error(command, match_string=command)
           error_message = if %w(hmset mset_odd).include?(match_string.downcase)

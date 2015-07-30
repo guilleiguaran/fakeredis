@@ -464,5 +464,13 @@ module FakeRedis
         expect(result).to_not include(["bluh", 2.0])
       end
     end
+
+    describe "#zscan_each" do
+      before { 50.times { |x| @client.zadd("key", x, "key #{x}") } }
+
+      it 'enumerates over the items in the sorted set' do
+        expect(@client.zscan_each("key").to_a).to eq(@client.zscan("key", 0, count: 50)[1])
+      end
+    end
   end
 end

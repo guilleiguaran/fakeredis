@@ -1069,6 +1069,49 @@ class Redis
         data[out].size
       end
 
+      def zscan(key, start_cursor, *args)
+        data_type_check(key, ZSet)
+        return [] unless data[key]
+
+        match = "*"
+        count = 10
+
+        if args.size.odd?
+          raise_argument_error('scan')
+        end
+
+        if idx = args.index("MATCH")
+          match = args[idx + 1]
+        end
+
+        if idx = args.index("COUNT")
+          count = args[idx + 1]
+        end
+
+        start_cursor = start_cursor.to_i
+        data_type_check(start_cursor, Fixnum)
+
+        cursor = start_cursor
+        next_keys = []
+
+        sorted_keys = data[key].sort do |(k1, v1), (k2, v2)|
+          if v1 == v2
+            k1 <=> k2
+          else
+            v1 <=> v2
+          end
+        end
+
+        if start_cursor + count >= sorted_keys.length
+          next_keys = sorted_keys.to_a.select { |k| File.fnmatch(match, k[0]) } [start_cursor..-1]
+          cursor = 0
+        else
+          cursor = start_cursor + count
+          next_keys = sorted_keys.to_a.select { |k| File.fnmatch(match, k[0]) } [start_cursor..cursor-1]
+        end
+        return "#{cursor}", next_keys.flatten.map(&:to_s)
+      end
+
       private
         def raise_argument_error(command, match_string=command)
           error_message = if %w(hmset mset_odd).include?(match_string.downcase)

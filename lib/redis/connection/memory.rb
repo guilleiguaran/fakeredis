@@ -976,14 +976,7 @@ class Redis
         data_type_check(key, ZSet)
         return [] unless data[key]
 
-        # Sort by score, or if scores are equal, key alphanum
-        results = data[key].sort do |(k1, v1), (k2, v2)|
-          if v1 == v2
-            k1 <=> k2
-          else
-            v1 <=> v2
-          end
-        end
+        results = sort_keys(data[key])
         # Select just the keys unless we want scores
         results = results.map(&:first) unless with_scores
         results[start..stop].flatten.map(&:to_s)
@@ -1069,6 +1062,57 @@ class Redis
         data[out].size
       end
 
+      def zscan(key, start_cursor, *args)
+        data_type_check(key, ZSet)
+        return [] unless data[key]
+
+        match = "*"
+        count = 10
+
+        if args.size.odd?
+          raise_argument_error('zscan')
+        end
+
+        if idx = args.index("MATCH")
+          match = args[idx + 1]
+        end
+
+        if idx = args.index("COUNT")
+          count = args[idx + 1]
+        end
+
+        start_cursor = start_cursor.to_i
+        data_type_check(start_cursor, Fixnum)
+
+        cursor = start_cursor
+        next_keys = []
+
+        sorted_keys = sort_keys(data[key])
+
+        if start_cursor + count >= sorted_keys.length
+          next_keys = sorted_keys.to_a.select { |k| File.fnmatch(match, k[0]) } [start_cursor..-1]
+          cursor = 0
+        else
+          cursor = start_cursor + count
+          next_keys = sorted_keys.to_a.select { |k| File.fnmatch(match, k[0]) } [start_cursor..cursor-1]
+        end
+        return "#{cursor}", next_keys.flatten.map(&:to_s)
+      end
+
+      # Originally from redis-rb
+      def zscan_each(key, *args, &block)
+        data_type_check(key, ZSet)
+        return [] unless data[key]
+
+        return to_enum(:zscan_each, key, options) unless block_given?
+        cursor = 0
+        loop do
+          cursor, values = zscan(key, cursor, options)
+          values.each(&block)
+          break if cursor == "0"
+        end
+      end
+
       private
         def raise_argument_error(command, match_string=command)
           error_message = if %w(hmset mset_odd).include?(match_string.downcase)
@@ -1128,6 +1172,17 @@ class Redis
             end.compact
           else
             (1..-number).map { data[key].to_a[rand(data[key].size)] }.flatten
+          end
+        end
+
+        def sort_keys(arr)
+          # Sort by score, or if scores are equal, key alphanum
+          sorted_keys = arr.sort do |(k1, v1), (k2, v2)|
+            if v1 == v2
+              k1 <=> k2
+            else
+              v1 <=> v2
+            end
           end
         end
     end

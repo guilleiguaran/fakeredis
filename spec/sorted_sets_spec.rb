@@ -436,5 +436,41 @@ module FakeRedis
       @client.zrem("key1", 3)
       expect(@client.zscore("key1", 3)).to be_nil
     end
+
+    describe "#zscan" do
+      before { 50.times { |x| @client.zadd("key", x, "key #{x}") } }
+
+      it 'with no arguments should return 10 numbers in ascending order' do
+        result = @client.zscan("key", 0)[1]
+        expect(result).to eq(result.sort { |x, y| x[1] <=> y[1] })
+        expect(result.count).to eq(10)
+      end
+
+      it 'with a count should return that number of members' do
+        expect(@client.zscan("key", 0, count: 2)).to eq(["2", [["key 0", 0.0], ["key 1", 1.0]]])
+      end
+
+      it 'with a count greater than the number of members, returns all the members in asc order' do
+        result = @client.zscan("key", 0, count: 1000)[1]
+        expect(result).to eq(result.sort { |x, y| x[1] <=> y[1] })
+        expect(result.size).to eq(50)
+      end
+
+      it 'with match, should return key-values where the key matches' do
+        @client.zadd("key", 1.0, "blah")
+        @client.zadd("key", 2.0, "bluh")
+        result = @client.zscan("key", 0, count: 100, match: "key*")[1]
+        expect(result).to_not include(["blah", 1.0])
+        expect(result).to_not include(["bluh", 2.0])
+      end
+    end
+
+    describe "#zscan_each" do
+      before { 50.times { |x| @client.zadd("key", x, "key #{x}") } }
+
+      it 'enumerates over the items in the sorted set' do
+        expect(@client.zscan_each("key").to_a).to eq(@client.zscan("key", 0, count: 50)[1])
+      end
+    end
   end
 end

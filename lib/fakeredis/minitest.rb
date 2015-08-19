@@ -19,6 +19,6 @@ module FakeRedis
       Redis::Connection::Memory.reset_all_databases
     end
 
-    Minitest::Test.send(:include, self)
+    ::Minitest::Test.send(:include, self)
   end
 end

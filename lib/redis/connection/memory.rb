@@ -266,7 +266,7 @@ class Redis
 
       def hscan(key, start_cursor, *args)
         data_type_check(key, Hash)
-        return [] unless data[key]
+        return ["0", []] unless data[key]
 
         match = "*"
         count = 10

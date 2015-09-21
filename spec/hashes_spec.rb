@@ -249,6 +249,13 @@ module FakeRedis
                                   ['ee', '5']
                                 ])
       end
+
+      it 'returns an empty result if the key is not found' do
+        result = @client.hscan('hash', 0)
+
+        expect(result[0]).to eq('0')
+        expect(result[1]).to eq([])
+      end
     end
   end
 end

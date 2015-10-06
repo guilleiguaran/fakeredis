@@ -202,5 +202,60 @@ module FakeRedis
       @client.hset("key1", 1, 0)
       expect(@client.hincrby("key1", 1, 1)).to be(1)
     end
+
+    describe "#hscan" do
+      it 'with no arguments and few items, returns all items' do
+        @client.hmset('hash', 'name', 'Jack', 'age', '33')
+        result = @client.hscan('hash', 0)
+
+        expect(result[0]).to eq('0')
+        expect(result[1]).to eq([['name', 'Jack'], ['age', '33']])
+      end
+
+      it 'with a count should return that number of members or more' do
+        @client.hmset('hash',
+                      'a', '1', 'b', '2', 'c', '3', 'd', '4', 'e', '5', 'f', '6', 'g', '7'
+        )
+        result = @client.hscan('hash', 0, count: 3)
+        expect(result[0]).to eq('3')
+        expect(result[1]).to eq([
+                                  ['a', '1'],
+                                  ['b', '2'],
+                                  ['c', '3'],
+                                ])
+      end
+
+      it 'returns items starting at the provided cursor' do
+        @client.hmset('hash',
+                      'a', '1', 'b', '2', 'c', '3', 'd', '4', 'e', '5', 'f', '6', 'g', '7'
+        )
+        result = @client.hscan('hash', 2, count: 3)
+        expect(result[0]).to eq('5')
+        expect(result[1]).to eq([
+                                  ['c', '3'],
+                                  ['d', '4'],
+                                  ['e', '5']
+                                ])
+      end
+
+      it 'with match, returns items matching the given pattern' do
+        @client.hmset('hash',
+                      'aa', '1', 'b', '2', 'cc', '3', 'd', '4', 'ee', '5', 'f', '6', 'gg', '7'
+        )
+        result = @client.hscan('hash', 2, count: 3, match: '??')
+        expect(result[0]).to eq('5')
+        expect(result[1]).to eq([
+                                  ['cc', '3'],
+                                  ['ee', '5']
+                                ])
+      end
+
+      it 'returns an empty result if the key is not found' do
+        result = @client.hscan('hash', 0)
+
+        expect(result[0]).to eq('0')
+        expect(result[1]).to eq([])
+      end
+    end
   end
 end

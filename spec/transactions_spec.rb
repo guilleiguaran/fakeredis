@@ -80,5 +80,13 @@ module FakeRedis
         expect(responses[2]).to eq(1)
       end
     end
+
+    context 'executing hash commands in a block' do
+      it "returns true if the nested hash command succeeds" do
+        responses = @client.multi { |multi| multi.hset('hash', 'key', 'value') }
+
+        expect(responses[0]).to eq(true)
+      end
+    end
   end
 end

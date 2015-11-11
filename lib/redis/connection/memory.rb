@@ -684,10 +684,10 @@ class Redis
         if data[key]
           result = !data[key].include?(field)
           data[key][field] = value.to_s
-          result
+          result ? 1 : 0
         else
           data[key] = { field => value.to_s }
-          true
+          1
         end
       end
 

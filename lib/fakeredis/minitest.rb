@@ -3,7 +3,7 @@
 #
 #   # Gemfile
 #   group :test do
-#     gem 'rspec'
+#     gem 'minitest'
 #     gem 'fakeredis', :require => 'fakeredis/minitest'
 #   end
 #

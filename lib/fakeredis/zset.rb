@@ -6,7 +6,7 @@ module FakeRedis
     end
 
     def identical_scores?
-      values.all? { |key| key == values[0] }
+      values.uniq.size == 1
     end
 
     # Increments the value of key by val

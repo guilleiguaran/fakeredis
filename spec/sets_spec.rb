@@ -7,30 +7,30 @@ module FakeRedis
     end
 
     it "should add a member to a set" do
-      @client.sadd("key", "value").should be == true
-      @client.sadd("key", "value").should be == false
+      expect(@client.sadd("key", "value")).to eq(true)
+      expect(@client.sadd("key", "value")).to eq(false)
 
-      @client.smembers("key").should be == ["value"]
+      expect(@client.smembers("key")).to eq(["value"])
     end
 
     it "should raise error if command arguments count is not enough" do
       expect { @client.sadd("key", []) }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for 'sadd' command")
       expect { @client.sinter(*[]) }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for 'sinter' command")
 
-      @client.smembers("key").should be_empty
+      expect(@client.smembers("key")).to be_empty
     end
 
     it "should add multiple members to a set" do
-      @client.sadd("key", %w(value other something more)).should be == 4
-      @client.sadd("key", %w(and additional values)).should be == 3
-      @client.smembers("key").should =~ ["value", "other", "something", "more", "and", "additional", "values"]
+      expect(@client.sadd("key", %w(value other something more))).to eq(4)
+      expect(@client.sadd("key", %w(and additional values))).to eq(3)
+      expect(@client.smembers("key")).to match_array(["value", "other", "something", "more", "and", "additional", "values"])
     end
 
     it "should get the number of members in a set" do
       @client.sadd("key", "val1")
       @client.sadd("key", "val2")
 
-      @client.scard("key").should be == 2
+      expect(@client.scard("key")).to eq(2)
     end
 
     it "should subtract multiple sets" do
@@ -43,14 +43,14 @@ module FakeRedis
       @client.sadd("key3", "c")
       @client.sadd("key3", "e")
 
-      @client.sdiff("key1", "key2", "key3").should =~ ["b", "d"]
+      expect(@client.sdiff("key1", "key2", "key3")).to match_array(["b", "d"])
     end
 
     it "should subtract from a nonexistent set" do
       @client.sadd("key2", "a")
       @client.sadd("key2", "b")
 
-      @client.sdiff("key1", "key2").should == []
+      expect(@client.sdiff("key1", "key2")).to eq([])
     end
 
     it "should subtract multiple sets and store the resulting set in a key" do
@@ -64,7 +64,7 @@ module FakeRedis
       @client.sadd("key3", "e")
       @client.sdiffstore("key", "key1", "key2", "key3")
 
-      @client.smembers("key").should =~ ["b", "d"]
+      expect(@client.smembers("key")).to match_array(["b", "d"])
     end
 
     it "should intersect multiple sets" do
@@ -77,7 +77,7 @@ module FakeRedis
       @client.sadd("key3", "c")
       @client.sadd("key3", "e")
 
-      @client.sinter("key1", "key2", "key3").should be == ["c"]
+      expect(@client.sinter("key1", "key2", "key3")).to eq(["c"])
     end
 
     it "should intersect multiple sets and store the resulting set in a key" do
@@ -90,15 +90,15 @@ module FakeRedis
       @client.sadd("key3", "c")
       @client.sadd("key3", "e")
       @client.sinterstore("key", "key1", "key2", "key3")
-      @client.smembers("key").should be == ["c"]
+      expect(@client.smembers("key")).to eq(["c"])
     end
 
     it "should determine if a given value is a member of a set" do
       @client.sadd("key1", "a")
 
-      @client.sismember("key1", "a").should be == true
-      @client.sismember("key1", "b").should be == false
-      @client.sismember("key2", "a").should be == false
+      expect(@client.sismember("key1", "a")).to eq(true)
+      expect(@client.sismember("key1", "b")).to eq(false)
+      expect(@client.sismember("key2", "a")).to eq(false)
     end
 
     it "should get all the members in a set" do
@@ -107,51 +107,51 @@ module FakeRedis
       @client.sadd("key", "c")
       @client.sadd("key", "d")
 
-      @client.smembers("key").should =~ ["a", "b", "c", "d"]
+      expect(@client.smembers("key")).to match_array(["a", "b", "c", "d"])
     end
 
     it "should move a member from one set to another" do
       @client.sadd("key1", "a")
       @client.sadd("key1", "b")
       @client.sadd("key2", "c")
-      @client.smove("key1", "key2", "a").should be == true
-      @client.smove("key1", "key2", "a").should be == false
+      expect(@client.smove("key1", "key2", "a")).to eq(true)
+      expect(@client.smove("key1", "key2", "a")).to eq(false)
 
-      @client.smembers("key1").should be == ["b"]
-      @client.smembers("key2").should =~ ["c", "a"]
+      expect(@client.smembers("key1")).to eq(["b"])
+      expect(@client.smembers("key2")).to match_array(["c", "a"])
     end
 
     it "should remove and return a random member from a set" do
       @client.sadd("key1", "a")
       @client.sadd("key1", "b")
 
-      ["a", "b"].include?(@client.spop("key1")).should be true
-      ["a", "b"].include?(@client.spop("key1")).should be true
-      @client.spop("key1").should be_nil
+      expect(["a", "b"].include?(@client.spop("key1"))).to be true
+      expect(["a", "b"].include?(@client.spop("key1"))).to be true
+      expect(@client.spop("key1")).to be_nil
     end
 
     it "should get a random member from a set" do
       @client.sadd("key1", "a")
       @client.sadd("key1", "b")
 
-      ["a", "b"].include?(@client.spop("key1")).should be true
+      expect(["a", "b"].include?(@client.spop("key1"))).to be true
     end
 
     it "should remove a member from a set" do
       @client.sadd("key1", "a")
       @client.sadd("key1", "b")
-      @client.srem("key1", "a").should be == true
-      @client.srem("key1", "a").should be == false
+      expect(@client.srem("key1", "a")).to eq(true)
+      expect(@client.srem("key1", "a")).to eq(false)
 
-      @client.smembers("key1").should be == ["b"]
+      expect(@client.smembers("key1")).to eq(["b"])
     end
 
     it "should remove multiple members from a set" do
       @client.sadd("key1", "a")
       @client.sadd("key1", "b")
 
-      @client.srem("key1", [ "a", "b"]).should == 2
-      @client.smembers("key1").should be_empty
+      expect(@client.srem("key1", [ "a", "b"])).to eq(2)
+      expect(@client.smembers("key1")).to be_empty
     end
 
     it "should remove the set's key once it's empty" do
@@ -160,7 +160,7 @@ module FakeRedis
       @client.srem("key1", "b")
       @client.srem("key1", "a")
 
-      @client.exists("key1").should be == false
+      expect(@client.exists("key1")).to eq(false)
     end
 
     it "should add multiple sets" do
@@ -173,7 +173,7 @@ module FakeRedis
       @client.sadd("key3", "c")
       @client.sadd("key3", "e")
 
-      @client.sunion("key1", "key2", "key3").should =~ ["a", "b", "c", "d", "e"]
+      expect(@client.sunion("key1", "key2", "key3")).to match_array(["a", "b", "c", "d", "e"])
     end
 
     it "should add multiple sets and store the resulting set in a key" do
@@ -187,7 +187,7 @@ module FakeRedis
       @client.sadd("key3", "e")
       @client.sunionstore("key", "key1", "key2", "key3")
 
-      @client.smembers("key").should =~ ["a", "b", "c", "d", "e"]
+      expect(@client.smembers("key")).to match_array(["a", "b", "c", "d", "e"])
     end
   end
 
@@ -207,7 +207,7 @@ module FakeRedis
         it 'is a random element from the set' do
           random_element = @client.srandmember("key1")
 
-          ['a', 'b', 'c'].include?(random_element).should be true
+          expect(['a', 'b', 'c'].include?(random_element)).to be true
         end
       end
 
@@ -215,7 +215,7 @@ module FakeRedis
         it 'is an array of one random element from the set' do
           random_elements = @client.srandmember("key1", 1)
 
-          [['a'], ['b'], ['c']].include?(@client.srandmember("key1", 1)).should be true
+          expect([['a'], ['b'], ['c']].include?(@client.srandmember("key1", 1))).to be true
         end
       end
 
@@ -223,10 +223,10 @@ module FakeRedis
         it 'is an array of two unique, random elements from the set' do
           random_elements = @client.srandmember("key1", 2)
 
-          random_elements.count.should == 2
-          random_elements.uniq.count.should == 2
+          expect(random_elements.count).to eq(2)
+          expect(random_elements.uniq.count).to eq(2)
           random_elements.all? do |element|
-            ['a', 'b', 'c'].include?(element).should be true
+            expect(['a', 'b', 'c'].include?(element)).to be true
           end
         end
       end
@@ -235,10 +235,10 @@ module FakeRedis
         it 'is an array of 100 random elements from the set, some of which are repeated' do
           random_elements = @client.srandmember("key1", -100)
 
-          random_elements.count.should == 100
-          random_elements.uniq.count.should <= 3
+          expect(random_elements.count).to eq(100)
+          expect(random_elements.uniq.count).to be <= 3
           random_elements.all? do |element|
-            ['a', 'b', 'c'].include?(element).should be true
+            expect(['a', 'b', 'c'].include?(element)).to be true
           end
         end
       end
@@ -247,9 +247,9 @@ module FakeRedis
         it 'is an array of all of the elements from the set, none of which are repeated' do
           random_elements = @client.srandmember("key1", 100)
 
-          random_elements.count.should == 3
-          random_elements.uniq.count.should == 3
-          random_elements.should =~ ['a', 'b', 'c']
+          expect(random_elements.count).to eq(3)
+          expect(random_elements.uniq.count).to eq(3)
+          expect(random_elements).to match_array(['a', 'b', 'c'])
         end
       end
     end
@@ -258,11 +258,11 @@ module FakeRedis
       before { @client.del("key1") }
 
       it 'is nil without the extra parameter' do
-        @client.srandmember("key1").should be_nil
+        expect(@client.srandmember("key1")).to be_nil
       end
 
       it 'is an empty array with an extra parameter' do
-        @client.srandmember("key1", 1).should == []
+        expect(@client.srandmember("key1", 1)).to eq([])
       end
     end
   end

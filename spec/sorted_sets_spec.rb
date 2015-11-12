@@ -9,84 +9,84 @@ module FakeRedis
     end
 
     it "should add a member to a sorted set, or update its score if it already exists" do
-      @client.zadd("key", 1, "val").should be(true)
-      @client.zscore("key", "val").should be == 1.0
+      expect(@client.zadd("key", 1, "val")).to be(true)
+      expect(@client.zscore("key", "val")).to eq(1.0)
 
-      @client.zadd("key", 2, "val").should be(false)
-      @client.zscore("key", "val").should be == 2.0
+      expect(@client.zadd("key", 2, "val")).to be(false)
+      expect(@client.zscore("key", "val")).to eq(2.0)
 
       # These assertions only work in redis-rb v3.0.2 or higher
-      @client.zadd("key2", "inf", "val").should be == true
-      @client.zscore("key2", "val").should be == Infinity
+      expect(@client.zadd("key2", "inf", "val")).to eq(true)
+      expect(@client.zscore("key2", "val")).to eq(Infinity)
 
-      @client.zadd("key3", "+inf", "val").should be == true
-      @client.zscore("key3", "val").should be == Infinity
+      expect(@client.zadd("key3", "+inf", "val")).to eq(true)
+      expect(@client.zscore("key3", "val")).to eq(Infinity)
 
-      @client.zadd("key4", "-inf", "val").should be == true
-      @client.zscore("key4", "val").should be == -Infinity
+      expect(@client.zadd("key4", "-inf", "val")).to eq(true)
+      expect(@client.zscore("key4", "val")).to eq(-Infinity)
     end
 
     it "should return a nil score for value not in a sorted set or empty key" do
       @client.zadd "key", 1, "val"
 
-      @client.zscore("key", "val").should be == 1.0
-      @client.zscore("key", "val2").should be_nil
-      @client.zscore("key2", "val").should be_nil
+      expect(@client.zscore("key", "val")).to eq(1.0)
+      expect(@client.zscore("key", "val2")).to be_nil
+      expect(@client.zscore("key2", "val")).to be_nil
     end
 
     it "should add multiple members to a sorted set, or update its score if it already exists" do
-      @client.zadd("key", [1, "val", 2, "val2"]).should be == 2
-      @client.zscore("key", "val").should be == 1
-      @client.zscore("key", "val2").should be == 2
+      expect(@client.zadd("key", [1, "val", 2, "val2"])).to eq(2)
+      expect(@client.zscore("key", "val")).to eq(1)
+      expect(@client.zscore("key", "val2")).to eq(2)
 
-      @client.zadd("key", [[5, "val"], [3, "val3"], [4, "val4"]]).should be == 2
-      @client.zscore("key", "val").should be == 5
-      @client.zscore("key", "val2").should be == 2
-      @client.zscore("key", "val3").should be == 3
-      @client.zscore("key", "val4").should be == 4
+      expect(@client.zadd("key", [[5, "val"], [3, "val3"], [4, "val4"]])).to eq(2)
+      expect(@client.zscore("key", "val")).to eq(5)
+      expect(@client.zscore("key", "val2")).to eq(2)
+      expect(@client.zscore("key", "val3")).to eq(3)
+      expect(@client.zscore("key", "val4")).to eq(4)
 
-      @client.zadd("key", [[5, "val5"], [3, "val6"]]).should be == 2
-      @client.zscore("key", "val5").should be == 5
-      @client.zscore("key", "val6").should be == 3
+      expect(@client.zadd("key", [[5, "val5"], [3, "val6"]])).to eq(2)
+      expect(@client.zscore("key", "val5")).to eq(5)
+      expect(@client.zscore("key", "val6")).to eq(3)
     end
 
     it "should error with wrong number of arguments when adding members" do
-      lambda { @client.zadd("key") }.should raise_error(ArgumentError, "wrong number of arguments")
-      lambda { @client.zadd("key", 1) }.should raise_error(ArgumentError, "wrong number of arguments")
-      lambda { @client.zadd("key", [1]) }.should raise_error(Redis::CommandError, "ERR wrong number of arguments for 'zadd' command")
-      lambda { @client.zadd("key", [1, "val", 2]) }.should raise_error(Redis::CommandError, "ERR syntax error")
-      lambda { @client.zadd("key", [[1, "val"], [2]]) }.should raise_error(Redis::CommandError, "ERR syntax error")
+      expect { @client.zadd("key") }.to raise_error(ArgumentError, "wrong number of arguments")
+      expect { @client.zadd("key", 1) }.to raise_error(ArgumentError, "wrong number of arguments")
+      expect { @client.zadd("key", [1]) }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for 'zadd' command")
+      expect { @client.zadd("key", [1, "val", 2]) }.to raise_error(Redis::CommandError, "ERR syntax error")
+      expect { @client.zadd("key", [[1, "val"], [2]]) }.to raise_error(Redis::CommandError, "ERR syntax error")
     end
 
     it "should allow floats as scores when adding or updating" do
-      @client.zadd("key", 4.321, "val").should be(true)
-      @client.zscore("key", "val").should be == 4.321
+      expect(@client.zadd("key", 4.321, "val")).to be(true)
+      expect(@client.zscore("key", "val")).to eq(4.321)
 
-      @client.zadd("key", 54.3210, "val").should be(false)
-      @client.zscore("key", "val").should be == 54.321
+      expect(@client.zadd("key", 54.3210, "val")).to be(false)
+      expect(@client.zscore("key", "val")).to eq(54.321)
     end
 
     it "should remove members from sorted sets" do
-      @client.zrem("key", "val").should be(false)
-      @client.zadd("key", 1, "val").should be(true)
-      @client.zrem("key", "val").should be(true)
+      expect(@client.zrem("key", "val")).to be(false)
+      expect(@client.zadd("key", 1, "val")).to be(true)
+      expect(@client.zrem("key", "val")).to be(true)
     end
 
     it "should remove multiple members from sorted sets" do
-      @client.zrem("key2", %w(val)).should be == 0
-      @client.zrem("key2", %w(val val2 val3)).should be == 0
+      expect(@client.zrem("key2", %w(val))).to eq(0)
+      expect(@client.zrem("key2", %w(val val2 val3))).to eq(0)
 
       @client.zadd("key2", 1, "val")
       @client.zadd("key2", 1, "val2")
       @client.zadd("key2", 1, "val3")
 
-      @client.zrem("key2", %w(val val2 val3 val4)).should be == 3
+      expect(@client.zrem("key2", %w(val val2 val3 val4))).to eq(3)
     end
 
     it "should remove sorted set's key when it is empty" do
       @client.zadd("key", 1, "val")
       @client.zrem("key", "val")
-      @client.exists("key").should be == false
+      expect(@client.exists("key")).to eq(false)
     end
 
     it "should get the number of members in a sorted set" do
@@ -94,7 +94,7 @@ module FakeRedis
       @client.zadd("key", 2, "val1")
       @client.zadd("key", 5, "val3")
 
-      @client.zcard("key").should be == 3
+      expect(@client.zcard("key")).to eq(3)
     end
 
     it "should count the members in a sorted set with scores within the given values" do
@@ -102,28 +102,28 @@ module FakeRedis
       @client.zadd("key", 2, "val2")
       @client.zadd("key", 3, "val3")
 
-      @client.zcount("key", 2, 3).should be == 2
+      expect(@client.zcount("key", 2, 3)).to eq(2)
     end
 
     it "should increment the score of a member in a sorted set" do
       @client.zadd("key", 1, "val1")
-      @client.zincrby("key", 2, "val1").should be == 3
-      @client.zscore("key", "val1").should be == 3
+      expect(@client.zincrby("key", 2, "val1")).to eq(3)
+      expect(@client.zscore("key", "val1")).to eq(3)
     end
 
     it "initializes the sorted set if the key wasnt already set" do
-      @client.zincrby("key", 1, "val1").should be == 1
+      expect(@client.zincrby("key", 1, "val1")).to eq(1)
     end
 
     it "should convert the key to a string for zscore" do
       @client.zadd("key", 1, 1)
-      @client.zscore("key", 1).should be == 1
+      expect(@client.zscore("key", 1)).to eq(1)
     end
 
     # These won't pass until redis-rb releases v3.0.2
     it "should handle infinity values when incrementing a sorted set key" do
-      @client.zincrby("bar", "+inf", "s2").should be == Infinity
-      @client.zincrby("bar", "-inf", "s1").should be == -Infinity
+      expect(@client.zincrby("bar", "+inf", "s2")).to eq(Infinity)
+      expect(@client.zincrby("bar", "-inf", "s1")).to eq(-Infinity)
     end
 
     it "should return a range of members in a sorted set, by index" do
@@ -131,10 +131,10 @@ module FakeRedis
       @client.zadd("key", 2, "two")
       @client.zadd("key", 3, "three")
 
-      @client.zrange("key", 0, -1).should be == ["one", "two", "three"]
-      @client.zrange("key", 1, 2).should be == ["two", "three"]
-      @client.zrange("key", 0, -1, :withscores => true).should be == [["one", 1], ["two", 2], ["three", 3]]
-      @client.zrange("key", 1, 2, :with_scores => true).should be == [["two", 2], ["three", 3]]
+      expect(@client.zrange("key", 0, -1)).to eq(["one", "two", "three"])
+      expect(@client.zrange("key", 1, 2)).to eq(["two", "three"])
+      expect(@client.zrange("key", 0, -1, :withscores => true)).to eq([["one", 1], ["two", 2], ["three", 3]])
+      expect(@client.zrange("key", 1, 2, :with_scores => true)).to eq([["two", 2], ["three", 3]])
     end
 
     it "should sort zrange results logically" do
@@ -142,8 +142,8 @@ module FakeRedis
       @client.zadd("key", 5, "val3")
       @client.zadd("key", 5, "val1")
 
-      @client.zrange("key", 0, -1).should be == %w(val1 val2 val3)
-      @client.zrange("key", 0, -1, :with_scores => true).should be == [["val1", 5], ["val2", 5], ["val3", 5]]
+      expect(@client.zrange("key", 0, -1)).to eq(%w(val1 val2 val3))
+      expect(@client.zrange("key", 0, -1, :with_scores => true)).to eq([["val1", 5], ["val2", 5], ["val3", 5]])
     end
 
     it "should return a reversed range of members in a sorted set, by index" do
@@ -151,10 +151,10 @@ module FakeRedis
       @client.zadd("key", 2, "two")
       @client.zadd("key", 3, "three")
 
-      @client.zrevrange("key", 0, -1).should be == ["three", "two", "one"]
-      @client.zrevrange("key", 1, 2).should be == ["two", "one"]
-      @client.zrevrange("key", 0, -1, :withscores => true).should be == [["three", 3], ["two", 2], ["one", 1]]
-      @client.zrevrange("key", 0, -1, :with_scores => true).should be == [["three", 3], ["two", 2], ["one", 1]]
+      expect(@client.zrevrange("key", 0, -1)).to eq(["three", "two", "one"])
+      expect(@client.zrevrange("key", 1, 2)).to eq(["two", "one"])
+      expect(@client.zrevrange("key", 0, -1, :withscores => true)).to eq([["three", 3], ["two", 2], ["one", 1]])
+      expect(@client.zrevrange("key", 0, -1, :with_scores => true)).to eq([["three", 3], ["two", 2], ["one", 1]])
     end
 
     it "should return a range of members in a sorted set, by score" do
@@ -162,21 +162,21 @@ module FakeRedis
       @client.zadd("key", 2, "two")
       @client.zadd("key", 3, "three")
 
-      @client.zrangebyscore("key", 0, 100).should be == ["one", "two", "three"]
-      @client.zrangebyscore("key", 1, 2).should be == ["one", "two"]
-      @client.zrangebyscore("key", 1, '(2').should be == ['one']
-      @client.zrangebyscore("key", '(1', 2).should be == ['two']
-      @client.zrangebyscore("key", '(1', '(2').should be == []
-      @client.zrangebyscore("key", 0, 100, :withscores => true).should be == [["one", 1], ["two", 2], ["three", 3]]
-      @client.zrangebyscore("key", 1, 2, :with_scores => true).should be == [["one", 1], ["two", 2]]
-      @client.zrangebyscore("key", 0, 100, :limit => [0, 1]).should be == ["one"]
-      @client.zrangebyscore("key", 0, 100, :limit => [0, -1]).should be == ["one", "two", "three"]
-      @client.zrangebyscore("key", 0, 100, :limit => [1, -1], :with_scores => true).should be == [["two", 2], ["three", 3]]
-      @client.zrangebyscore("key", '-inf', '+inf').should be == ["one", "two", "three"]
-      @client.zrangebyscore("key", 2, '+inf').should be == ["two", "three"]
-      @client.zrangebyscore("key", '-inf', 2).should be == ['one', "two"]
+      expect(@client.zrangebyscore("key", 0, 100)).to eq(["one", "two", "three"])
+      expect(@client.zrangebyscore("key", 1, 2)).to eq(["one", "two"])
+      expect(@client.zrangebyscore("key", 1, '(2')).to eq(['one'])
+      expect(@client.zrangebyscore("key", '(1', 2)).to eq(['two'])
+      expect(@client.zrangebyscore("key", '(1', '(2')).to eq([])
+      expect(@client.zrangebyscore("key", 0, 100, :withscores => true)).to eq([["one", 1], ["two", 2], ["three", 3]])
+      expect(@client.zrangebyscore("key", 1, 2, :with_scores => true)).to eq([["one", 1], ["two", 2]])
+      expect(@client.zrangebyscore("key", 0, 100, :limit => [0, 1])).to eq(["one"])
+      expect(@client.zrangebyscore("key", 0, 100, :limit => [0, -1])).to eq(["one", "two", "three"])
+      expect(@client.zrangebyscore("key", 0, 100, :limit => [1, -1], :with_scores => true)).to eq([["two", 2], ["three", 3]])
+      expect(@client.zrangebyscore("key", '-inf', '+inf')).to eq(["one", "two", "three"])
+      expect(@client.zrangebyscore("key", 2, '+inf')).to eq(["two", "three"])
+      expect(@client.zrangebyscore("key", '-inf', 2)).to eq(['one', "two"])
 
-      @client.zrangebyscore("badkey", 1, 2).should be == []
+      expect(@client.zrangebyscore("badkey", 1, 2)).to eq([])
     end
 
     it "should return a reversed range of members in a sorted set, by score" do
@@ -184,13 +184,13 @@ module FakeRedis
       @client.zadd("key", 2, "two")
       @client.zadd("key", 3, "three")
 
-      @client.zrevrangebyscore("key", 100, 0).should be == ["three", "two", "one"]
-      @client.zrevrangebyscore("key", 2, 1).should be == ["two", "one"]
-      @client.zrevrangebyscore("key", 1, 2).should be == []
-      @client.zrevrangebyscore("key", 2, 1, :with_scores => true).should be == [["two", 2.0], ["one", 1.0]]
-      @client.zrevrangebyscore("key", 100, 0, :limit => [0, 1]).should be == ["three"]
-      @client.zrevrangebyscore("key", 100, 0, :limit => [0, -1]).should be == ["three", "two", "one"]
-      @client.zrevrangebyscore("key", 100, 0, :limit => [1, -1], :with_scores => true).should be == [["two", 2.0], ["one", 1.0]]
+      expect(@client.zrevrangebyscore("key", 100, 0)).to eq(["three", "two", "one"])
+      expect(@client.zrevrangebyscore("key", 2, 1)).to eq(["two", "one"])
+      expect(@client.zrevrangebyscore("key", 1, 2)).to eq([])
+      expect(@client.zrevrangebyscore("key", 2, 1, :with_scores => true)).to eq([["two", 2.0], ["one", 1.0]])
+      expect(@client.zrevrangebyscore("key", 100, 0, :limit => [0, 1])).to eq(["three"])
+      expect(@client.zrevrangebyscore("key", 100, 0, :limit => [0, -1])).to eq(["three", "two", "one"])
+      expect(@client.zrevrangebyscore("key", 100, 0, :limit => [1, -1], :with_scores => true)).to eq([["two", 2.0], ["one", 1.0]])
     end
 
     it "should determine the index of a member in a sorted set" do
@@ -198,8 +198,8 @@ module FakeRedis
       @client.zadd("key", 2, "two")
       @client.zadd("key", 3, "three")
 
-      @client.zrank("key", "three").should be == 2
-      @client.zrank("key", "four").should be_nil
+      expect(@client.zrank("key", "three")).to eq(2)
+      expect(@client.zrank("key", "four")).to be_nil
     end
 
     it "should determine the reversed index of a member in a sorted set" do
@@ -207,16 +207,16 @@ module FakeRedis
       @client.zadd("key", 2, "two")
       @client.zadd("key", 3, "three")
 
-      @client.zrevrank("key", "three").should be == 0
-      @client.zrevrank("key", "four").should be_nil
+      expect(@client.zrevrank("key", "three")).to eq(0)
+      expect(@client.zrevrank("key", "four")).to be_nil
     end
 
     it "should not raise errors for zrank() on accessing a non-existing key in a sorted set" do
-      @client.zrank("no_such_key", "no_suck_id").should be_nil
+      expect(@client.zrank("no_such_key", "no_suck_id")).to be_nil
     end
 
     it "should not raise errors for zrevrank() on accessing a non-existing key in a sorted set" do
-      @client.zrevrank("no_such_key", "no_suck_id").should be_nil
+      expect(@client.zrevrank("no_such_key", "no_suck_id")).to be_nil
     end
 
     describe "#zinterstore" do
@@ -231,66 +231,66 @@ module FakeRedis
       end
 
       it "should intersect two keys with custom scores" do
-        @client.zinterstore("out", ["key1", "key2"]).should be == 2
-        @client.zrange("out", 0, -1, :with_scores => true).should be == [['two', (2 + 5)], ['three', (3 + 7)]]
+        expect(@client.zinterstore("out", ["key1", "key2"])).to eq(2)
+        expect(@client.zrange("out", 0, -1, :with_scores => true)).to eq([['two', (2 + 5)], ['three', (3 + 7)]])
       end
 
       it "should intersect two keys with a default score" do
-        @client.zinterstore("out", ["key1", "key3"]).should be == 2
-        @client.zrange("out", 0, -1, :with_scores => true).should be == [['one', (1 + 1)], ['two', (2 + 1)]]
+        expect(@client.zinterstore("out", ["key1", "key3"])).to eq(2)
+        expect(@client.zrange("out", 0, -1, :with_scores => true)).to eq([['one', (1 + 1)], ['two', (2 + 1)]])
       end
 
       it "should intersect more than two keys" do
-        @client.zinterstore("out", ["key1", "key2", "key3"]).should be == 1
-        @client.zrange("out", 0, -1, :with_scores => true).should be == [['two', (2 + 5 + 1)]]
+        expect(@client.zinterstore("out", ["key1", "key2", "key3"])).to eq(1)
+        expect(@client.zrange("out", 0, -1, :with_scores => true)).to eq([['two', (2 + 5 + 1)]])
       end
 
       it "should not intersect an unknown key" do
-        @client.zinterstore("out", ["key1", "no_key"]).should be == 0
-        @client.zrange("out", 0, -1, :with_scores => true).should be == []
+        expect(@client.zinterstore("out", ["key1", "no_key"])).to eq(0)
+        expect(@client.zrange("out", 0, -1, :with_scores => true)).to eq([])
       end
 
       it "should intersect two keys by minimum values" do
-        @client.zinterstore("out", ["key1", "key2"], :aggregate => :min).should be == 2
-        @client.zrange("out", 0, -1, :with_scores => true).should be == [["two", 2], ["three", 3]]
+        expect(@client.zinterstore("out", ["key1", "key2"], :aggregate => :min)).to eq(2)
+        expect(@client.zrange("out", 0, -1, :with_scores => true)).to eq([["two", 2], ["three", 3]])
       end
 
       it "should intersect two keys by maximum values" do
-        @client.zinterstore("out", ["key1", "key2"], :aggregate => :max).should be == 2
-        @client.zrange("out", 0, -1, :with_scores => true).should be == [["two", 5], ["three", 7]]
+        expect(@client.zinterstore("out", ["key1", "key2"], :aggregate => :max)).to eq(2)
+        expect(@client.zrange("out", 0, -1, :with_scores => true)).to eq([["two", 5], ["three", 7]])
       end
 
       it "should intersect two keys by explicitly summing values" do
-        @client.zinterstore("out", %w(key1 key2), :aggregate => :sum).should be == 2
-        @client.zrange("out", 0, -1, :with_scores => true).should be == [["two", (2 + 5)], ["three", (3 + 7)]]
+        expect(@client.zinterstore("out", %w(key1 key2), :aggregate => :sum)).to eq(2)
+        expect(@client.zrange("out", 0, -1, :with_scores => true)).to eq([["two", (2 + 5)], ["three", (3 + 7)]])
       end
 
       it "should intersect two keys with weighted values" do
-        @client.zinterstore("out", %w(key1 key2), :weights => [10, 1]).should be == 2
-        @client.zrange("out", 0, -1, :with_scores => true).should be == [["two", (2 * 10 + 5)], ["three", (3 * 10 + 7)]]
+        expect(@client.zinterstore("out", %w(key1 key2), :weights => [10, 1])).to eq(2)
+        expect(@client.zrange("out", 0, -1, :with_scores => true)).to eq([["two", (2 * 10 + 5)], ["three", (3 * 10 + 7)]])
       end
 
       it "should intersect two keys with weighted minimum values" do
-        @client.zinterstore("out", %w(key1 key2), :weights => [10, 1], :aggregate => :min).should be == 2
-        @client.zrange("out", 0, -1, :with_scores => true).should be == [["two", 5], ["three", 7]]
+        expect(@client.zinterstore("out", %w(key1 key2), :weights => [10, 1], :aggregate => :min)).to eq(2)
+        expect(@client.zrange("out", 0, -1, :with_scores => true)).to eq([["two", 5], ["three", 7]])
       end
 
       it "should intersect two keys with weighted maximum values" do
-        @client.zinterstore("out", %w(key1 key2), :weights => [10, 1], :aggregate => :max).should be == 2
-        @client.zrange("out", 0, -1, :with_scores => true).should be == [["two", (2 * 10)], ["three", (3 * 10)]]
+        expect(@client.zinterstore("out", %w(key1 key2), :weights => [10, 1], :aggregate => :max)).to eq(2)
+        expect(@client.zrange("out", 0, -1, :with_scores => true)).to eq([["two", (2 * 10)], ["three", (3 * 10)]])
       end
 
       it "should error without enough weights given" do
-        lambda { @client.zinterstore("out", %w(key1 key2), :weights => []) }.should raise_error(Redis::CommandError, "ERR syntax error")
-        lambda { @client.zinterstore("out", %w(key1 key2), :weights => [10]) }.should raise_error(Redis::CommandError, "ERR syntax error")
+        expect { @client.zinterstore("out", %w(key1 key2), :weights => []) }.to raise_error(Redis::CommandError, "ERR syntax error")
+        expect { @client.zinterstore("out", %w(key1 key2), :weights => [10]) }.to raise_error(Redis::CommandError, "ERR syntax error")
       end
 
       it "should error with too many weights given" do
-        lambda { @client.zinterstore("out", %w(key1 key2), :weights => [10, 1, 1]) }.should raise_error(Redis::CommandError, "ERR syntax error")
+        expect { @client.zinterstore("out", %w(key1 key2), :weights => [10, 1, 1]) }.to raise_error(Redis::CommandError, "ERR syntax error")
       end
 
       it "should error with an invalid aggregate" do
-        lambda { @client.zinterstore("out", %w(key1 key2), :aggregate => :invalid) }.should raise_error(Redis::CommandError, "ERR syntax error")
+        expect { @client.zinterstore("out", %w(key1 key2), :aggregate => :invalid) }.to raise_error(Redis::CommandError, "ERR syntax error")
       end
     end
 
@@ -300,23 +300,23 @@ module FakeRedis
         @client.zadd("key", 2, "two")
         @client.zadd("key", 3, "three")
 
-        @client.zremrangebyscore("key", 0, 2).should be == 2
-        @client.zcard("key").should be == 1
+        expect(@client.zremrangebyscore("key", 0, 2)).to eq(2)
+        expect(@client.zcard("key")).to eq(1)
       end
 
       it "should remove items by score with infinity" do # Issue #50
         @client.zadd("key", 10.0, "one")
         @client.zadd("key", 20.0, "two")
         @client.zadd("key", 30.0, "three")
-        @client.zremrangebyscore("key", "-inf", "+inf").should be == 3
-        @client.zcard("key").should be == 0
-        @client.zscore("key", "one").should be_nil
-        @client.zscore("key", "two").should be_nil
-        @client.zscore("key", "three").should be_nil
+        expect(@client.zremrangebyscore("key", "-inf", "+inf")).to eq(3)
+        expect(@client.zcard("key")).to eq(0)
+        expect(@client.zscore("key", "one")).to be_nil
+        expect(@client.zscore("key", "two")).to be_nil
+        expect(@client.zscore("key", "three")).to be_nil
       end
 
       it "should return 0 if the key didn't exist" do
-        @client.zremrangebyscore("key", 0, 2).should be == 0
+        expect(@client.zremrangebyscore("key", 0, 2)).to eq(0)
       end
     end
 
@@ -326,8 +326,8 @@ module FakeRedis
         @client.zadd("key", 2, "two")
         @client.zadd("key", 3, "three")
 
-        @client.zremrangebyrank("key", 0, 1).should be == 2
-        @client.zcard('key').should be == 1
+        expect(@client.zremrangebyrank("key", 0, 1)).to eq(2)
+        expect(@client.zcard('key')).to eq(1)
       end
 
       it 'handles out of range requests' do
@@ -335,12 +335,12 @@ module FakeRedis
         @client.zadd("key", 2, "two")
         @client.zadd("key", 3, "three")
 
-        @client.zremrangebyrank("key", 25, -1).should be == 0
-        @client.zcard('key').should be == 3
+        expect(@client.zremrangebyrank("key", 25, -1)).to eq(0)
+        expect(@client.zcard('key')).to eq(3)
       end
 
       it "should return 0 if the key didn't exist" do
-        @client.zremrangebyrank("key", 0, 1).should be == 0
+        expect(@client.zremrangebyrank("key", 0, 1)).to eq(0)
       end
     end
 
@@ -356,66 +356,66 @@ module FakeRedis
       end
 
       it "should union two keys with custom scores" do
-        @client.zunionstore("out", %w(key1 key2)).should be == 3
-        @client.zrange("out", 0, -1, :with_scores => true).should be == [["val1", 1], ["val2", (2 + 5)], ["val3", (3 + 7)]]
+        expect(@client.zunionstore("out", %w(key1 key2))).to eq(3)
+        expect(@client.zrange("out", 0, -1, :with_scores => true)).to eq([["val1", 1], ["val2", (2 + 5)], ["val3", (3 + 7)]])
       end
 
       it "should union two keys with a default score" do
-        @client.zunionstore("out", %w(key1 key3)).should be == 3
-        @client.zrange("out", 0, -1, :with_scores => true).should be == [["val1", (1 + 1)], ["val2", (2 + 1)], ["val3", 3]]
+        expect(@client.zunionstore("out", %w(key1 key3))).to eq(3)
+        expect(@client.zrange("out", 0, -1, :with_scores => true)).to eq([["val1", (1 + 1)], ["val2", (2 + 1)], ["val3", 3]])
       end
 
       it "should union more than two keys" do
-        @client.zunionstore("out", %w(key1 key2 key3)).should be == 3
-        @client.zrange("out", 0, -1, :with_scores => true).should be == [["val1", (1 + 1)], ["val2", (2 + 5 + 1)], ["val3", (3 + 7)]]
+        expect(@client.zunionstore("out", %w(key1 key2 key3))).to eq(3)
+        expect(@client.zrange("out", 0, -1, :with_scores => true)).to eq([["val1", (1 + 1)], ["val2", (2 + 5 + 1)], ["val3", (3 + 7)]])
       end
 
       it "should union with an unknown key" do
-        @client.zunionstore("out", %w(key1 no_key)).should be == 3
-        @client.zrange("out", 0, -1, :with_scores => true).should be == [["val1", 1], ["val2", 2], ["val3", 3]]
+        expect(@client.zunionstore("out", %w(key1 no_key))).to eq(3)
+        expect(@client.zrange("out", 0, -1, :with_scores => true)).to eq([["val1", 1], ["val2", 2], ["val3", 3]])
       end
 
       it "should union two keys by minimum values" do
-        @client.zunionstore("out", %w(key1 key2), :aggregate => :min).should be == 3
-        @client.zrange("out", 0, -1, :with_scores => true).should be == [["val1", 1], ["val2", 2], ["val3", 3]]
+        expect(@client.zunionstore("out", %w(key1 key2), :aggregate => :min)).to eq(3)
+        expect(@client.zrange("out", 0, -1, :with_scores => true)).to eq([["val1", 1], ["val2", 2], ["val3", 3]])
       end
 
       it "should union two keys by maximum values" do
-        @client.zunionstore("out", %w(key1 key2), :aggregate => :max).should be == 3
-        @client.zrange("out", 0, -1, :with_scores => true).should be == [["val1", 1], ["val2", 5], ["val3", 7]]
+        expect(@client.zunionstore("out", %w(key1 key2), :aggregate => :max)).to eq(3)
+        expect(@client.zrange("out", 0, -1, :with_scores => true)).to eq([["val1", 1], ["val2", 5], ["val3", 7]])
       end
 
       it "should union two keys by explicitly summing values" do
-        @client.zunionstore("out", %w(key1 key2), :aggregate => :sum).should be == 3
-        @client.zrange("out", 0, -1, :with_scores => true).should be == [["val1", 1], ["val2", (2 + 5)], ["val3", (3 + 7)]]
+        expect(@client.zunionstore("out", %w(key1 key2), :aggregate => :sum)).to eq(3)
+        expect(@client.zrange("out", 0, -1, :with_scores => true)).to eq([["val1", 1], ["val2", (2 + 5)], ["val3", (3 + 7)]])
       end
 
       it "should union two keys with weighted values" do
-        @client.zunionstore("out", %w(key1 key2), :weights => [10, 1]).should be == 3
-        @client.zrange("out", 0, -1, :with_scores => true).should be == [["val1", (1 * 10)], ["val2", (2 * 10 + 5)], ["val3", (3 * 10 + 7)]]
+        expect(@client.zunionstore("out", %w(key1 key2), :weights => [10, 1])).to eq(3)
+        expect(@client.zrange("out", 0, -1, :with_scores => true)).to eq([["val1", (1 * 10)], ["val2", (2 * 10 + 5)], ["val3", (3 * 10 + 7)]])
       end
 
       it "should union two keys with weighted minimum values" do
-        @client.zunionstore("out", %w(key1 key2), :weights => [10, 1], :aggregate => :min).should be == 3
-        @client.zrange("out", 0, -1, :with_scores => true).should be == [["val2", 5], ["val3", 7], ["val1", (1 * 10)]]
+        expect(@client.zunionstore("out", %w(key1 key2), :weights => [10, 1], :aggregate => :min)).to eq(3)
+        expect(@client.zrange("out", 0, -1, :with_scores => true)).to eq([["val2", 5], ["val3", 7], ["val1", (1 * 10)]])
       end
 
       it "should union two keys with weighted maximum values" do
-        @client.zunionstore("out", %w(key1 key2), :weights => [10, 1], :aggregate => :max).should be == 3
-        @client.zrange("out", 0, -1, :with_scores => true).should be == [["val1", (1 * 10)], ["val2", (2 * 10)], ["val3", (3 * 10)]]
+        expect(@client.zunionstore("out", %w(key1 key2), :weights => [10, 1], :aggregate => :max)).to eq(3)
+        expect(@client.zrange("out", 0, -1, :with_scores => true)).to eq([["val1", (1 * 10)], ["val2", (2 * 10)], ["val3", (3 * 10)]])
       end
 
       it "should error without enough weights given" do
-        lambda { @client.zunionstore("out", %w(key1 key2), :weights => []) }.should raise_error(Redis::CommandError, "ERR syntax error")
-        lambda { @client.zunionstore("out", %w(key1 key2), :weights => [10]) }.should raise_error(Redis::CommandError, "ERR syntax error")
+        expect { @client.zunionstore("out", %w(key1 key2), :weights => []) }.to raise_error(Redis::CommandError, "ERR syntax error")
+        expect { @client.zunionstore("out", %w(key1 key2), :weights => [10]) }.to raise_error(Redis::CommandError, "ERR syntax error")
       end
 
       it "should error with too many weights given" do
-        lambda { @client.zunionstore("out", %w(key1 key2), :weights => [10, 1, 1]) }.should raise_error(Redis::CommandError, "ERR syntax error")
+        expect { @client.zunionstore("out", %w(key1 key2), :weights => [10, 1, 1]) }.to raise_error(Redis::CommandError, "ERR syntax error")
       end
 
       it "should error with an invalid aggregate" do
-        lambda { @client.zunionstore("out", %w(key1 key2), :aggregate => :invalid) }.should raise_error(Redis::CommandError, "ERR syntax error")
+        expect { @client.zunionstore("out", %w(key1 key2), :aggregate => :invalid) }.to raise_error(Redis::CommandError, "ERR syntax error")
       end
     end
 
@@ -434,7 +434,43 @@ module FakeRedis
     it "zrem should remove members add by zadd" do
       @client.zadd("key1", 1, 3)
       @client.zrem("key1", 3)
-      @client.zscore("key1", 3).should be_nil
+      expect(@client.zscore("key1", 3)).to be_nil
+    end
+
+    describe "#zscan" do
+      before { 50.times { |x| @client.zadd("key", x, "key #{x}") } }
+
+      it 'with no arguments should return 10 numbers in ascending order' do
+        result = @client.zscan("key", 0)[1]
+        expect(result).to eq(result.sort { |x, y| x[1] <=> y[1] })
+        expect(result.count).to eq(10)
+      end
+
+      it 'with a count should return that number of members' do
+        expect(@client.zscan("key", 0, count: 2)).to eq(["2", [["key 0", 0.0], ["key 1", 1.0]]])
+      end
+
+      it 'with a count greater than the number of members, returns all the members in asc order' do
+        result = @client.zscan("key", 0, count: 1000)[1]
+        expect(result).to eq(result.sort { |x, y| x[1] <=> y[1] })
+        expect(result.size).to eq(50)
+      end
+
+      it 'with match, should return key-values where the key matches' do
+        @client.zadd("key", 1.0, "blah")
+        @client.zadd("key", 2.0, "bluh")
+        result = @client.zscan("key", 0, count: 100, match: "key*")[1]
+        expect(result).to_not include(["blah", 1.0])
+        expect(result).to_not include(["bluh", 2.0])
+      end
+    end
+
+    describe "#zscan_each" do
+      before { 50.times { |x| @client.zadd("key", x, "key #{x}") } }
+
+      it 'enumerates over the items in the sorted set' do
+        expect(@client.zscan_each("key").to_a).to eq(@client.zscan("key", 0, count: 50)[1])
+      end
     end
 
     describe '#zrangebylex' do

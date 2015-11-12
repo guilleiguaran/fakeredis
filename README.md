@@ -39,7 +39,7 @@ You can use FakeRedis without any changes:
     >> redis.get "foo"
     => "bar"
 
-Read [redis-rb](https://github.com/ezmobius/redis-rb) documentation and
+Read [redis-rb](https://github.com/redis/redis-rb) documentation and
 [Redis](http://redis.io) homepage for more info about commands
 
 ## Usage with RSpec
@@ -56,6 +56,22 @@ Or:
 
     # spec/support/fakeredis.rb
     require 'fakeredis/rspec'
+
+## Usage with Minitest
+
+Require this either in your Gemfile or in Minitest's support scripts. So
+either: 
+
+    # Gemfile
+    group :test do
+      gem "minitest"
+      gem "fakeredis", :require => "fakeredis/minitest"
+    end
+
+Or:
+
+    # test/test_helper.rb (or test/minitest_config.rb)
+    require 'fakeredis/minitest'
 
 ## Acknowledgements
 

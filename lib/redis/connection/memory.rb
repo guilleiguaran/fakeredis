@@ -8,6 +8,7 @@ require "fakeredis/sorted_set_argument_handler"
 require "fakeredis/sorted_set_store"
 require "fakeredis/transaction_commands"
 require "fakeredis/zset"
+require "fakeredis/bitop_command"
 
 class Redis
   module Connection
@@ -16,6 +17,7 @@ class Redis
       include FakeRedis
       include SortMethod
       include TransactionCommands
+      include BitopCommand
       include CommandExecutor
 
       attr_accessor :options
@@ -87,9 +89,6 @@ class Redis
       end
 
       # NOT IMPLEMENTED:
-      # * blpop
-      # * brpop
-      # * brpoplpush
       # * subscribe
       # * psubscribe
       # * publish
@@ -265,6 +264,44 @@ class Redis
         data[key].keys
       end
 
+      def hscan(key, start_cursor, *args)
+        data_type_check(key, Hash)
+        return ["0", []] unless data[key]
+
+        match = "*"
+        count = 10
+
+        if args.size.odd?
+          raise_argument_error('hscan')
+        end
+
+        if idx = args.index("MATCH")
+          match = args[idx + 1]
+        end
+
+        if idx = args.index("COUNT")
+          count = args[idx + 1]
+        end
+
+        start_cursor = start_cursor.to_i
+
+        cursor = start_cursor
+        next_keys = []
+
+        if start_cursor + count >= data[key].length
+          next_keys = (data[key].to_a)[start_cursor..-1]
+          cursor = 0
+        else
+          cursor = start_cursor + count
+          next_keys = (data[key].to_a)[start_cursor..cursor-1]
+        end
+
+        filtered_next_keys = next_keys.select{|k,v| File.fnmatch(match, k)}
+        result = filtered_next_keys.flatten.map(&:to_s)
+
+        return ["#{cursor}", result]
+      end
+
       def keys(pattern = "*")
         data.keys.select { |key| File.fnmatch(pattern, key) }
       end
@@ -351,7 +388,7 @@ class Redis
 
       def lrem(key, count, value)
         data_type_check(key, Array)
-        return unless data[key]
+        return 0 unless data[key]
         old_size = data[key].size
         diff =
           if count == 0
@@ -368,6 +405,7 @@ class Redis
       end
 
       def rpush(key, value)
+        raise_argument_error('rpush') if value.respond_to?(:each) && value.empty?
         data_type_check(key, Array)
         data[key] ||= []
         [value].flatten.each do |val|
@@ -377,12 +415,14 @@ class Redis
       end
 
       def rpushx(key, value)
+        raise_argument_error('rpushx') if value.respond_to?(:each) && value.empty?
         data_type_check(key, Array)
         return unless data[key]
         rpush(key, value)
       end
 
       def lpush(key, value)
+        raise_argument_error('lpush') if value.respond_to?(:each) && value.empty?
         data_type_check(key, Array)
         data[key] ||= []
         [value].flatten.each do |val|
@@ -392,6 +432,7 @@ class Redis
       end
 
       def lpushx(key, value)
+        raise_argument_error('lpushx') if value.respond_to?(:each) && value.empty?
         data_type_check(key, Array)
         return unless data[key]
         lpush(key, value)
@@ -403,9 +444,28 @@ class Redis
         data[key].pop
       end
 
+      def brpop(keys, timeout=0)
+        #todo threaded mode
+        keys = Array(keys)
+        keys.each do |key|
+          if data[key] && data[key].size > 0
+            return [key, data[key].pop]
+          end
+        end
+        sleep(timeout.to_f)
+        nil
+      end
+
       def rpoplpush(key1, key2)
         data_type_check(key1, Array)
         rpop(key1).tap do |elem|
+          lpush(key2, elem) unless elem.nil?
+        end
+      end
+
+      def brpoplpush(key1, key2, opts={})
+        data_type_check(key1, Array)
+        brpop(key1).tap do |elem|
           lpush(key2, elem) unless elem.nil?
         end
       end
@@ -414,6 +474,18 @@ class Redis
         data_type_check(key, Array)
         return unless data[key]
         data[key].shift
+      end
+
+      def blpop(keys, timeout=0)
+        #todo threaded mode
+        keys = Array(keys)
+        keys.each do |key|
+          if data[key] && data[key].size > 0
+            return [key, data[key].shift]
+          end
+        end
+        sleep(timeout.to_f)
+        nil
       end
 
       def smembers(key)
@@ -612,10 +684,10 @@ class Redis
         if data[key]
           result = !data[key].include?(field)
           data[key][field] = value.to_s
-          result
+          result ? 1 : 0
         else
           data[key] = { field => value.to_s }
-          true
+          1
         end
       end
 
@@ -942,14 +1014,7 @@ class Redis
         data_type_check(key, ZSet)
         return [] unless data[key]
 
-        # Sort by score, or if scores are equal, key alphanum
-        results = data[key].sort do |(k1, v1), (k2, v2)|
-          if v1 == v2
-            k1 <=> k2
-          else
-            v1 <=> v2
-          end
-        end
+        results = sort_keys(data[key])
         # Select just the keys unless we want scores
         results = results.map(&:first) unless with_scores
         results[start..stop].flatten.map(&:to_s)
@@ -1067,6 +1132,57 @@ class Redis
         data[out].size
       end
 
+      def zscan(key, start_cursor, *args)
+        data_type_check(key, ZSet)
+        return [] unless data[key]
+
+        match = "*"
+        count = 10
+
+        if args.size.odd?
+          raise_argument_error('zscan')
+        end
+
+        if idx = args.index("MATCH")
+          match = args[idx + 1]
+        end
+
+        if idx = args.index("COUNT")
+          count = args[idx + 1]
+        end
+
+        start_cursor = start_cursor.to_i
+        data_type_check(start_cursor, Fixnum)
+
+        cursor = start_cursor
+        next_keys = []
+
+        sorted_keys = sort_keys(data[key])
+
+        if start_cursor + count >= sorted_keys.length
+          next_keys = sorted_keys.to_a.select { |k| File.fnmatch(match, k[0]) } [start_cursor..-1]
+          cursor = 0
+        else
+          cursor = start_cursor + count
+          next_keys = sorted_keys.to_a.select { |k| File.fnmatch(match, k[0]) } [start_cursor..cursor-1]
+        end
+        return "#{cursor}", next_keys.flatten.map(&:to_s)
+      end
+
+      # Originally from redis-rb
+      def zscan_each(key, *args, &block)
+        data_type_check(key, ZSet)
+        return [] unless data[key]
+
+        return to_enum(:zscan_each, key, options) unless block_given?
+        cursor = 0
+        loop do
+          cursor, values = zscan(key, cursor, options)
+          values.each(&block)
+          break if cursor == "0"
+        end
+      end
+
       private
         def raise_argument_error(command, match_string=command)
           error_message = if %w(hmset mset_odd).include?(match_string.downcase)
@@ -1147,6 +1263,17 @@ class Redis
             end.compact
           else
             (1..-number).map { data[key].to_a[rand(data[key].size)] }.flatten
+          end
+        end
+
+        def sort_keys(arr)
+          # Sort by score, or if scores are equal, key alphanum
+          sorted_keys = arr.sort do |(k1, v1), (k2, v2)|
+            if v1 == v2
+              k1 <=> k2
+            else
+              v1 <=> v2
+            end
           end
         end
     end

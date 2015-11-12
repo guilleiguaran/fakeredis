@@ -13,42 +13,42 @@ module FakeRedis
       @client.set("key1", "Hello")
       @client.append("key1", " World")
 
-      @client.get("key1").should be == "Hello World"
+      expect(@client.get("key1")).to eq("Hello World")
     end
 
     it "should decrement the integer value of a key by one" do
       @client.set("counter", "1")
       @client.decr("counter")
 
-      @client.get("counter").should be == "0"
+      expect(@client.get("counter")).to eq("0")
     end
 
     it "should decrement the integer value of a key by the given number" do
       @client.set("counter", "10")
       @client.decrby("counter", "5")
 
-      @client.get("counter").should be == "5"
+      expect(@client.get("counter")).to eq("5")
     end
 
     it "should get the value of a key" do
-      @client.get("key2").should be == nil
+      expect(@client.get("key2")).to eq(nil)
     end
 
     it "should returns the bit value at offset in the string value stored at key" do
       @client.set("key1", "a")
 
-      @client.getbit("key1", 1).should be == 1
-      @client.getbit("key1", 2).should be == 1
-      @client.getbit("key1", 3).should be == 0
-      @client.getbit("key1", 4).should be == 0
-      @client.getbit("key1", 5).should be == 0
-      @client.getbit("key1", 6).should be == 0
-      @client.getbit("key1", 7).should be == 1
+      expect(@client.getbit("key1", 1)).to eq(1)
+      expect(@client.getbit("key1", 2)).to eq(1)
+      expect(@client.getbit("key1", 3)).to eq(0)
+      expect(@client.getbit("key1", 4)).to eq(0)
+      expect(@client.getbit("key1", 5)).to eq(0)
+      expect(@client.getbit("key1", 6)).to eq(0)
+      expect(@client.getbit("key1", 7)).to eq(1)
     end
 
     it "should allow direct bit manipulation even if the string isn't set" do
       @client.setbit("key1", 10, 1)
-      @client.getbit("key1", 10).should be == 1
+      expect(@client.getbit("key1", 10)).to eq(1)
     end
 
     context 'when a bit is previously set to 0' do
@@ -78,86 +78,86 @@ module FakeRedis
     it "should get a substring of the string stored at a key" do
       @client.set("key1", "This a message")
 
-      @client.getrange("key1", 0, 3).should be == "This"
-      @client.substr("key1", 0, 3).should be == "This"
+      expect(@client.getrange("key1", 0, 3)).to eq("This")
+      expect(@client.substr("key1", 0, 3)).to eq("This")
     end
 
     it "should set the string value of a key and return its old value" do
       @client.set("key1","value1")
 
-      @client.getset("key1", "value2").should be == "value1"
-      @client.get("key1").should be == "value2"
+      expect(@client.getset("key1", "value2")).to eq("value1")
+      expect(@client.get("key1")).to eq("value2")
     end
 
     it "should return nil for #getset if the key does not exist when setting" do
-      @client.getset("key1", "value1").should be == nil
-      @client.get("key1").should be == "value1"
+      expect(@client.getset("key1", "value1")).to eq(nil)
+      expect(@client.get("key1")).to eq("value1")
     end
 
     it "should increment the integer value of a key by one" do
       @client.set("counter", "1")
-      @client.incr("counter").should be == 2
+      expect(@client.incr("counter")).to eq(2)
 
-      @client.get("counter").should be == "2"
+      expect(@client.get("counter")).to eq("2")
     end
 
     it "should not change the expire value of the key during incr" do
       @client.set("counter", "1")
-      @client.expire("counter", 600).should be true
-      @client.ttl("counter").should be == 600
-      @client.incr("counter").should be == 2
-      @client.ttl("counter").should be == 600
+      expect(@client.expire("counter", 600)).to be true
+      expect(@client.ttl("counter")).to eq(600)
+      expect(@client.incr("counter")).to eq(2)
+      expect(@client.ttl("counter")).to eq(600)
     end
 
     it "should decrement the integer value of a key by one" do
       @client.set("counter", "1")
-      @client.decr("counter").should be == 0
+      expect(@client.decr("counter")).to eq(0)
 
-      @client.get("counter").should be == "0"
+      expect(@client.get("counter")).to eq("0")
     end
 
     it "should not change the expire value of the key during decr" do
       @client.set("counter", "2")
-      @client.expire("counter", 600).should be true
-      @client.ttl("counter").should be == 600
-      @client.decr("counter").should be == 1
-      @client.ttl("counter").should be == 600
+      expect(@client.expire("counter", 600)).to be true
+      expect(@client.ttl("counter")).to eq(600)
+      expect(@client.decr("counter")).to eq(1)
+      expect(@client.ttl("counter")).to eq(600)
     end
 
     it "should increment the integer value of a key by the given number" do
       @client.set("counter", "10")
-      @client.incrby("counter", "5").should be == 15
-      @client.incrby("counter", 2).should be == 17
-      @client.get("counter").should be == "17"
+      expect(@client.incrby("counter", "5")).to eq(15)
+      expect(@client.incrby("counter", 2)).to eq(17)
+      expect(@client.get("counter")).to eq("17")
     end
 
     it "should increment the float value of a key by the given number" do
       @client.set("counter", 10.0)
-      @client.incrbyfloat("counter", 2.1).should be == 12.1
-      @client.get("counter").should be == "12.1"
+      expect(@client.incrbyfloat("counter", 2.1)).to eq(12.1)
+      expect(@client.get("counter")).to eq("12.1")
     end
 
     it "should not change the expire value of the key during incrby" do
       @client.set("counter", "1")
-      @client.expire("counter", 600).should be true
-      @client.ttl("counter").should be == 600
-      @client.incrby("counter", "5").should be == 6
-      @client.ttl("counter").should be == 600
+      expect(@client.expire("counter", 600)).to be true
+      expect(@client.ttl("counter")).to eq(600)
+      expect(@client.incrby("counter", "5")).to eq(6)
+      expect(@client.ttl("counter")).to eq(600)
     end
 
     it "should decrement the integer value of a key by the given number" do
       @client.set("counter", "10")
-      @client.decrby("counter", "5").should be == 5
-      @client.decrby("counter", 2).should be == 3
-      @client.get("counter").should be == "3"
+      expect(@client.decrby("counter", "5")).to eq(5)
+      expect(@client.decrby("counter", 2)).to eq(3)
+      expect(@client.get("counter")).to eq("3")
     end
 
     it "should not change the expire value of the key during decrby" do
       @client.set("counter", "8")
-      @client.expire("counter", 600).should be true
-      @client.ttl("counter").should be == 600
-      @client.decrby("counter", "3").should be == 5
-      @client.ttl("counter").should be == 600
+      expect(@client.expire("counter", 600)).to be true
+      expect(@client.ttl("counter")).to eq(600)
+      expect(@client.decrby("counter", "3")).to eq(5)
+      expect(@client.ttl("counter")).to eq(600)
     end
 
     it "should get the values of all the given keys" do
@@ -165,29 +165,29 @@ module FakeRedis
       @client.set("key2", "value2")
       @client.set("key3", "value3")
 
-      @client.mget("key1", "key2", "key3").should be == ["value1", "value2", "value3"]
-      @client.mget(["key1", "key2", "key3"]).should be == ["value1", "value2", "value3"]
+      expect(@client.mget("key1", "key2", "key3")).to eq(["value1", "value2", "value3"])
+      expect(@client.mget(["key1", "key2", "key3"])).to eq(["value1", "value2", "value3"])
     end
 
     it "returns nil for non existent keys" do
       @client.set("key1", "value1")
       @client.set("key3", "value3")
 
-      @client.mget("key1", "key2", "key3", "key4").should be == ["value1", nil, "value3", nil]
-      @client.mget(["key1", "key2", "key3", "key4"]).should be == ["value1", nil, "value3", nil]
+      expect(@client.mget("key1", "key2", "key3", "key4")).to eq(["value1", nil, "value3", nil])
+      expect(@client.mget(["key1", "key2", "key3", "key4"])).to eq(["value1", nil, "value3", nil])
     end
 
     it 'raises an argument error when not passed any fields' do
       @client.set("key3", "value3")
 
-      lambda { @client.mget }.should raise_error(Redis::CommandError)
+      expect { @client.mget }.to raise_error(Redis::CommandError)
     end
 
     it "should set multiple keys to multiple values" do
       @client.mset(:key1, "value1", :key2, "value2")
 
-      @client.get("key1").should be == "value1"
-      @client.get("key2").should be == "value2"
+      expect(@client.get("key1")).to eq("value1")
+      expect(@client.get("key2")).to eq("value2")
     end
 
     it "should raise error if command arguments count is wrong" do
@@ -195,51 +195,51 @@ module FakeRedis
       expect { @client.mset(:key1) }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for 'mset' command")
       expect { @client.mset(:key1, "value", :key2) }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for MSET")
 
-      @client.get("key1").should be_nil
-      @client.get("key2").should be_nil
+      expect(@client.get("key1")).to be_nil
+      expect(@client.get("key2")).to be_nil
     end
 
     it "should set multiple keys to multiple values, only if none of the keys exist" do
-      @client.msetnx(:key1, "value1", :key2, "value2").should be == true
-      @client.msetnx(:key1, "value3", :key2, "value4").should be == false
+      expect(@client.msetnx(:key1, "value1", :key2, "value2")).to eq(true)
+      expect(@client.msetnx(:key1, "value3", :key2, "value4")).to eq(false)
 
-      @client.get("key1").should be == "value1"
-      @client.get("key2").should be == "value2"
+      expect(@client.get("key1")).to eq("value1")
+      expect(@client.get("key2")).to eq("value2")
     end
 
     it "should set multiple keys to multiple values with a hash" do
       @client.mapped_mset(:key1 => "value1", :key2 => "value2")
 
-      @client.get("key1").should be == "value1"
-      @client.get("key2").should be == "value2"
+      expect(@client.get("key1")).to eq("value1")
+      expect(@client.get("key2")).to eq("value2")
     end
 
     it "should set multiple keys to multiple values with a hash, only if none of the keys exist" do
-      @client.mapped_msetnx(:key1 => "value1", :key2 => "value2").should be == true
-      @client.mapped_msetnx(:key1 => "value3", :key2 => "value4").should be == false
+      expect(@client.mapped_msetnx(:key1 => "value1", :key2 => "value2")).to eq(true)
+      expect(@client.mapped_msetnx(:key1 => "value3", :key2 => "value4")).to eq(false)
 
-      @client.get("key1").should be == "value1"
-      @client.get("key2").should be == "value2"
+      expect(@client.get("key1")).to eq("value1")
+      expect(@client.get("key2")).to eq("value2")
     end
 
     it "should set the string value of a key" do
       @client.set("key1", "1")
 
-      @client.get("key1").should be == "1"
+      expect(@client.get("key1")).to eq("1")
     end
 
     it "should sets or clears the bit at offset in the string value stored at key" do
       @client.set("key1", "abc")
       @client.setbit("key1", 11, 1)
 
-      @client.get("key1").should be == "arc"
+      expect(@client.get("key1")).to eq("arc")
     end
 
     it "should set the value and expiration of a key" do
       @client.setex("key1", 30, "value1")
 
-      @client.get("key1").should be == "value1"
-      @client.ttl("key1").should be == 30
+      expect(@client.get("key1")).to eq("value1")
+      expect(@client.ttl("key1")).to eq(30)
     end
 
     it "should set the value of a key, only if the key does not exist" do
@@ -247,44 +247,43 @@ module FakeRedis
       @client.setnx("key1", "new value")
       @client.setnx("key2", "another value")
 
-      @client.get("key1").should be == "test value"
-      @client.get("key2").should be == "another value"
+      expect(@client.get("key1")).to eq("test value")
+      expect(@client.get("key2")).to eq("another value")
     end
 
     it "should overwrite part of a string at key starting at the specified offset" do
       @client.set("key1", "Hello World")
       @client.setrange("key1", 6, "Redis")
 
-      @client.get("key1").should be == "Hello Redis"
+      expect(@client.get("key1")).to eq("Hello Redis")
     end
 
     it "should get the length of the value stored in a key" do
       @client.set("key1", "abc")
 
-      @client.strlen("key1").should be == 3
+      expect(@client.strlen("key1")).to eq(3)
     end
 
     it "should return 0 bits when there's no key" do
-      @client.bitcount("key1").should be == 0
+      expect(@client.bitcount("key1")).to eq(0)
     end
 
     it "should count the number of bits of a string" do
       @client.set("key1", "foobar")
-      @client.bitcount("key1").should be == 26
+      expect(@client.bitcount("key1")).to eq(26)
     end
 
     it "should count correctly with UTF-8 strings" do
       @client.set("key1", '判')
-      @client.bitcount("key1").should be == 10
+      expect(@client.bitcount("key1")).to eq(10)
     end
 
     it "should count the number of bits of a string given a range" do
       @client.set("key1", "foobar")
 
-      @client.bitcount("key1", 0, 0).should be == 4
-      @client.bitcount("key1", 1, 1).should be == 6
-      @client.bitcount("key1", 0, 1).should be == 10
+      expect(@client.bitcount("key1", 0, 0)).to eq(4)
+      expect(@client.bitcount("key1", 1, 1)).to eq(6)
+      expect(@client.bitcount("key1", 0, 1)).to eq(10)
     end
-
   end
 end

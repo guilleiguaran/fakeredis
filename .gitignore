@@ -5,3 +5,5 @@ gemfiles/*.gemfile.lock
 pkg/*
 .rvmrc
 *.rbc
+.ruby-version
+.ruby-gemset

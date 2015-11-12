@@ -5,6 +5,7 @@ require 'fakeredis'
 require "fakeredis/rspec"
 
 require "support/shared_examples/sortable"
+require "support/shared_examples/bitwise_operation"
 
 RSpec.configure do |config|
   # replaces -b -fdoc --color in .rspec

@@ -16,6 +16,9 @@ module FakeRedis
     it "should raise error if command arguments count is not enough" do
       expect { @client.sadd("key", []) }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for 'sadd' command")
       expect { @client.sinter(*[]) }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for 'sinter' command")
+      expect { @client.sinter([]) }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for 'sinter' command")
+      expect { @client.sunion(*[]) }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for 'sunion' command")
+      expect { @client.sunion([]) }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for 'sunion' command")
 
       expect(@client.smembers("key")).to be_empty
     end
@@ -44,6 +47,7 @@ module FakeRedis
       @client.sadd("key3", "e")
 
       expect(@client.sdiff("key1", "key2", "key3")).to match_array(["b", "d"])
+      expect(@client.sdiff("key1", ["key2", "key3"])).to match_array(["b", "d"])
     end
 
     it "should subtract from a nonexistent set" do
@@ -51,6 +55,7 @@ module FakeRedis
       @client.sadd("key2", "b")
 
       expect(@client.sdiff("key1", "key2")).to eq([])
+      expect(@client.sdiff(["key1", "key2"])).to eq([])
     end
 
     it "should subtract multiple sets and store the resulting set in a key" do
@@ -63,8 +68,10 @@ module FakeRedis
       @client.sadd("key3", "c")
       @client.sadd("key3", "e")
       @client.sdiffstore("key", "key1", "key2", "key3")
+      @client.sdiffstore("new_key", "key1", ["key2", "key3"])
 
       expect(@client.smembers("key")).to match_array(["b", "d"])
+      expect(@client.smembers("new_key")).to match_array(["b", "d"])
     end
 
     it "should intersect multiple sets" do
@@ -78,6 +85,7 @@ module FakeRedis
       @client.sadd("key3", "e")
 
       expect(@client.sinter("key1", "key2", "key3")).to eq(["c"])
+      expect(@client.sinter(["key1", "key2", "key3"])).to eq(["c"])
     end
 
     it "should intersect multiple sets and store the resulting set in a key" do
@@ -90,7 +98,10 @@ module FakeRedis
       @client.sadd("key3", "c")
       @client.sadd("key3", "e")
       @client.sinterstore("key", "key1", "key2", "key3")
+      @client.sinterstore("new_key", ["key1", "key2", "key3"])
+
       expect(@client.smembers("key")).to eq(["c"])
+      expect(@client.smembers("new_key")).to eq(["c"])
     end
 
     it "should determine if a given value is a member of a set" do

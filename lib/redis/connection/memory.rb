@@ -557,6 +557,7 @@ class Redis
       end
 
       def sinter(*keys)
+        keys = keys[0] if flatten?(keys)
         raise_argument_error('sinter') if keys.empty?
 
         keys.each { |k| data_type_check(k, ::Set) }
@@ -574,6 +575,9 @@ class Redis
       end
 
       def sunion(*keys)
+        keys = keys[0] if flatten?(keys)
+        raise_argument_error('sunion') if keys.empty?
+
         keys.each { |k| data_type_check(k, ::Set) }
         keys = keys.map { |k| data[k] || ::Set.new }
         keys.inject(::Set.new) do |set, key|
@@ -588,6 +592,7 @@ class Redis
       end
 
       def sdiff(key1, *keys)
+        keys = keys[0] if flatten?(keys)
         [key1, *keys].each { |k| data_type_check(k, ::Set) }
         keys = keys.map { |k| data[k] || ::Set.new }
         keys.inject(data[key1] || Set.new) do |memo, set|
@@ -1193,6 +1198,9 @@ class Redis
         def mapped_param? param
           param.size == 1 && param[0].is_a?(Array)
         end
+        # NOTE : Redis-rb 3.x will flatten *args, so method(["a", "b", "c"])
+        #        should be handled the same way as method("a", "b", "c")
+        alias_method :flatten?, :mapped_param?
 
         def srandmember_single(key)
           data_type_check(key, ::Set)

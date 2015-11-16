@@ -25,6 +25,14 @@ module FakeRedis
       expect(@client.lrange("key1", 0, -1)).to eq(["v1", "v2", "v3", "99", "100"])
     end
 
+    it "should not insert if after/before index not found" do
+      @client.rpush("key", "v1")
+      expect(@client.linsert("key", :before, "unknown", "v2")).to eq(-1)
+      expect(@client.linsert("key", :after, "unknown", "v3")).to eq(-1)
+
+      expect(@client.lrange("key", 0, -1)).to eq(["v1"])
+    end
+
     it 'should allow multiple values to be added to a list in a single rpush' do
       @client.rpush('key1', [1, 2, 3])
       expect(@client.lrange('key1', 0, -1)).to eq(['1', '2', '3'])

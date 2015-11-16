@@ -491,7 +491,7 @@ class Redis
       def smembers(key)
         data_type_check(key, ::Set)
         return [] unless data[key]
-        data[key].to_a.reverse
+        data[key].to_a
       end
 
       def sismember(key, value)

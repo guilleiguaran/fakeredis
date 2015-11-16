@@ -23,10 +23,10 @@ module FakeRedis
       expect(@client.smembers("key")).to be_empty
     end
 
-    it "should add multiple members to a set" do
+    it "should add multiple members to a set and keep insertion order" do
       expect(@client.sadd("key", %w(value other something more))).to eq(4)
       expect(@client.sadd("key", %w(and additional values))).to eq(3)
-      expect(@client.smembers("key")).to match_array(["value", "other", "something", "more", "and", "additional", "values"])
+      expect(@client.smembers("key")).to eq ["value", "other", "something", "more", "and", "additional", "values"]
     end
 
     it "should get the number of members in a set" do

@@ -19,8 +19,10 @@ module FakeRedis
       @client.rpush("key1", "v1")
       @client.rpush("key1", "v3")
       @client.linsert("key1", :before, "v3", "v2")
+      @client.linsert("key1", :after, "v3", 100)
+      @client.linsert("key1", :before, 100, 99)
 
-      expect(@client.lrange("key1", 0, -1)).to eq(["v1", "v2", "v3"])
+      expect(@client.lrange("key1", 0, -1)).to eq(["v1", "v2", "v3", "99", "100"])
     end
 
     it 'should allow multiple values to be added to a list in a single rpush' do
@@ -87,9 +89,11 @@ module FakeRedis
       @client.rpush("key1", "v2")
       @client.rpush("key1", "v2")
       @client.rpush("key1", "v1")
+      @client.rpush("key1", 42)
 
       expect(@client.lrem("key1", 1, "v1")).to eq(1)
       expect(@client.lrem("key1", -2, "v2")).to eq(2)
+      expect(@client.lrem("key1", 0, 42)).to eq(1)
       expect(@client.llen("key1")).to eq(2)
     end
 
@@ -114,9 +118,10 @@ module FakeRedis
 
       @client.lset("key1", 0, "four")
       @client.lset("key1", -2, "five")
-      expect(@client.lrange("key1", 0, -1)).to eq(["four", "five", "three"])
+      @client.lset("key1", 2, 6)
 
-      expect { @client.lset("key1", 4, "six") }.to raise_error(Redis::CommandError, "ERR index out of range")
+      expect(@client.lrange("key1", 0, -1)).to eq(["four", "five", "6"])
+      expect { @client.lset("key1", 4, "seven") }.to raise_error(Redis::CommandError, "ERR index out of range")
     end
 
     it "should trim a list to the specified range" do

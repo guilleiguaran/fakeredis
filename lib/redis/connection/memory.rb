@@ -371,7 +371,9 @@ class Redis
       def linsert(key, where, pivot, value)
         data_type_check(key, Array)
         return unless data[key]
-        index = data[key].index(pivot)
+
+        value = value.to_s
+        index = data[key].index(pivot.to_s)
         case where
           when :before then data[key].insert(index, value)
           when :after  then data[key].insert(index + 1, value)
@@ -383,12 +385,14 @@ class Redis
         data_type_check(key, Array)
         return unless data[key]
         raise Redis::CommandError, "ERR index out of range" if index >= data[key].size
-        data[key][index] = value
+        data[key][index] = value.to_s
       end
 
       def lrem(key, count, value)
         data_type_check(key, Array)
         return 0 unless data[key]
+
+        value = value.to_s
         old_size = data[key].size
         diff =
           if count == 0

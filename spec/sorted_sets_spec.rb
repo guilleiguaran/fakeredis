@@ -486,5 +486,93 @@ module FakeRedis
         expect(@client.zscan_each("key").to_a).to eq(@client.zscan("key", 0, count: 50)[1])
       end
     end
+
+    describe '#zrangebylex' do
+      before { @client.zadd "myzset", [0, 'a', 0, 'b', 0, 'd', 0, 'c'] }
+
+      it "should return empty list for '+'..'-' range" do
+        ranged = @client.zrangebylex "myzset", "+", "-"
+        expect(ranged).to be_empty
+      end
+
+      it "should return all elements for '-'..'+' range" do
+        ranged = @client.zrangebylex "myzset", "-", "+"
+        expect(ranged).to eq %w(a b c d)
+      end
+
+      it "should include values starting with [ symbol" do
+        ranged = @client.zrangebylex "myzset", "-", "[c"
+        expect(ranged).to eq %w(a b c)
+      end
+
+      it "should exclude values with ( symbol" do
+        ranged = @client.zrangebylex "myzset", "-", "(c"
+        expect(ranged).to eq %w(a b)
+      end
+
+      it "should work with both [ and ( properly" do
+        ranged = @client.zrangebylex "myzset", "[aaa", "(d"
+        expect(ranged).to eq %w(b c)
+      end
+
+      it "should return empty array if key is not exist" do
+        ranged = @client.zrangebylex "puppies", "-", "+"
+        expect(ranged).to be_empty
+      end
+
+      it 'should raise error for invalid range when range is invalid' do
+        expect{ @client.zrangebylex "myzset", "-", "d" }.to raise_error(Redis::CommandError, "ERR min or max not valid string range item")
+      end
+
+      it "should limit and offset values as 4th argument" do
+        ranged = @client.zrangebylex "myzset", "-", "+", limit: [1, 3]
+        expect(ranged).to eq %w(b c d)
+      end
+    end
+
+    describe "#zrevrangebylex" do
+      before { @client.zadd "myzset", [0, 'a', 0, 'b', 0, 'd', 0, 'c'] }
+
+      it "should return empty list for '-'..'+' range" do
+        ranged = @client.zrevrangebylex "myzset", "-", "+"
+        expect(ranged).to be_empty
+      end
+
+      it "should return all elements for '+'..'-' range in descending order" do
+        ranged = @client.zrevrangebylex "myzset", "+", "-"
+        expect(ranged).to eq %w(d c b a)
+      end
+
+      it "should include values starting with [ symbol" do
+        ranged = @client.zrevrangebylex "myzset", "[c", "-"
+        expect(ranged).to eq %w(c b a)
+      end
+
+      it "should exclude values with ( symbol" do
+        ranged = @client.zrevrangebylex "myzset", "+", "(c"
+        expect(ranged).to eq %w(d)
+      end
+
+      it "should work with both [ and ( properly" do
+        ranged = @client.zrevrangebylex "myzset", "(d", "[aaa"
+        expect(ranged).to eq %w(c b)
+      end
+
+      it "should return empty array if key is not exist" do
+        ranged = @client.zrevrangebylex "puppies", "+", "-"
+        expect(ranged).to be_empty
+      end
+
+      it 'should raise error for invalid range when range is invalid' do
+        expect { @client.zrevrangebylex "myzset", "-", "d" }.to raise_error(Redis::CommandError, "ERR min or max not valid string range item")
+      end
+
+      it "should limit and offset values as 4th argument" do
+        pending "current stable (3.2.0) redis-rb doesn't support limit option"
+
+        ranged = @client.zrevrangebylex "myzset", "+", "-", limit: [0, 3]
+        expect(ranged).to eq %w(d c b)
+      end
+    end
   end
 end

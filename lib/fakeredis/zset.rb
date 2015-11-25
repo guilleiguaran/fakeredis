@@ -5,6 +5,10 @@ module FakeRedis
       super(key, _floatify(val))
     end
 
+    def identical_scores?
+      values.uniq.size == 1
+    end
+
     # Increments the value of key by val
     def increment(key, val)
       self[key] += _floatify(val)

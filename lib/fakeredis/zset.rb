@@ -25,8 +25,10 @@ module FakeRedis
       elsif (( number = str.to_s.match(/^\((\d+)/i) ))
         number[1].to_i + (increment ? 1 : -1)
       else
-        Float str
+        Float str.to_s
       end
+    rescue ArgumentError
+      raise Redis::CommandError, "ERR value is not a valid float"
     end
 
   end

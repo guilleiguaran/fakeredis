@@ -66,6 +66,20 @@ module FakeRedis
       expect(@client.zscore("key", "val")).to eq(54.321)
     end
 
+    it "should allow strings that can be parsed as float when adding or updating" do
+      expect(@client.zadd("key", "4.321", "val")).to be(true)
+      expect(@client.zscore("key", "val")).to eq(4.321)
+
+      expect(@client.zadd("key", "54.3210", "val")).to be(false)
+      expect(@client.zscore("key", "val")).to eq(54.321)
+    end
+
+    it "should error when the score is not a valid float" do
+      expect { @client.zadd("key", "score", "val") }.to raise_error(Redis::CommandError, "ERR value is not a valid float")
+      expect { @client.zadd("key", {}, "val") }.to raise_error(Redis::CommandError, "ERR value is not a valid float")
+      expect { @client.zadd("key", Time.now, "val") }.to raise_error(Redis::CommandError, "ERR value is not a valid float")
+    end
+
     it "should remove members from sorted sets" do
       expect(@client.zrem("key", "val")).to be(false)
       expect(@client.zadd("key", 1, "val")).to be(true)

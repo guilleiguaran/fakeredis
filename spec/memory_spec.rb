@@ -1,27 +1,71 @@
 require 'spec_helper'
 
-module FakeRedis
+RSpec.describe FakeRedis do
+  let(:redis) { Redis.new }
+
+  def populate_keys_in_redis(num)
+    num.times do |count|
+      redis.set("key#{count}", count)
+    end
+  end
+
+  describe '#scan' do
+    def result
+      returned_keys = []
+      cursor = 0
+
+      loop do
+        cursor, keys = redis.scan(cursor, match_arguments)
+        returned_keys += keys
+        break if cursor == '0'
+      end
+      returned_keys
+    end
+
+    before do
+      populate_keys_in_redis(11)
+    end
+
+    context 'with one namespace' do
+      let(:match_arguments) { {} }
+
+      it 'returns the expected array of keys' do
+        expect(result).to match_array(redis.keys)
+      end
+    end
+
+    context 'with multiple namespaces' do
+      let(:namespaced_key) { 'test' }
+      let(:match_arguments) { { match: namespaced_key } }
+
+      before { redis.set(namespaced_key, 12) }
+
+      it 'returns the expected array of keys' do
+        expect(result).to match_array([namespaced_key])
+      end
+    end
+  end
+
   describe 'time' do
     before(:each) do
-      @client = Redis.new
       allow(Time).to receive_message_chain(:now, :to_f).and_return(1397845595.5139461)
     end
 
     it 'is an array' do
-      expect(@client.time).to be_an_instance_of(Array)
+      expect(redis.time).to be_an_instance_of(Array)
     end
 
     it 'has two elements' do
-      expect(@client.time.count).to eql 2
+      expect(redis.time.count).to eql 2
     end
 
     if fakeredis?
       it 'has the current time in seconds' do
-        expect(@client.time.first).to eql 1397845595
+        expect(redis.time.first).to eql 1397845595
       end
 
       it 'has the current leftover microseconds' do
-        expect(@client.time.last).to eql 513946
+        expect(redis.time.last).to eql 513946
       end
     end
   end

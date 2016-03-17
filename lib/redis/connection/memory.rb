@@ -926,9 +926,10 @@ class Redis
 
         cursor = start_cursor
         returned_keys = []
+        final_page = start_cursor + count >= keys(match).length
 
-        if start_cursor + count >= keys(match).length
-          returned_keys = keys(match)[start_cursor..-1]
+        if final_page
+          returned_keys = keys(match)
           cursor = 0
         else
           end_index = start_cursor + (count - 1)

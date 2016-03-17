@@ -26,11 +26,12 @@ RSpec.describe FakeRedis do
       populate_keys_in_redis(11)
     end
 
-    context 'with one namespace' do
-      let(:match_arguments) { {} }
-
-      it 'returns the expected array of keys' do
-        expect(result).to match_array(redis.keys)
+    context('when deleting') do
+      it('preverves cursor') do
+        cursor, keys = redis.scan('0')
+        keys.each { |key| redis.del(key) }
+        _, keys = redis.scan(cursor)
+        expect(keys).to eq(%w(key10))
       end
     end
 

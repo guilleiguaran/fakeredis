@@ -35,6 +35,14 @@ RSpec.describe FakeRedis do
       end
     end
 
+    context 'with one namespace' do
+      let(:match_arguments) { {} }
+
+      it 'returns the expected array of keys' do
+        expect(result).to match_array(redis.keys)
+      end
+    end
+
     context 'with multiple namespaces' do
       let(:namespaced_key) { 'test' }
       let(:match_arguments) { { match: namespaced_key } }

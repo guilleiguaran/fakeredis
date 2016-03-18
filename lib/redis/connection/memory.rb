@@ -929,7 +929,10 @@ class Redis
         final_page = start_cursor + count >= keys(match).length
 
         if final_page
-          returned_keys = keys(match)
+          previous_keys_been_deleted = (count >= keys(match).length)
+          start_index = previous_keys_been_deleted ? 0 : cursor
+
+          returned_keys = keys(match)[start_index..-1]
           cursor = 0
         else
           end_index = start_cursor + (count - 1)

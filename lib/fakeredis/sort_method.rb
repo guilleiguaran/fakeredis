@@ -101,7 +101,7 @@ module FakeRedis
       skip = limit.first || 0
       take = limit.last || sorted.length
 
-      sorted[skip...(skip + take)] || sorted
+      sorted[skip...(skip + take)] || []
     end
 
     def lookup_from_pattern(pattern, element)

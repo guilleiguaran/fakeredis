@@ -53,6 +53,10 @@ shared_examples_for "a sortable" do
     it 'only returns requested window in the enumerable' do
       expect(@client.sort(@key, :limit => [0, 1])).to eq(['1'])
     end
+
+    it 'returns an empty array if the offset if more than the length of the list' do
+      expect(@client.sort(@key, :limit => [3, 1])).to eq([])
+    end
   end
 
   context 'store' do

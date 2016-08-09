@@ -89,6 +89,7 @@ module FakeRedis
       @client.rpush("key1", "v3")
 
       expect(@client.lrange("key1", 1, -1)).to eq(["v2", "v3"])
+      expect(@client.lrange("key1", -999, -1)).to eq(["v1", "v2", "v3"])
     end
 
     it "should remove elements from a list" do

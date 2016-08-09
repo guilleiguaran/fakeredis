@@ -346,7 +346,14 @@ class Redis
 
       def lrange(key, startidx, endidx)
         data_type_check(key, Array)
-        (data[key] && data[key][startidx..endidx]) || []
+        if data[key]
+          # In Ruby when negative start index is out of range Array#slice returns
+          # nil which is not the case for lrange in Redis.
+          startidx = 0 if startidx < 0 && startidx.abs > data[key].size
+          data[key][startidx..endidx] || []
+        else
+          []
+        end
       end
 
       def ltrim(key, start, stop)

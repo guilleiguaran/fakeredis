@@ -98,5 +98,5 @@ Or:
 
 ## Copyright
 
-Copyright (c) 2011-2014 Guillermo Iguaran. See LICENSE for
+Copyright (c) 2011-2016 Guillermo Iguaran. See LICENSE for
 further details.

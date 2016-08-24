@@ -276,5 +276,43 @@ module FakeRedis
         expect(@client.srandmember("key1", 1)).to eq([])
       end
     end
+
+    describe "#sscan" do
+      it 'with no arguments and few items, returns all items' do
+        @client.sadd('set', ['name', 'Jack', 'age', '33'])
+        result = @client.sscan('set', 0)
+
+        expect(result[0]).to eq('0')
+        expect(result[1]).to eq(['name', 'Jack', 'age', '33'])
+      end
+
+      it 'with a count should return that number of members or more' do
+        @client.sadd('set', ['a', '1', 'b', '2', 'c', '3', 'd', '4', 'e', '5', 'f', '6', 'g', '7'])
+        result = @client.sscan('set', 0, count: 3)
+        expect(result[0]).to eq('3')
+        expect(result[1]).to eq([ 'a', '1', 'b'])
+      end
+
+      it 'returns items starting at the provided cursor' do
+        @client.sadd('set', ['a', '1', 'b', '2', 'c', '3', 'd', '4', 'e', '5', 'f', '6', 'g', '7'])
+        result = @client.sscan('set', 2, count: 3)
+        expect(result[0]).to eq('5')
+        expect(result[1]).to eq(['b', '2', 'c'])
+      end
+
+      it 'with match, returns items matching the given pattern' do
+        @client.sadd('set', ['aa', '1', 'b', '2', 'cc', '3', 'd', '4', 'ee', '5', 'f', '6', 'gg', '7'])
+        result = @client.sscan('set', 2, count: 7, match: '??')
+        expect(result[0]).to eq('9')
+        expect(result[1]).to eq(['cc','ee'])
+      end
+
+      it 'returns an empty result if the key is not found' do
+        result = @client.sscan('set', 0)
+
+        expect(result[0]).to eq('0')
+        expect(result[1]).to eq([])
+      end
+    end
   end
 end

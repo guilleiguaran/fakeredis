@@ -7,3 +7,4 @@ pkg/*
 *.rbc
 .ruby-version
 .ruby-gemset
+bin

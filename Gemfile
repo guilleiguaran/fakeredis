@@ -2,6 +2,7 @@ source "https://rubygems.org"
 
 gem 'rake'
 gem 'rdoc'
+gem('pry-byebug')
 
 platforms :rbx do
   gem 'racc'

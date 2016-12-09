@@ -559,11 +559,14 @@ class Redis
         result
       end
 
-      def spop(key)
+      def spop(key, count = nil)
         data_type_check(key, ::Set)
-        elem = srandmember(key)
-        srem(key, elem)
-        elem
+        results = (count || 1).times.map do
+          elem = srandmember(key)
+          srem(key, elem)
+          elem
+        end.compact
+        count.nil? ? results.first : results
       end
 
       def scard(key)

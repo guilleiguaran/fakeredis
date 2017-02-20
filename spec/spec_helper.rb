@@ -7,7 +7,11 @@ require "fakeredis/rspec"
 require "support/shared_examples/sortable"
 require "support/shared_examples/bitwise_operation"
 
+
 RSpec.configure do |config|
+  # Enable memory adapter
+  config.before(:each) { FakeRedis.enable }
+
   # replaces -b -fdoc --color in .rspec
   config.color = true
   config.default_formatter = "doc"
@@ -25,5 +29,5 @@ RSpec.configure do |config|
 end
 
 def fakeredis?
-  true
+  FakeRedis.enabled?
 end

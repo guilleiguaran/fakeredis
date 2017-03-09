@@ -356,6 +356,15 @@ module FakeRedis
       it "should return 0 if the key didn't exist" do
         expect(@client.zremrangebyrank("key", 0, 1)).to eq(0)
       end
+
+      it "should order lexicographically if scores are equal" do
+        @client.zadd("key", 1, "b")
+        @client.zadd("key", 1, "c")
+        @client.zadd("key", 1, "a")
+
+        expect(@client.zremrangebyrank("key", 0, 1)).to eq(2)
+        expect(@client.zrange("key", 0, -1)).to eq(["c"])
+      end
     end
 
     describe "#zunionstore" do

@@ -42,6 +42,13 @@ You can use FakeRedis without any changes:
 Read [redis-rb](https://github.com/redis/redis-rb) documentation and
 [Redis](http://redis.io) homepage for more info about commands
 
+## Fake For Sidekiq
+
+Add below lines to your test file:
+
+    require 'fakeredis'
+    require 'fakeredis/sidekiq'
+
 ## Usage with RSpec
 
 Require this either in your Gemfile or in RSpec's support scripts. So either: 

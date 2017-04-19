@@ -6,8 +6,10 @@ module FakeRedis
       if in_multi && !(TRANSACTION_COMMANDS.include? meffod) # queue commands
         queued_commands << [meffod, *command]
         reply = 'QUEUED'
-      elsif respond_to?(meffod)
+      elsif respond_to?(meffod) && method(meffod).arity != 0
         reply = send(meffod, *command)
+      elsif respond_to?(meffod)
+        reply = send(meffod)
       else
         raise Redis::CommandError, "ERR unknown command '#{meffod}'"
       end

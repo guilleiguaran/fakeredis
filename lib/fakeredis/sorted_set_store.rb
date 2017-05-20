@@ -68,7 +68,7 @@ module FakeRedis
 
   class SortedSetIntersectStore < SortedSetStore
     def selected_keys
-      @values ||= hashes.inject([]) { |r, h| r.empty? ? h.keys : (r & h.keys) }
+      @values ||= hashes.map(&:keys).reduce(:&)
     end
   end
 

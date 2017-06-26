@@ -306,6 +306,16 @@ module FakeRedis
       it "should error with an invalid aggregate" do
         expect { @client.zinterstore("out", %w(key1 key2), :aggregate => :invalid) }.to raise_error(Redis::CommandError, "ERR syntax error")
       end
+
+      it 'stores nothing when there are no members in common' do
+        @client.zadd("k1", 1, "1")
+        @client.zadd("k1", 1, "2")
+        @client.sadd("k2", "a")
+        @client.sadd("k3", "b")
+
+        expect(@client.zinterstore("out", %w(k1 k2 k3))).to eq(0)
+        expect(@client.zrange("out", 0, -1)).to eq([])
+      end
     end
 
     context "zremrangebyscore" do

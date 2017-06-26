@@ -148,6 +148,22 @@ module FakeRedis
       expect(["a", "b"].include?(@client.spop("key1"))).to be true
     end
 
+    it "should pop multiple members from a set" do
+      @client.sadd("key1", "a")
+      @client.sadd("key1", "b")
+      @client.sadd("key1", "c")
+
+      vals = @client.spop("key1", 2)
+      expect(vals.count).to eq(2)
+      vals.each { |v| expect(["a", "b", "c"].include?(v)).to be true }
+
+      new_vals = @client.spop("key1", 2)
+      expect(new_vals.count).to eq(1)
+      expect(["a", "b", "c"].include?(new_vals.first)).to be true
+
+      expect(["a", "b", "c"]).to eq((vals + new_vals).sort)
+    end
+
     it "should remove a member from a set" do
       @client.sadd("key1", "a")
       @client.sadd("key1", "b")

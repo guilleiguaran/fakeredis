@@ -9,6 +9,12 @@ RSpec.describe FakeRedis do
     end
   end
 
+  describe '#write' do
+    it 'should not send unexpected arguments' do
+      expect { redis.write(['info', 'server']) }.not_to raise_error
+    end
+  end
+
   describe '#scan' do
     def result
       returned_keys = []

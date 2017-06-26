@@ -6,6 +6,8 @@ module FakeRedis
       if in_multi && !(TRANSACTION_COMMANDS.include? meffod) # queue commands
         queued_commands << [meffod, *command]
         reply = 'QUEUED'
+      elsif respond_to?(meffod) && method(meffod).arity.zero?
+        reply = send(meffod)
       elsif respond_to?(meffod)
         reply = send(meffod, *command)
       else

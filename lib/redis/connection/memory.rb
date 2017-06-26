@@ -1417,4 +1417,5 @@ class Redis
   end
 end
 
+# FIXME this line should be deleted as explicit enabling is better
 Redis::Connection.drivers << Redis::Connection::Memory

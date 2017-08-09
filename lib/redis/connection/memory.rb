@@ -1290,7 +1290,7 @@ class Redis
         end
 
         start_cursor = start_cursor.to_i
-        data_type_check(start_cursor, Fixnum)
+        data_type_check(start_cursor, Integer)
 
         cursor = start_cursor
         next_keys = []

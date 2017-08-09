@@ -137,6 +137,10 @@ module FakeRedis
       expect { @client.hmset("hash", "foo1", "bar1", "foo2", "bar2", "foo3") }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for HMSET")
     end
 
+    it "should return OK on success" do
+      expect(@client.hmset("key", "k1", "value1")).to eq("OK")
+    end
+
     it "should set multiple hash fields to multiple values" do
       @client.hmset("key", "k1", "value1", "k2", "value2")
 

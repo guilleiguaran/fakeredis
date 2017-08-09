@@ -782,6 +782,7 @@ class Redis
             data[key][field[0].to_s] = field[1].to_s
           end
         end
+        "OK"
       end
 
       def hmget(key, *fields)

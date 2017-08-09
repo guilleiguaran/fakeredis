@@ -386,9 +386,9 @@ class Redis
         index = data[key].index(pivot.to_s)
         return -1 if index.nil?
 
-        case where
-          when :before then data[key].insert(index, value)
-          when :after  then data[key].insert(index + 1, value)
+        case where.to_s
+          when /\Abefore\z/i then data[key].insert(index, value)
+          when /\Aafter\z/i  then data[key].insert(index + 1, value)
           else raise_syntax_error
         end
       end

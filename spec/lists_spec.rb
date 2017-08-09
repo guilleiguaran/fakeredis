@@ -25,6 +25,18 @@ module FakeRedis
       expect(@client.lrange("key1", 0, -1)).to eq(["v1", "v2", "v3", "99", "100"])
     end
 
+    it "inserts with case-insensitive position token" do
+      @client.rpush("key1", "v1")
+      @client.rpush("key1", "v4")
+
+      @client.linsert("key1", :BEFORE, "v4", "v2")
+      @client.linsert("key1", "Before", "v4", "v3")
+      @client.linsert("key1", :AFTER, "v4", "v5")
+      @client.linsert("key1", "After", "v5", "v6")
+
+      expect(@client.lrange("key1", 0, -1)).to eq(%w(v1 v2 v3 v4 v5 v6))
+    end
+
     it "should not insert if after/before index not found" do
       @client.rpush("key", "v1")
       expect(@client.linsert("key", :before, "unknown", "v2")).to eq(-1)

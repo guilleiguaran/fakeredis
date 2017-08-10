@@ -316,6 +316,12 @@ module FakeRedis
         expect(@client.zinterstore("out", %w(k1 k2 k3))).to eq(0)
         expect(@client.zrange("out", 0, -1)).to eq([])
       end
+
+      it 'handles range start being higher than number of members' do
+        @client.zadd("key", 1, "1")
+
+        expect(@client.zrange("key", 10, 10)).to eq([])
+      end
     end
 
     context "zremrangebyscore" do

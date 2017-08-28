@@ -89,6 +89,9 @@ class Redis
       def disconnect
       end
 
+      def client(command, options)
+      end
+
       def timeout=(usecs)
       end
 

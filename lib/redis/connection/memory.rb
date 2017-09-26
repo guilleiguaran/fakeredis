@@ -89,6 +89,15 @@ class Redis
       def disconnect
       end
 
+      def client(command, options = {})
+        case command
+        when :setname then true
+        when :getname then nil
+        else
+          raise Redis::CommandError, "ERR unknown command '#{command}'"
+        end
+      end
+
       def timeout=(usecs)
       end
 

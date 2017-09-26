@@ -84,4 +84,18 @@ RSpec.describe FakeRedis do
       end
     end
   end
+
+  describe '#client' do
+    it 'returns 1 when command is :setname' do
+      expect(redis.write([:client, :setname])).to eq 1
+    end
+
+    it 'returns nil when command is :getname' do
+      expect(redis.write([:client, :getname])).to eq nil
+    end
+
+    it 'raises error for other commands' do
+      expect { redis.write([:client, :wrong]) }.to raise_error(Redis::CommandError, "ERR unknown command 'wrong'")
+    end
+  end
 end

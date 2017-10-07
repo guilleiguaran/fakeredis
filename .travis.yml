@@ -1,20 +1,21 @@
 language: ruby
-before_install:
-  - travis_retry gem install bundler
+cache: bundler
+# Use the faster container based infrastructure
+# http://blog.travis-ci.com/2014-12-17-faster-builds-with-container-based-infrastructure/
+sudo: false
+
 rvm:
-  - 2.1
   - 2.2
   - 2.3.1
   - 2.4
   - ruby-head
   - jruby
   - rbx-2
+
 gemfile:
   - Gemfile
   - gemfiles/redisrb-master.gemfile
+
 matrix:
   allow_failures:
     - rvm: rbx-2
-# Use the faster container based infrastructure
-# http://blog.travis-ci.com/2014-12-17-faster-builds-with-container-based-infrastructure/
-sudo: false

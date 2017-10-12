@@ -70,7 +70,7 @@ module FakeRedis
 
     it "should not error with a disconnected client" do
       @client1 = Redis.new
-      @client1.client.disconnect
+      @client1.close
       expect(@client1.get("key1")).to be_nil
     end
 

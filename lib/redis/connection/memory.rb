@@ -56,6 +56,7 @@ class Redis
       def database_id
         @database_id ||= 0
       end
+
       attr_writer :database_id
 
       def database_instance_key
@@ -89,10 +90,11 @@ class Redis
       def disconnect
       end
 
-      def client(command, options = {})
+      def client(command, _options = {})
         case command
         when :setname then true
         when :getname then nil
+        when :client then true
         else
           raise Redis::CommandError, "ERR unknown command '#{command}'"
         end

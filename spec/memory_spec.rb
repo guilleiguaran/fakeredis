@@ -94,6 +94,10 @@ RSpec.describe FakeRedis do
       expect(redis.write([:client, :getname])).to eq nil
     end
 
+    it 'returns true when the comment is :client with an argument' do
+      expect(redis.write([:client, :client, :list])).to eq 1
+    end
+
     it 'raises error for other commands' do
       expect { redis.write([:client, :wrong]) }.to raise_error(Redis::CommandError, "ERR unknown command 'wrong'")
     end

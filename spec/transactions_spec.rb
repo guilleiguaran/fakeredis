@@ -33,7 +33,7 @@ module FakeRedis
     end
 
     context '#discard' do
-      it "should responde with 'OK' after #multi" do
+      it "should respond with 'OK' after #multi" do
         @client.multi
         expect(@client.discard).to eq('OK')
       end

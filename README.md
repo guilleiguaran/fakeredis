@@ -15,8 +15,8 @@ Add it to your Gemfile:
 
 ## Versions
 
-FakeRedis currently supports redis-rb v3.x.y or later, if you are using
-redis-rb v2.2.x install the version 0.3.x:
+FakeRedis currently supports redis-rb v3 or later, if you are using
+redis-rb v2.2 install the version 0.3.x:
 
     gem install fakeredis -v "~> 0.3.0"
 
@@ -29,61 +29,63 @@ or use the branch 0-3-x on your Gemfile:
 
 You can use FakeRedis without any changes:
 
+```
     require "fakeredis"
-    
+
     redis = Redis.new
-    
+
     >> redis.set "foo", "bar"
     => "OK"
-    
+
     >> redis.get "foo"
     => "bar"
+```
 
 Read [redis-rb](https://github.com/redis/redis-rb) documentation and
 [Redis](http://redis.io) homepage for more info about commands
 
 ## Usage with RSpec
 
-Require this either in your Gemfile or in RSpec's support scripts. So either: 
+Require this either in your Gemfile or in RSpec's support scripts. So either:
 
-    # Gemfile
-    group :test do
-      gem "rspec"
-      gem "fakeredis", :require => "fakeredis/rspec"
-    end
+```ruby
+# Gemfile
+group :test do
+  gem "rspec"
+  gem "fakeredis", :require => "fakeredis/rspec"
+end
+```
 
 Or:
 
-    # spec/support/fakeredis.rb
-    require 'fakeredis/rspec'
+```ruby
+# spec/support/fakeredis.rb
+require 'fakeredis/rspec'
+```
 
 ## Usage with Minitest
 
 Require this either in your Gemfile or in Minitest's support scripts. So
-either: 
+either:
 
-    # Gemfile
-    group :test do
-      gem "minitest"
-      gem "fakeredis", :require => "fakeredis/minitest"
-    end
+```ruby
+# Gemfile
+group :test do
+  gem "minitest"
+  gem "fakeredis", :require => "fakeredis/minitest"
+end
+```
 
 Or:
 
-    # test/test_helper.rb (or test/minitest_config.rb)
-    require 'fakeredis/minitest'
+```ruby
+# test/test_helper.rb (or test/minitest_config.rb)
+require 'fakeredis/minitest'
+```
 
 ## Acknowledgements
 
-* [dim](https://github.com/dim)
-* [czarneckid](https://github.com/czarneckid)
-* [obrie](https://github.com/obrie)
-* [jredville](https://github.com/jredville)
-* [redsquirrel](https://github.com/redsquirrel)
-* [dpick](https://github.com/dpick)
-* [caius](https://github.com/caius) 
-* [Travis-CI](http://travis-ci.org/) (Travis-CI also uses Fakeredis in its tests!!!)
-
+Thanks to [all contributors](https://github.com/guilleiguaran/fakeredis/graphs/contributors), specially to [Caius Durling](https://github.com/caius) the most active one.
 
 ## Contributing to FakeRedis
 
@@ -98,5 +100,5 @@ Or:
 
 ## Copyright
 
-Copyright (c) 2011-2016 Guillermo Iguaran. See LICENSE for
+Copyright (c) 2011-2018 Guillermo Iguaran. See LICENSE for
 further details.

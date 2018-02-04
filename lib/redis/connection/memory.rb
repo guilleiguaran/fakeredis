@@ -9,6 +9,7 @@ require "fakeredis/sorted_set_store"
 require "fakeredis/transaction_commands"
 require "fakeredis/zset"
 require "fakeredis/bitop_command"
+require "fakeredis/version"
 
 class Redis
   module Connection

@@ -590,5 +590,59 @@ module FakeRedis
         expect(ranged).to eq %w(d c b)
       end
     end
+
+    describe "#zadd" do
+      context "with incr: true" do
+        before { @client.zadd("key", 1, "existing") }
+        it "should increment the member's score with the provided value" do
+          @client.zadd("key", 99, "existing", incr: true)
+          expect(@client.zscore("key", "existing")).to eq(100.0)
+
+          @client.zadd("key", 2, "new", incr: true)
+          expect(@client.zscore("key", "new")).to eq(2.0)
+        end
+
+        it "should error when trying to increment multiple increment-element pairs" do
+          expect {
+            @client.zadd("key", [1, "member1", 2, "member2"], incr: true)
+          }.to raise_error(ArgumentError)
+        end
+      end
+
+      context "with nx: true" do
+        before { @client.zadd("key", [1, "existing1", 2, "existing2"]) }
+        it "should add new members but not update the scores of existing members" do
+          @client.zadd("key", [101, "existing1", 3, "new"], nx: true)
+
+          expect(@client.zscore("key", "existing1")).to eq(1.0)
+          expect(@client.zscore("key", "new")).to eq(3.0)
+
+          @client.zadd("key", 102, "existing2", nx: true)
+          expect(@client.zscore("key", "existing2")).to eq(2.0)
+        end
+      end
+
+      context "with xx: true" do
+        before { @client.zadd("key", 1, "existing") }
+        it "should not add new members" do
+          expect(@client.zadd("key", 1, "new1", xx: true)).to eq(false)
+          expect(@client.zscore("key", "new1")).to be_nil
+
+          expect(@client.zadd("key", [11, "existing", 2, "new2"], xx: true)).to eq(0)
+          expect(@client.zscore("key", "existing")).to eq(11.0)
+          expect(@client.zscore("key", "new2")).to be_nil
+        end
+      end
+
+      context "with ch: true" do
+        it "should return the number of new members added plus the number of existing members for which the score was updated" do
+          expect(@client.zadd("key", 1, "first", ch: true)).to eq(true)
+
+          expect(@client.zadd("key", [1, "first", 2, "second"], ch: true)).to eq(1.0)
+          expect(@client.zadd("key", [11, "first", 2, "second"], ch: true)).to eq(1.0)
+          expect(@client.zadd("key", [111, "first", 22, "second", 3, "third"], ch: true)).to eq(3.0)
+        end
+      end
+    end
   end
 end

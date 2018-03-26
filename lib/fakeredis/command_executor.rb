@@ -19,6 +19,8 @@ module FakeRedis
         reply = 1
       elsif reply == false
         reply = 0
+      elsif reply.is_a?(Array)
+        reply = reply.map { |r| r == true ? 1 : r == false ? 0 : r }
       end
 
       replies << reply

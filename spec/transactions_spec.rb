@@ -88,5 +88,18 @@ module FakeRedis
         expect(responses[0]).to eq(true)
       end
     end
+
+    context 'executing set commands in a block' do
+      it "returns commands' responses for nested commands" do
+        @client.sadd('set', 'member1')
+
+        responses = @client.multi do |multi|
+          multi.sadd('set', 'member1')
+          multi.sadd('set', 'member2')
+        end
+
+        expect(responses).to eq([false, true])
+      end
+    end
   end
 end

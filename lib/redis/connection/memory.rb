@@ -1208,6 +1208,33 @@ class Redis
         data[out].size
       end
 
+      def pfadd(key, member)
+        data_type_check(key, Set)
+        data[key] ||= Set.new
+        previous_size = data[key].size
+        data[key] |= Array(member)
+        data[key].size != previous_size
+      end
+
+      def pfcount(*keys)
+        keys = keys.flatten
+        raise_argument_error("pfcount") if keys.empty?
+        keys.each { |key| data_type_check(key, Set) }
+        if keys.count == 1
+          (data[keys.first] || Set.new).size
+        else
+          union = keys.map { |key| data[key] }.compact.reduce(&:|)
+          union.size
+        end
+      end
+
+      def pfmerge(destination, *sources)
+        sources.each { |source| data_type_check(source, Set) }
+        union = sources.map { |source| data[source] || Set.new }.reduce(&:|)
+        data[destination] = union
+        "OK"
+      end
+
       def subscribe(*channels)
         raise_argument_error('subscribe') if channels.empty?()
 

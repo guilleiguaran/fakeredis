@@ -196,7 +196,7 @@ module FakeRedis
       expect(@client.lrange("key1", 0, -1)).to eq(["one", "two"])
     end
 
-    it "should remove the last element in a list, append it to another list and return it" do
+    it "rpoplpush should remove the last element in a list, append it to another list and return it" do
       @client.rpush("key1", "one")
       @client.rpush("key1", "two")
       @client.rpush("key1", "three")
@@ -207,9 +207,26 @@ module FakeRedis
       expect(@client.lrange("key2", 0, -1)).to eq(["three"])
     end
 
+    it "brpoplpush should remove the last element in a list, append it to another list and return it" do
+      @client.rpush("key1", "one")
+      @client.rpush("key1", "two")
+      @client.rpush("key1", "three")
+
+      expect(@client.brpoplpush("key1", "key2")).to eq("three")
+
+      expect(@client.lrange("key1", 0, -1)).to eq(["one", "two"])
+      expect(@client.lrange("key2", 0, -1)).to eq(["three"])
+    end
+
     context 'when the source list is empty' do
       it 'rpoplpush does not add anything to the destination list' do
         @client.rpoplpush("source", "destination")
+
+        expect(@client.lrange("destination", 0, -1)).to eq([])
+      end
+
+      it 'brpoplpush does not add anything to the destination list' do
+        expect(@client.brpoplpush("source", "destination")).to be_nil
 
         expect(@client.lrange("destination", 0, -1)).to eq([])
       end

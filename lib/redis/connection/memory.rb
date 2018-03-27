@@ -493,9 +493,9 @@ class Redis
 
       def brpoplpush(key1, key2, opts={})
         data_type_check(key1, Array)
-        brpop(key1).tap do |elem|
-          lpush(key2, elem) unless elem.nil?
-        end
+        _key, elem = brpop(key1)
+        lpush(key2, elem) unless elem.nil?
+        elem
       end
 
       def lpop(key)

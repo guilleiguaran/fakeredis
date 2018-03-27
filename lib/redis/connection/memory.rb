@@ -214,6 +214,11 @@ class Redis
         data[key][start_index..end_index].unpack('B*')[0].count("1")
       end
 
+      def bitpos(key, bit, start_index = 0, end_index = -1)
+        value = data[key] || ""
+        value[0..end_index].unpack('B*')[0].index(bit.to_s, start_index * 8) || -1
+      end
+
       def getrange(key, start, ending)
         return unless data[key]
         data[key][start..ending]
@@ -897,6 +902,10 @@ class Redis
         data[key] = value.to_s
         expire(key, seconds)
         "OK"
+      end
+
+      def psetex(key, milliseconds, value)
+        setex(key, milliseconds / 1000.0, value)
       end
 
       def setrange(key, offset, value)

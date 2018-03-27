@@ -483,6 +483,17 @@ module FakeRedis
       end
     end
 
+    describe "#psetex" do
+      it "should set a key's time to live in milliseconds" do
+        allow(Time).to receive(:now).and_return(1000)
+        @client.psetex("key", 2200, "value")
+        expect(@client.pttl("key")).to be_within(0.1).of(2200)
+      end
+
+      it "should return 'OK'" do
+        expect(@client.psetex("key", 1000, "value")).to eq("OK")
+      end
+    end
   end
 end
 

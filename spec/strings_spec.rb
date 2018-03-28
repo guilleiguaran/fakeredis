@@ -285,5 +285,34 @@ module FakeRedis
       expect(@client.bitcount("key1", 1, 1)).to eq(6)
       expect(@client.bitcount("key1", 0, 1)).to eq(10)
     end
+
+    describe "#bitpos" do
+      it "should return -1 when there's no key" do
+        expect(@client.bitpos("key", 0)).to eq(-1)
+      end
+
+      it "should return -1 for empty key" do
+        @client.set("key", "")
+        expect(@client.bitpos("key", 0)).to eq(-1)
+      end
+
+      it "should return position of the bit in a string" do
+        @client.set("key", "foobar") # 01100110 01101111 01101111
+        expect(@client.bitpos("key", 1)).to eq(1)
+      end
+
+      it "should return position of the bit correctly with UTF-8 strings" do
+        @client.set("key", "判") # 11100101 10001000 10100100
+        expect(@client.bitpos("key", 0)).to eq(3)
+      end
+
+      it "should return position of the bit in a string given a range" do
+        @client.set("key", "foobar")
+
+        expect(@client.bitpos("key", 1, 0)).to eq(1)
+        expect(@client.bitpos("key", 1, 1, 2)).to eq(9)
+        expect(@client.bitpos("key", 0, 1, -1)).to eq(8)
+      end
+    end
   end
 end

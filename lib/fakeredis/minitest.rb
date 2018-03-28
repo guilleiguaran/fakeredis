@@ -15,8 +15,8 @@ require 'fakeredis'
 module FakeRedis
   module Minitest
     def setup
-      super
       Redis::Connection::Memory.reset_all_databases
+      super
     end
 
     ::Minitest::Test.send(:include, self)

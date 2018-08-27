@@ -51,7 +51,7 @@ class Redis
       end
 
       def initialize(options = {})
-        self.options = options
+        self.options = self.options ? self.options.merge(options) : options
       end
 
       def database_id
@@ -130,7 +130,7 @@ class Redis
 
       def info
         {
-          "redis_version" => "2.6.16",
+          "redis_version" => options[:version] || "2.6.16",
           "connected_clients" => "1",
           "connected_slaves" => "0",
           "used_memory" => "3187",

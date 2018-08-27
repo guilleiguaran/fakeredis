@@ -97,4 +97,13 @@ module FakeRedis
       end
     end
   end
+
+  describe 'custom options' do
+    describe 'version' do
+      it 'creates with and reports properly' do
+        client = Redis.new(version: '3.3.5')
+        expect(client.info['redis_version']).to eq '3.3.5'
+      end
+    end
+  end
 end

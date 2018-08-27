@@ -13,6 +13,8 @@ require "fakeredis/version"
 
 class Redis
   module Connection
+    DEFAULT_REDIS_VERSION = '3.3.5'
+
     class Memory
       include Redis::Connection::CommandHelper
       include FakeRedis
@@ -130,7 +132,7 @@ class Redis
 
       def info
         {
-          "redis_version" => options[:version] || "2.6.16",
+          "redis_version" => options[:version] || DEFAULT_REDIS_VERSION,
           "connected_clients" => "1",
           "connected_slaves" => "0",
           "used_memory" => "3187",

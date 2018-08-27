@@ -100,9 +100,14 @@ module FakeRedis
 
   describe 'custom options' do
     describe 'version' do
+      it 'reports default Redis version when not provided' do
+        client = Redis.new
+        expect(client.info['redis_version']).to eq Redis::Connection::DEFAULT_REDIS_VERSION
+      end
+
       it 'creates with and reports properly' do
-        client = Redis.new(version: '3.3.5')
-        expect(client.info['redis_version']).to eq '3.3.5'
+        client = Redis.new(version: '3.3.0')
+        expect(client.info['redis_version']).to eq '3.3.0'
       end
     end
   end

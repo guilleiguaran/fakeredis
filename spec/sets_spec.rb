@@ -242,7 +242,7 @@ module FakeRedis
         it 'is an array of one random element from the set' do
           random_elements = @client.srandmember("key1", 1)
 
-          expect([['a'], ['b'], ['c']].include?(@client.srandmember("key1", 1))).to be true
+          expect([['a'], ['b'], ['c']].include?(random_elements)).to be true
         end
       end
 

@@ -1021,13 +1021,12 @@ class Redis
         option_ch = args.delete("CH")
         option_incr = args.delete("INCR")
 
-        if option_incr
-          # TODO figure out how to handle INCR with NX and XX (CH is apparently ignored by redis)
-          return zincrby(key, *args)
-        end
-
         if option_xx && option_nx
           raise_options_error("XX", "NX")
+        end
+
+        if option_incr && args.size > 2
+          raise_options_error("INCR")
         end
 
         if !args.first.is_a?(Array)
@@ -1049,21 +1048,32 @@ class Redis
         args = args.each_slice(2).to_a unless args.first.is_a?(Array)
 
         changed = 0
-        exists = args.map(&:last).map { |el| data[key].key?(el.to_s) }.count(false)
+        exists = args.map(&:last).count { |el| !hexists(key, el.to_s) }
+
         args.each do |score, value|
-          if option_nx && data[key].key?(value.to_s)
+          if option_nx && hexists(key, value.to_s)
             next
           end
 
-          if option_xx && !data[key].key?(value.to_s)
+          if option_xx && !hexists(key, value.to_s)
             exists -= 1
             next
+          end
+
+          if option_incr
+            data[key][value.to_s] ||= 0
+            return data[key].increment(value, score).to_s
           end
 
           if option_ch && data[key][value.to_s] != score
             changed += 1
           end
           data[key][value.to_s] = score
+        end
+
+        if option_incr
+          changed = changed.zero? ? nil : changed
+          exists = exists.zero? ? nil : exists
         end
 
         option_ch ? changed : exists
@@ -1411,7 +1421,11 @@ class Redis
         end
 
         def raise_options_error(*options)
-          error_message = "ERR #{options.join(" and ")} options at the same time are not compatible"
+          if options.detect { |opt| opt.match(/incr/i) }
+            error_message = "ERR INCR option supports a single increment-element pair"
+          else
+            error_message = "ERR #{options.join(" and ")} options at the same time are not compatible"
+          end
           raise Redis::CommandError, error_message
         end
 

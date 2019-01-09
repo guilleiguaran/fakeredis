@@ -574,7 +574,7 @@ module FakeRedis
         expect(ranged).to eq %w(c b)
       end
 
-      it "should return empty array if key is not exist" do
+      it "should return empty array if key does not exist" do
         ranged = @client.zrevrangebylex "puppies", "+", "-"
         expect(ranged).to be_empty
       end
@@ -592,9 +592,9 @@ module FakeRedis
     end
 
     describe "#zadd" do
-      context "with incr: true" do
+      context "with {incr: true}" do
         before { @client.zadd("key", 1, "existing") }
-        it "should increment the member's score with the provided value" do
+        it "should increment the element's score with the provided value" do
           @client.zadd("key", 99, "existing", incr: true)
           expect(@client.zscore("key", "existing")).to eq(100.0)
 
@@ -602,16 +602,16 @@ module FakeRedis
           expect(@client.zscore("key", "new")).to eq(2.0)
         end
 
-        it "should error when trying to increment multiple increment-element pairs" do
+        it "should error when trying to add multiple increment-element pairs" do
           expect {
             @client.zadd("key", [1, "member1", 2, "member2"], incr: true)
-          }.to raise_error(ArgumentError)
+          }.to raise_error(Redis::CommandError, "ERR INCR option supports a single increment-element pair")
         end
       end
 
-      context "with nx: true" do
+      context "with {nx: true}" do
         before { @client.zadd("key", [1, "existing1", 2, "existing2"]) }
-        it "should add new members but not update the scores of existing members" do
+        it "should add new elements but not update the scores of existing elements" do
           @client.zadd("key", [101, "existing1", 3, "new"], nx: true)
 
           expect(@client.zscore("key", "existing1")).to eq(1.0)
@@ -622,9 +622,9 @@ module FakeRedis
         end
       end
 
-      context "with xx: true" do
+      context "with {xx: true}" do
         before { @client.zadd("key", 1, "existing") }
-        it "should not add new members" do
+        it "should not add new elements" do
           expect(@client.zadd("key", 1, "new1", xx: true)).to eq(false)
           expect(@client.zscore("key", "new1")).to be_nil
 
@@ -634,13 +634,108 @@ module FakeRedis
         end
       end
 
-      context "with ch: true" do
-        it "should return the number of new members added plus the number of existing members for which the score was updated" do
+      context "with {ch: true}" do
+        it "should return the number of new elements added plus the number of existing elements for which the score was updated" do
           expect(@client.zadd("key", 1, "first", ch: true)).to eq(true)
 
           expect(@client.zadd("key", [1, "first", 2, "second"], ch: true)).to eq(1.0)
           expect(@client.zadd("key", [11, "first", 2, "second"], ch: true)).to eq(1.0)
+          expect(@client.zadd("key", [99, "first", 99, "second"], ch: true)).to eq(2.0)
           expect(@client.zadd("key", [111, "first", 22, "second", 3, "third"], ch: true)).to eq(3.0)
+        end
+      end
+
+      context "with {nx: true, xx: true}" do
+        it "should error" do
+          expect{
+            @client.zadd("key", 1, "value", nx: true, xx: true)
+          }.to raise_error(Redis::CommandError, "ERR XX and NX options at the same time are not compatible")
+        end
+      end
+
+      context "with {nx: true, incr: true}" do
+        let(:options) { {nx: true, incr: true} }
+        it "should increment to the provided score only if the element is new and return the element's score" do
+          expect(@client.zadd("key", 1, "first", options)).to eq(1.0)
+          expect(@client.zscore("key", "first")).to eq(1.0)
+
+          expect(@client.zadd("key", 2, "second", options)).to eq(2.0)
+          expect(@client.zscore("key", "second")).to eq(2.0)
+
+          expect(@client.zadd("key", 99, "first", options)).to be_nil
+          expect(@client.zscore("key", "first")).to eq(1.0)
+        end
+      end
+
+      context "with {nx: true, ch: true}" do
+        let(:options) { {nx: true, ch: true} }
+        it "should add only new elements, not update existing elements, and return the number of added elements" do
+          expect(@client.zadd("key", 1, "first", options)).to eq(true)
+          expect(@client.zadd("key", 1, "first", options)).to eq(false)
+
+          # add two new elements
+          expect(@client.zadd("key", [99, "first", 2, "second", 3, "third"], options)).to eq(2)
+          expect(@client.zscore("key", "first")).to eq(1.0)
+        end
+      end
+
+      context "with {nx: true, incr: true, ch: true}" do
+        let(:options) { {nx: true, incr: true, ch: true} }
+
+        it "should add only new elements" do
+          expect(@client.zadd("key", 1, "first", options)).to eq(1.0)
+          expect(@client.zadd("key", 99, "first", options)).to be_nil
+          expect(@client.zscore("key", "first")).to eq(1.0)
+        end
+
+        # when INCR is present, return value is always the new score of member
+        it "should return the score of the new member" do
+          expect(@client.zadd("key", 2, "second", options)).to eq(2.0)
+        end
+
+        it "should return nil when the member already exists" do
+          @client.zadd("key", 1, "first")
+          expect(@client.zadd("key", 99, "first", options)).to be_nil
+        end
+      end
+
+      context "with {xx: true, incr: true}" do
+        let(:options) { {xx: true, incr: true} }
+        before { @client.zadd("key", 1, "existing") }
+
+        it "should return nil if the member does not already exist" do
+          expect(@client.zadd("key", 1, "new1", options)).to be_nil
+          expect(@client.zscore("key", "new1")).to be_nil
+        end
+
+        it "should increment only existing elements" do
+          expect(@client.zadd("key", [11, "existing"], options)).to eq(12.0)
+          expect(@client.zscore("key", "existing")).to eq(12.0)
+        end
+      end
+
+      context "with {xx: true, ch: true}" do
+        let(:options) { {xx: true, ch: true} }
+        it "should return the number of updated elements and not add new members" do
+          @client.zadd("key", 1, "first")
+
+          expect(@client.zadd("key", 99, "first", options)).to eq(true)
+          expect(@client.zadd("key", [100, "first", 2, "second"], options)).to eq(1.0)
+          expect(@client.zscore("key", "second")).to be_nil
+        end
+      end
+
+      context "with {xx: true, incr: true, ch: true}" do
+        let(:options) { {xx: true, incr: true, ch: true} }
+        before { @client.zadd("key", 1, "existing") }
+
+        # when INCR is present, return value is always the new score of member
+        it "should return the new score of the inserted member" do
+          expect(@client.zadd("key", 2, "existing", options)).to eq(3.0)
+        end
+
+        it "should increment only existing elements" do
+          expect(@client.zadd("key", 1, "new", options)).to be_nil
         end
       end
     end

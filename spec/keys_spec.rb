@@ -130,6 +130,13 @@ module FakeRedis
       expect(@client.exists("key1")).to be false
     end
 
+    it "should get integer and string keys" do
+      @client.set("key1", "1")
+      @client.set(2, "2")
+
+      expect(@client.mget("key1", 2)).to eq(["1", "2"])
+    end
+
     it "should find all keys matching the given pattern" do
       @client.set("key:a", "1")
       @client.set("key:b", "2")

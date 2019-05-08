@@ -44,10 +44,8 @@ module FakeRedis
     end
 
     def values_at(*keys)
-      keys.each do |key|
-        key = normalize(key)
-        delete(key) if expired?(key)
-      end
+      keys = keys.map { |key| normalize(key) }
+      keys.each { |key| delete(key) if expired?(key) }
       super
     end
 

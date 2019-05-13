@@ -147,6 +147,7 @@ module FakeRedis
 
       expect(@client.zrange("key", 0, -1)).to eq(["one", "two", "three"])
       expect(@client.zrange("key", 1, 2)).to eq(["two", "three"])
+      expect(@client.zrange("key", -50, -2)).to eq(["one", "two"])
       expect(@client.zrange("key", 0, -1, :withscores => true)).to eq([["one", 1], ["two", 2], ["three", 3]])
       expect(@client.zrange("key", 1, 2, :with_scores => true)).to eq([["two", 2], ["three", 3]])
     end

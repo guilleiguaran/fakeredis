@@ -1138,6 +1138,7 @@ class Redis
         results = sort_keys(data[key])
         # Select just the keys unless we want scores
         results = results.map(&:first) unless with_scores
+        start = [start, -results.size].max
         (results[start..stop] || []).flatten.map(&:to_s)
       end
 

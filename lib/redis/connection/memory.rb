@@ -805,7 +805,7 @@ class Redis
       end
 
       def hmget(key, *fields)
-        raise_argument_error('hmget')  if fields.empty?
+        raise_argument_error('hmget')  if fields.empty? || fields.flatten.empty?
 
         data_type_check(key, Hash)
         fields.flatten.map do |field|

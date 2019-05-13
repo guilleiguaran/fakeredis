@@ -122,6 +122,10 @@ module FakeRedis
       expect { @client.hmget("key1") }.to raise_error(Redis::CommandError)
     end
 
+    it "should throw an argument error when the list of keys you ask for is empty" do
+      expect { @client.hmget("key1", []) }.to raise_error(Redis::CommandError)
+    end
+
     it "should reject an empty list of values" do
       expect { @client.hmset("key") }.to raise_error(Redis::CommandError)
       expect(@client.exists("key")).to be false

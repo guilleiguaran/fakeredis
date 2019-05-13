@@ -1016,6 +1016,19 @@ class Redis
       end
 
       def zadd(key, *args)
+        option_xx = args.delete("XX")
+        option_nx = args.delete("NX")
+        option_ch = args.delete("CH")
+        option_incr = args.delete("INCR")
+
+        if option_xx && option_nx
+          raise_options_error("XX", "NX")
+        end
+
+        if option_incr && args.size > 2
+          raise_options_error("INCR")
+        end
+
         if !args.first.is_a?(Array)
           if args.size < 2
             raise_argument_error('zadd')
@@ -1031,18 +1044,39 @@ class Redis
         data_type_check(key, ZSet)
         data[key] ||= ZSet.new
 
-        if args.size == 2 && !(Array === args.first)
-          score, value = args
-          exists = !data[key].key?(value.to_s)
+        # Turn [1, 2, 3, 4] into [[1, 2], [3, 4]] unless it is already
+        args = args.each_slice(2).to_a unless args.first.is_a?(Array)
+
+        changed = 0
+        exists = args.map(&:last).count { |el| !hexists(key, el.to_s) }
+
+        args.each do |score, value|
+          if option_nx && hexists(key, value.to_s)
+            next
+          end
+
+          if option_xx && !hexists(key, value.to_s)
+            exists -= 1
+            next
+          end
+
+          if option_incr
+            data[key][value.to_s] ||= 0
+            return data[key].increment(value, score).to_s
+          end
+
+          if option_ch && data[key][value.to_s] != score
+            changed += 1
+          end
           data[key][value.to_s] = score
-        else
-          # Turn [1, 2, 3, 4] into [[1, 2], [3, 4]] unless it is already
-          args = args.each_slice(2).to_a unless args.first.is_a?(Array)
-          exists = args.map(&:last).map { |el| data[key].key?(el.to_s) }.count(false)
-          args.each { |s, v| data[key][v.to_s] = s }
         end
 
-        exists
+        if option_incr
+          changed = changed.zero? ? nil : changed
+          exists = exists.zero? ? nil : exists
+        end
+
+        option_ch ? changed : exists
       end
 
       def zrem(key, value)
@@ -1384,6 +1418,15 @@ class Redis
 
         def raise_syntax_error
           raise Redis::CommandError, "ERR syntax error"
+        end
+
+        def raise_options_error(*options)
+          if options.detect { |opt| opt.match(/incr/i) }
+            error_message = "ERR INCR option supports a single increment-element pair"
+          else
+            error_message = "ERR #{options.join(" and ")} options at the same time are not compatible"
+          end
+          raise Redis::CommandError, error_message
         end
 
         def remove_key_for_empty_collection(key)

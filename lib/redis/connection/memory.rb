@@ -1502,7 +1502,7 @@ class Redis
 
         def sort_keys(arr)
           # Sort by score, or if scores are equal, key alphanum
-          sorted_keys = arr.sort do |(k1, v1), (k2, v2)|
+          arr.sort do |(k1, v1), (k2, v2)|
             if v1 == v2
               k1 <=> k2
             else

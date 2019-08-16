@@ -860,14 +860,6 @@ class Redis
 
       def sync ; end
 
-      def [](key)
-        get(key)
-      end
-
-      def []=(key, value)
-        set(key, value)
-      end
-
       def set(key, value, *array_options)
         option_nx = array_options.delete("NX")
         option_xx = array_options.delete("XX")

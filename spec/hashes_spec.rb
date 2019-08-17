@@ -108,6 +108,13 @@ module FakeRedis
       expect(@client.hlen("key1")).to eq(2)
     end
 
+    it "should get the string length of the value associated with field in a hash" do
+      @client.hset("key1", "i1", "val1")
+      expect(@client.hstrlen("key1", "i1")).to eq(4)
+      expect(@client.hstrlen("key1", "nonexistent")).to eq(0)
+      expect(@client.hstrlen("nonexistent", "field")).to eq(0)
+    end
+
     it "should get the values of all the given hash fields" do
       @client.hset("key1", "i1", "val1")
       @client.hset("key1", "i2", "val2")

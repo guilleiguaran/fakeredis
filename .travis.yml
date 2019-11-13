@@ -5,10 +5,9 @@ cache: bundler
 sudo: false
 
 rvm:
-  - 2.2
-  - 2.3.6
   - 2.4
   - 2.5
+  - 2.6
   - ruby-head
   - jruby
   - rbx-2

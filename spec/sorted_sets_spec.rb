@@ -103,6 +103,34 @@ module FakeRedis
       expect(@client.exists("key")).to eq(false)
     end
 
+    it "should pop members with the highest scores from sorted set" do
+      @client.zadd("key", [1, "val1", 2, "val2", 3, "val3"])
+      expect(@client.zpopmax("key")).to eq(["val3", 3.0])
+      expect(@client.zpopmax("key", 3)).to eq([["val2", 2.0], ["val1", 1.0]])
+      expect(@client.zpopmax("nonexistent")).to eq([])
+    end
+
+    it "should pop members with the lowest scores from sorted set" do
+      @client.zadd("key", [1, "val1", 2, "val2", 3, "val3"])
+      expect(@client.zpopmin("key")).to eq(["val1", 1.0])
+      expect(@client.zpopmin("key", 3)).to eq([["val2", 2.0], ["val3", 3.0]])
+      expect(@client.zpopmin("nonexistent")).to eq([])
+    end
+
+    it "should pop members with the highest score from first sorted set that is non-empty" do
+      @client.zadd("key1", [1, "val1", 2, "val2"])
+      @client.zadd("key2", [3, "val3"])
+      expect(@client.bzpopmax("nonexistent", "key1", "key2", 0)).to eq(["key1", "val2", 2.0])
+      expect(@client.bzpopmax("nonexistent")).to eq(nil)
+    end
+
+    it "should pop members with the lowest score from first sorted set that is non-empty" do
+      @client.zadd("key1", [1, "val1", 2, "val2"])
+      @client.zadd("key2", [3, "val3"])
+      expect(@client.bzpopmin("nonexistent", "key1", "key2", 0)).to eq(["key1", "val1", 1.0])
+      expect(@client.bzpopmin("nonexistent")).to eq(nil)
+    end
+
     it "should get the number of members in a sorted set" do
       @client.zadd("key", 1, "val2")
       @client.zadd("key", 2, "val1")

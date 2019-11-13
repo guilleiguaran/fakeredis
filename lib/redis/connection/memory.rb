@@ -824,6 +824,12 @@ class Redis
         data[key].size
       end
 
+      def hstrlen(key, field)
+        data_type_check(key, Hash)
+        return 0 if data[key].nil? || data[key][field].nil?
+        data[key][field].size
+      end
+
       def hvals(key)
         data_type_check(key, Hash)
         return [] unless data[key]
@@ -1090,6 +1096,36 @@ class Redis
 
         remove_key_for_empty_collection(key)
         response
+      end
+
+      def zpopmax(key, count = nil)
+        data_type_check(key, ZSet)
+        return [] unless data[key]
+        sorted_members = sort_keys(data[key])
+        results = sorted_members.last(count || 1).reverse!
+        results.each do |member|
+          zrem(key, member.first)
+        end
+        count.nil? ? results.first : results
+      end
+
+      def zpopmin(key, count = nil)
+        data_type_check(key, ZSet)
+        return [] unless data[key]
+        sorted_members = sort_keys(data[key])
+        results = sorted_members.first(count || 1)
+        results.each do |member|
+          zrem(key, member.first)
+        end
+        count.nil? ? results.first : results
+      end
+
+      def bzpopmax(*args)
+        bzpop(:bzpopmax, args)
+      end
+
+      def bzpopmin(*args)
+        bzpop(:bzpopmin, args)
       end
 
       def zcard(key)
@@ -1499,6 +1535,30 @@ class Redis
           else
             (1..-number).map { data[key].to_a[rand(data[key].size)] }.flatten
           end
+        end
+
+        def bzpop(command, args)
+          timeout =
+            if args.last.is_a?(Hash)
+              args.pop[:timeout]
+            elsif args.last.respond_to?(:to_int)
+              args.pop.to_int
+            end
+
+          timeout ||= 0
+          single_pop_command = command.to_s[1..-1]
+          keys = args.flatten
+          keys.each do |key|
+            if data[key]
+              data_type_check(data[key], ZSet)
+              if data[key].size > 0
+                result = public_send(single_pop_command, key)
+                return result.unshift(key)
+              end
+            end
+          end
+          sleep(timeout.to_f)
+          nil
         end
 
         def sort_keys(arr)

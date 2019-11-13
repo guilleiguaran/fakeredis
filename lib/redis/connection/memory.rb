@@ -687,14 +687,11 @@ class Redis
       end
 
       def del(*keys)
-        keys = keys.flatten(1)
-        raise_argument_error('del') if keys.empty?
+        delete_keys(keys, 'del')
+      end
 
-        old_count = data.keys.size
-        keys.each do |key|
-          data.delete(key)
-        end
-        old_count - data.keys.size
+      def unlink(*keys)
+        delete_keys(keys, 'unlink')
       end
 
       def setnx(key, value)
@@ -1464,6 +1461,17 @@ class Redis
             error_message = "ERR #{options.join(" and ")} options at the same time are not compatible"
           end
           raise Redis::CommandError, error_message
+        end
+
+        def delete_keys(keys, command)
+          keys = keys.flatten(1)
+          raise_argument_error(command) if keys.empty?
+
+          old_count = data.keys.size
+          keys.each do |key|
+            data.delete(key)
+          end
+          old_count - data.keys.size
         end
 
         def remove_key_for_empty_collection(key)

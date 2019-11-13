@@ -7,26 +7,33 @@ module FakeRedis
       @client = Redis.new
     end
 
-    it "should delete a key" do
-      @client.set("key1", "1")
-      @client.set("key2", "2")
-      @client.del("key1", "key2")
+    [:del, :unlink].each do |command|
+      it "should #{command} a key" do
+        @client.set("key1", "1")
+        @client.set("key2", "2")
+        @client.public_send(command, "key1", "key2")
 
-      expect(@client.get("key1")).to eq(nil)
-    end
+        expect(@client.get("key1")).to eq(nil)
+      end
 
-    it "should delete multiple keys" do
-      @client.set("key1", "1")
-      @client.set("key2", "2")
-      @client.del(["key1", "key2"])
+      it "should #{command} multiple keys" do
+        @client.set("key1", "1")
+        @client.set("key2", "2")
+        @client.public_send(command, ["key1", "key2"])
 
-      expect(@client.get("key1")).to eq(nil)
-      expect(@client.get("key2")).to eq(nil)
-    end
+        expect(@client.get("key1")).to eq(nil)
+        expect(@client.get("key2")).to eq(nil)
+      end
 
-    it "should error deleting no keys" do
-      expect { @client.del }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for 'del' command")
-      expect { @client.del [] }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for 'del' command")
+      it "should return the number of '#{command}'ed keys" do
+        @client.set("key1", "1")
+        expect(@client.public_send(command, ["key1", "key2"])).to eq(1)
+      end
+
+      it "should error '#{command}'ing no keys" do
+        expect { @client.public_send(command) }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for '#{command}' command")
+        expect { @client.public_send(command, []) }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for '#{command}' command")
+      end
     end
 
     it "should return true when setnx keys that don't exist" do

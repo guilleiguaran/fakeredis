@@ -19,6 +19,7 @@ module FakeRedis
       expect { @client.sinter([]) }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for 'sinter' command")
       expect { @client.sunion(*[]) }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for 'sunion' command")
       expect { @client.sunion([]) }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for 'sunion' command")
+      expect { @client.srem("key", []) }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for 'srem' command")
 
       expect(@client.smembers("key")).to be_empty
     end

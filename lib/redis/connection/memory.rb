@@ -556,6 +556,8 @@ class Redis
 
       def srem(key, value)
         data_type_check(key, ::Set)
+        value = Array(value)
+        raise_argument_error('srem') if value.empty?
         return false unless data[key]
 
         if value.is_a?(Array)
@@ -582,7 +584,7 @@ class Redis
         data_type_check(key, ::Set)
         results = (count || 1).times.map do
           elem = srandmember(key)
-          srem(key, elem)
+          srem(key, elem) if elem
           elem
         end.compact
         count.nil? ? results.first : results

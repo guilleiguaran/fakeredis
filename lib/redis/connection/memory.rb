@@ -1472,7 +1472,6 @@ class Redis
 
         def data_type_check(key, klass)
           if data[key] && !data[key].is_a?(klass)
-            warn "Operation against a key holding the wrong kind of value: Expected #{klass} at #{key}."
             raise Redis::CommandError.new("WRONGTYPE Operation against a key holding the wrong kind of value")
           end
         end

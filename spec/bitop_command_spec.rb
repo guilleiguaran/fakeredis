@@ -11,7 +11,7 @@ module FakeRedis
     end
 
     it 'raises an argument error when passed unsupported operation' do
-      lambda { @client.bitop("meh", "dest1", "key1") }.should raise_error(Redis::CommandError)
+      expect { @client.bitop("meh", "dest1", "key1") }.to raise_error(Redis::CommandError)
     end
 
     describe "or" do
@@ -28,22 +28,22 @@ module FakeRedis
         @client.setbit("key2", 2, 0)
         @client.setbit("key2", 3, 0)
 
-        @client.bitop("or", "dest1", "key1", "key2").should be == 1
-        @client.bitcount("dest1").should be == 3
-        @client.getbit("dest1", 0).should be == 1
-        @client.getbit("dest1", 1).should be == 1
-        @client.getbit("dest1", 2).should be == 1
-        @client.getbit("dest1", 3).should be == 0
+        expect(@client.bitop("or", "dest1", "key1", "key2")).to eq(1)
+        expect(@client.bitcount("dest1")).to eq(3)
+        expect(@client.getbit("dest1", 0)).to eq(1)
+        expect(@client.getbit("dest1", 1)).to eq(1)
+        expect(@client.getbit("dest1", 2)).to eq(1)
+        expect(@client.getbit("dest1", 3)).to eq(0)
       end
 
       it "should apply bitwise or operation with empty values" do
         @client.setbit("key1", 1, 1)
 
-        @client.bitop("or", "dest1", "key1", "nothing_here1", "nothing_here2").should be == 1
-        @client.bitcount("dest1").should be == 1
-        @client.getbit("dest1", 0).should be == 0
-        @client.getbit("dest1", 1).should be == 1
-        @client.getbit("dest1", 2).should be == 0
+        expect(@client.bitop("or", "dest1", "key1", "nothing_here1", "nothing_here2")).to eq(1)
+        expect(@client.bitcount("dest1")).to eq(1)
+        expect(@client.getbit("dest1", 0)).to eq(0)
+        expect(@client.getbit("dest1", 1)).to eq(1)
+        expect(@client.getbit("dest1", 2)).to eq(0)
       end
 
       it "should apply bitwise or operation with multiple keys" do
@@ -56,16 +56,16 @@ module FakeRedis
         @client.setbit("key3", 13, 1)
         @client.setbit("key3", 15, 1)
 
-        @client.bitop("or", "dest1", "key1", "key2", "key3").should be == 2
-        @client.bitcount("dest1").should be == 6
-        @client.getbit("dest1", 1).should be == 1
-        @client.getbit("dest1", 3).should be == 1
-        @client.getbit("dest1", 5).should be == 1
-        @client.getbit("dest1", 10).should be == 1
-        @client.getbit("dest1", 13).should be == 1
-        @client.getbit("dest1", 15).should be == 1
-        @client.getbit("dest1", 2).should be == 0
-        @client.getbit("dest1", 12).should be == 0
+        expect(@client.bitop("or", "dest1", "key1", "key2", "key3")).to eq(2)
+        expect(@client.bitcount("dest1")).to eq(6)
+        expect(@client.getbit("dest1", 1)).to eq(1)
+        expect(@client.getbit("dest1", 3)).to eq(1)
+        expect(@client.getbit("dest1", 5)).to eq(1)
+        expect(@client.getbit("dest1", 10)).to eq(1)
+        expect(@client.getbit("dest1", 13)).to eq(1)
+        expect(@client.getbit("dest1", 15)).to eq(1)
+        expect(@client.getbit("dest1", 2)).to eq(0)
+        expect(@client.getbit("dest1", 12)).to eq(0)
       end
     end
 
@@ -81,21 +81,21 @@ module FakeRedis
         @client.setbit("key2", 1, 1)
         @client.setbit("key2", 2, 1)
 
-        @client.bitop("and", "dest1", "key1", "key2").should be == 1
-        @client.bitcount("dest1").should be == 1
-        @client.getbit("dest1", 0).should be == 0
-        @client.getbit("dest1", 1).should be == 1
-        @client.getbit("dest1", 2).should be == 0
+        expect(@client.bitop("and", "dest1", "key1", "key2")).to eq(1)
+        expect(@client.bitcount("dest1")).to eq(1)
+        expect(@client.getbit("dest1", 0)).to eq(0)
+        expect(@client.getbit("dest1", 1)).to eq(1)
+        expect(@client.getbit("dest1", 2)).to eq(0)
       end
 
       it "should apply bitwise and operation with empty values" do
         @client.setbit("key1", 1, 1)
 
-        @client.bitop("and", "dest1", "key1", "nothing_here").should be == 1
-        @client.bitcount("dest1").should be == 1
-        @client.getbit("dest1", 0).should be == 0
-        @client.getbit("dest1", 1).should be == 1
-        @client.getbit("dest1", 2).should be == 0
+        expect(@client.bitop("and", "dest1", "key1", "nothing_here")).to eq(1)
+        expect(@client.bitcount("dest1")).to eq(1)
+        expect(@client.getbit("dest1", 0)).to eq(0)
+        expect(@client.getbit("dest1", 1)).to eq(1)
+        expect(@client.getbit("dest1", 2)).to eq(0)
       end
 
       it "should apply bitwise and operation with multiple keys" do
@@ -114,14 +114,14 @@ module FakeRedis
         @client.setbit("key3", 5, 1)
         @client.setbit("key3", 6, 1)
 
-        @client.bitop("and", "dest1", "key1", "key2", "key3").should be == 1
-        @client.bitcount("dest1").should be == 2
-        @client.getbit("dest1", 1).should be == 0
-        @client.getbit("dest1", 2).should be == 1
-        @client.getbit("dest1", 3).should be == 0
-        @client.getbit("dest1", 4).should be == 1
-        @client.getbit("dest1", 5).should be == 0
-        @client.getbit("dest1", 6).should be == 0
+        expect(@client.bitop("and", "dest1", "key1", "key2", "key3")).to eq(1)
+        expect(@client.bitcount("dest1")).to eq(2)
+        expect(@client.getbit("dest1", 1)).to eq(0)
+        expect(@client.getbit("dest1", 2)).to eq(1)
+        expect(@client.getbit("dest1", 3)).to eq(0)
+        expect(@client.getbit("dest1", 4)).to eq(1)
+        expect(@client.getbit("dest1", 5)).to eq(0)
+        expect(@client.getbit("dest1", 6)).to eq(0)
       end
     end
 
@@ -139,22 +139,22 @@ module FakeRedis
         @client.setbit("key2", 2, 1)
         @client.setbit("key2", 3, 0)
 
-        @client.bitop("xor", "dest1", "key1", "key2").should be == 1
-        @client.bitcount("dest1").should be == 2
-        @client.getbit("dest1", 0).should be == 1
-        @client.getbit("dest1", 1).should be == 0
-        @client.getbit("dest1", 2).should be == 1
-        @client.getbit("dest1", 3).should be == 0
+        expect(@client.bitop("xor", "dest1", "key1", "key2")).to eq(1)
+        expect(@client.bitcount("dest1")).to eq(2)
+        expect(@client.getbit("dest1", 0)).to eq(1)
+        expect(@client.getbit("dest1", 1)).to eq(0)
+        expect(@client.getbit("dest1", 2)).to eq(1)
+        expect(@client.getbit("dest1", 3)).to eq(0)
       end
 
       it "should apply bitwise xor operation with empty values" do
         @client.setbit("key1", 1, 1)
 
-        @client.bitop("xor", "dest1", "key1", "nothing_here1", "nothing_here2").should be == 1
-        @client.bitcount("dest1").should be == 1
-        @client.getbit("dest1", 0).should be == 0
-        @client.getbit("dest1", 1).should be == 1
-        @client.getbit("dest1", 2).should be == 0
+        expect(@client.bitop("xor", "dest1", "key1", "nothing_here1", "nothing_here2")).to eq(1)
+        expect(@client.bitcount("dest1")).to eq(1)
+        expect(@client.getbit("dest1", 0)).to eq(0)
+        expect(@client.getbit("dest1", 1)).to eq(1)
+        expect(@client.getbit("dest1", 2)).to eq(0)
       end
 
       it "should apply bitwise xor operation with multiple keys" do
@@ -168,24 +168,24 @@ module FakeRedis
         @client.setbit("key2", 4, 1)
         @client.setbit("key2", 6, 1)
 
-        @client.bitop("xor", "dest1", "key1", "key2").should be == 1
-        @client.bitcount("dest1").should be == 4
-        @client.getbit("dest1", 1).should be == 1
-        @client.getbit("dest1", 2).should be == 1
-        @client.getbit("dest1", 3).should be == 0
-        @client.getbit("dest1", 4).should be == 1
-        @client.getbit("dest1", 5).should be == 1
-        @client.getbit("dest1", 6).should be == 0
+        expect(@client.bitop("xor", "dest1", "key1", "key2")).to eq(1)
+        expect(@client.bitcount("dest1")).to eq(4)
+        expect(@client.getbit("dest1", 1)).to eq(1)
+        expect(@client.getbit("dest1", 2)).to eq(1)
+        expect(@client.getbit("dest1", 3)).to eq(0)
+        expect(@client.getbit("dest1", 4)).to eq(1)
+        expect(@client.getbit("dest1", 5)).to eq(1)
+        expect(@client.getbit("dest1", 6)).to eq(0)
       end
     end
 
     describe "not" do
       it 'raises an argument error when not passed any keys' do
-        lambda { @client.bitop("not", "destkey") }.should raise_error(Redis::CommandError)
+        expect { @client.bitop("not", "destkey") }.to raise_error(Redis::CommandError)
       end
 
       it 'raises an argument error when not passed too many keys' do
-        lambda { @client.bitop("not", "destkey", "key1", "key2") }.should raise_error(Redis::CommandError)
+        expect { @client.bitop("not", "destkey", "key1", "key2") }.to raise_error(Redis::CommandError)
       end
 
       it "should apply bitwise negation operation" do
@@ -193,16 +193,16 @@ module FakeRedis
         @client.setbit("key1", 3, 1)
         @client.setbit("key1", 5, 1)
 
-        @client.bitop("not", "dest1", "key1").should be == 1
-        @client.bitcount("dest1").should be == 5
-        @client.getbit("dest1", 0).should be == 1
-        @client.getbit("dest1", 1).should be == 0
-        @client.getbit("dest1", 2).should be == 1
-        @client.getbit("dest1", 3).should be == 0
-        @client.getbit("dest1", 4).should be == 1
-        @client.getbit("dest1", 5).should be == 0
-        @client.getbit("dest1", 6).should be == 1
-        @client.getbit("dest1", 7).should be == 1
+        expect(@client.bitop("not", "dest1", "key1")).to eq(1)
+        expect(@client.bitcount("dest1")).to eq(5)
+        expect(@client.getbit("dest1", 0)).to eq(1)
+        expect(@client.getbit("dest1", 1)).to eq(0)
+        expect(@client.getbit("dest1", 2)).to eq(1)
+        expect(@client.getbit("dest1", 3)).to eq(0)
+        expect(@client.getbit("dest1", 4)).to eq(1)
+        expect(@client.getbit("dest1", 5)).to eq(0)
+        expect(@client.getbit("dest1", 6)).to eq(1)
+        expect(@client.getbit("dest1", 7)).to eq(1)
       end
     end
   end

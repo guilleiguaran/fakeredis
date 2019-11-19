@@ -17,7 +17,7 @@ module FakeRedis
     def select_by_score min, max
       min = _floatify(min, true)
       max = _floatify(max, false)
-      reject {|_,v| v < min || v > max }
+      select {|_,v| v >= min && v <= max }
     end
 
     private

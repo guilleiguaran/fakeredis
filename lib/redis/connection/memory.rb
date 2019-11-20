@@ -9,6 +9,7 @@ require "fakeredis/sorted_set_store"
 require "fakeredis/transaction_commands"
 require "fakeredis/zset"
 require "fakeredis/bitop_command"
+require "fakeredis/geo_commands"
 require "fakeredis/version"
 
 class Redis
@@ -21,6 +22,7 @@ class Redis
       include SortMethod
       include TransactionCommands
       include BitopCommand
+      include GeoCommands
       include CommandExecutor
 
       attr_accessor :options
@@ -1467,6 +1469,10 @@ class Redis
             error_message = "ERR #{options.join(" and ")} options at the same time are not compatible"
           end
           raise Redis::CommandError, error_message
+        end
+
+        def raise_command_error(message)
+          raise Redis::CommandError, message
         end
 
         def delete_keys(keys, command)

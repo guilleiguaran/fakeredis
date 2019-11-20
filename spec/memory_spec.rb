@@ -86,16 +86,12 @@ RSpec.describe FakeRedis do
   end
 
   describe '#client' do
-    it 'returns 1 when command is :setname' do
-      expect(redis.write([:client, :setname])).to eq 1
+    it 'returns OK when command is :setname' do
+      expect(redis.client(:setname, 'my-client-01')).to eq 'OK'
     end
 
     it 'returns nil when command is :getname' do
-      expect(redis.write([:client, :getname])).to eq nil
-    end
-
-    it 'returns true when the comment is :client with an argument' do
-      expect(redis.write([:client, :client, :list])).to eq 1
+      expect(redis.client(:getname)).to eq nil
     end
 
     it 'raises error for other commands' do

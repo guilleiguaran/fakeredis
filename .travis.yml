@@ -12,10 +12,6 @@ rvm:
   - jruby
   - rbx-2
 
-gemfile:
-  - Gemfile
-  - gemfiles/redisrb-master.gemfile
-
 matrix:
   allow_failures:
     - rvm: rbx-2

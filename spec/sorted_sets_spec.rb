@@ -107,14 +107,14 @@ module FakeRedis
       @client.zadd("key", [1, "val1", 2, "val2", 3, "val3"])
       expect(@client.zpopmax("key")).to eq(["val3", 3.0])
       expect(@client.zpopmax("key", 3)).to eq([["val2", 2.0], ["val1", 1.0]])
-      expect(@client.zpopmax("nonexistent")).to eq([])
+      expect(@client.zpopmax("nonexistent")).to eq(nil)
     end
 
     it "should pop members with the lowest scores from sorted set" do
       @client.zadd("key", [1, "val1", 2, "val2", 3, "val3"])
       expect(@client.zpopmin("key")).to eq(["val1", 1.0])
       expect(@client.zpopmin("key", 3)).to eq([["val2", 2.0], ["val3", 3.0]])
-      expect(@client.zpopmin("nonexistent")).to eq([])
+      expect(@client.zpopmin("nonexistent")).to eq(nil)
     end
 
     it "should pop members with the highest score from first sorted set that is non-empty" do

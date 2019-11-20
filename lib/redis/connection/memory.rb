@@ -95,9 +95,8 @@ class Redis
 
       def client(command, _options = {})
         case command
-        when :setname then true
+        when :setname then "OK"
         when :getname then nil
-        when :client then true
         else
           raise Redis::CommandError, "ERR unknown command '#{command}'"
         end
@@ -867,10 +866,10 @@ class Redis
         option_nx = array_options.delete("NX")
         option_xx = array_options.delete("XX")
 
-        return false if option_nx && option_xx
+        return nil if option_nx && option_xx
 
-        return false if option_nx && exists(key)
-        return false if option_xx && !exists(key)
+        return nil if option_nx && exists(key)
+        return nil if option_xx && !exists(key)
 
         data[key] = value.to_s
 
@@ -1095,7 +1094,7 @@ class Redis
         results.each do |member|
           zrem(key, member.first)
         end
-        count.nil? ? results.first : results
+        count.nil? ? results.first : results.flatten
       end
 
       def zpopmin(key, count = nil)
@@ -1106,7 +1105,7 @@ class Redis
         results.each do |member|
           zrem(key, member.first)
         end
-        count.nil? ? results.first : results
+        count.nil? ? results.first : results.flatten
       end
 
       def bzpopmax(*args)
@@ -1125,7 +1124,13 @@ class Redis
       def zscore(key, value)
         data_type_check(key, ZSet)
         value = data[key] && data[key][value.to_s]
-        value && value.to_s
+        if value == Float::INFINITY
+          "inf"
+        elsif value == -Float::INFINITY
+          "-inf"
+        elsif value
+          value.to_s
+        end
       end
 
       def zcount(key, min, max)
@@ -1139,7 +1144,14 @@ class Redis
         data[key] ||= ZSet.new
         data[key][value.to_s] ||= 0
         data[key].increment(value.to_s, num)
-        data[key][value.to_s].to_s
+
+        if num =~ /^\+?inf/
+          "inf"
+        elsif num == "-inf"
+          "-inf"
+        else
+          data[key][value.to_s].to_s
+        end
       end
 
       def zrank(key, value)

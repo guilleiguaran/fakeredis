@@ -6,7 +6,6 @@ module FakeRedis
       return [] if type(key) == 'none'
 
       unless %w(list set zset).include? type(key)
-        warn "Operation against a key holding the wrong kind of value: Expected list, set or zset at #{key}."
         raise Redis::CommandError.new("WRONGTYPE Operation against a key holding the wrong kind of value")
       end
 

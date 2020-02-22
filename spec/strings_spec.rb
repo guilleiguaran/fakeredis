@@ -243,8 +243,8 @@ module FakeRedis
     end
 
     it "should set the value of a key, only if the key does not exist" do
-      @client.set("key1", "test value")
-      @client.setnx("key1", "new value")
+      expect(@client.setnx("key1", "test value")).to eq(true)
+      expect(@client.setnx("key1", "new value")).to eq(false)
       @client.setnx("key2", "another value")
 
       expect(@client.get("key1")).to eq("test value")

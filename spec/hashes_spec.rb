@@ -167,8 +167,8 @@ module FakeRedis
     end
 
     it "should set the string value of a hash field" do
-      expect(@client.hset("key1", "k1", "val1")).to eq(true)
-      expect(@client.hset("key1", "k1", "val1")).to eq(false)
+      expect(@client.hset("key1", "k1", "val1")).to eq(1)
+      expect(@client.hset("key1", "k1", "val1")).to eq(0)
 
       expect(@client.hget("key1", "k1")).to eq("val1")
     end

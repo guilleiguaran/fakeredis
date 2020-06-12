@@ -168,7 +168,7 @@ class Redis
       end
 
       def dump(key)
-        return nil unless exists(key)
+        return nil if exists(key).zero?
 
         value = data[key]
 
@@ -179,7 +179,7 @@ class Redis
       end
 
       def restore(key, ttl, serialized_value)
-        raise Redis::CommandError, "ERR Target key name is busy." if exists(key)
+        raise Redis::CommandError, "ERR Target key name is busy." if exists(key) > 0
 
         raise Redis::CommandError, "ERR DUMP payload version or checksum are wrong" if serialized_value.nil?
 
@@ -359,7 +359,7 @@ class Redis
       end
 
       def exists(key)
-        data.key?(key)
+        data.key?(key) ? 1 : 0
       end
 
       def llen(key)
@@ -702,7 +702,7 @@ class Redis
       end
 
       def setnx(key, value)
-        if exists(key)
+        if exists(key) > 0
           0
         else
           set(key, value)
@@ -718,7 +718,7 @@ class Redis
       end
 
       def renamenx(key, new_key)
-        if exists(new_key)
+        if exists(new_key) > 0
           false
         else
           rename(key, new_key)
@@ -742,7 +742,7 @@ class Redis
         if data.expires.include?(key) && (ttl = data.expires[key].to_i - Time.now.to_i) > 0
           ttl
         else
-          exists(key) ? -1 : -2
+          exists(key) > 0 ? -1 : -2
         end
       end
 
@@ -750,7 +750,7 @@ class Redis
         if data.expires.include?(key) && (ttl = data.expires[key].to_f - Time.now.to_f) > 0
           ttl * 1000
         else
-          exists(key) ? -1 : -2
+          exists(key) > 0 ? -1 : -2
         end
       end
 
@@ -876,8 +876,8 @@ class Redis
 
         return nil if option_nx && option_xx
 
-        return nil if option_nx && exists(key)
-        return nil if option_xx && !exists(key)
+        return nil if option_nx && exists(key) > 0
+        return nil if option_xx && exists(key).zero?
 
         data[key] = value.to_s
 

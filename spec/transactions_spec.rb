@@ -85,7 +85,7 @@ module FakeRedis
       it "returns true if the nested hash command succeeds" do
         responses = @client.multi { |multi| multi.hset('hash', 'key', 'value') }
 
-        expect(responses[0]).to eq(true)
+        expect(responses[0]).to eq(1)
       end
     end
 

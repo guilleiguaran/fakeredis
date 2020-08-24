@@ -685,13 +685,13 @@ module FakeRedis
       context "with {nx: true, incr: true}" do
         let(:options) { {nx: true, incr: true} }
         it "should increment to the provided score only if the element is new and return the element's score" do
-          expect(@client.zadd("key", 1, "first", options)).to eq(1.0)
+          expect(@client.zadd("key", 1, "first", **options)).to eq(1.0)
           expect(@client.zscore("key", "first")).to eq(1.0)
 
-          expect(@client.zadd("key", 2, "second", options)).to eq(2.0)
+          expect(@client.zadd("key", 2, "second", **options)).to eq(2.0)
           expect(@client.zscore("key", "second")).to eq(2.0)
 
-          expect(@client.zadd("key", 99, "first", options)).to be_nil
+          expect(@client.zadd("key", 99, "first", **options)).to be_nil
           expect(@client.zscore("key", "first")).to eq(1.0)
         end
       end
@@ -699,11 +699,11 @@ module FakeRedis
       context "with {nx: true, ch: true}" do
         let(:options) { {nx: true, ch: true} }
         it "should add only new elements, not update existing elements, and return the number of added elements" do
-          expect(@client.zadd("key", 1, "first", options)).to eq(true)
-          expect(@client.zadd("key", 1, "first", options)).to eq(false)
+          expect(@client.zadd("key", 1, "first", **options)).to eq(true)
+          expect(@client.zadd("key", 1, "first", **options)).to eq(false)
 
           # add two new elements
-          expect(@client.zadd("key", [99, "first", 2, "second", 3, "third"], options)).to eq(2)
+          expect(@client.zadd("key", [99, "first", 2, "second", 3, "third"], **options)).to eq(2)
           expect(@client.zscore("key", "first")).to eq(1.0)
         end
       end
@@ -712,19 +712,19 @@ module FakeRedis
         let(:options) { {nx: true, incr: true, ch: true} }
 
         it "should add only new elements" do
-          expect(@client.zadd("key", 1, "first", options)).to eq(1.0)
-          expect(@client.zadd("key", 99, "first", options)).to be_nil
+          expect(@client.zadd("key", 1, "first", **options)).to eq(1.0)
+          expect(@client.zadd("key", 99, "first", **options)).to be_nil
           expect(@client.zscore("key", "first")).to eq(1.0)
         end
 
         # when INCR is present, return value is always the new score of member
         it "should return the score of the new member" do
-          expect(@client.zadd("key", 2, "second", options)).to eq(2.0)
+          expect(@client.zadd("key", 2, "second", **options)).to eq(2.0)
         end
 
         it "should return nil when the member already exists" do
           @client.zadd("key", 1, "first")
-          expect(@client.zadd("key", 99, "first", options)).to be_nil
+          expect(@client.zadd("key", 99, "first", **options)).to be_nil
         end
       end
 
@@ -733,12 +733,12 @@ module FakeRedis
         before { @client.zadd("key", 1, "existing") }
 
         it "should return nil if the member does not already exist" do
-          expect(@client.zadd("key", 1, "new1", options)).to be_nil
+          expect(@client.zadd("key", 1, "new1", **options)).to be_nil
           expect(@client.zscore("key", "new1")).to be_nil
         end
 
         it "should increment only existing elements" do
-          expect(@client.zadd("key", [11, "existing"], options)).to eq(12.0)
+          expect(@client.zadd("key", [11, "existing"], **options)).to eq(12.0)
           expect(@client.zscore("key", "existing")).to eq(12.0)
         end
       end
@@ -748,8 +748,8 @@ module FakeRedis
         it "should return the number of updated elements and not add new members" do
           @client.zadd("key", 1, "first")
 
-          expect(@client.zadd("key", 99, "first", options)).to eq(true)
-          expect(@client.zadd("key", [100, "first", 2, "second"], options)).to eq(1.0)
+          expect(@client.zadd("key", 99, "first", **options)).to eq(true)
+          expect(@client.zadd("key", [100, "first", 2, "second"], **options)).to eq(1.0)
           expect(@client.zscore("key", "second")).to be_nil
         end
       end
@@ -760,11 +760,11 @@ module FakeRedis
 
         # when INCR is present, return value is always the new score of member
         it "should return the new score of the inserted member" do
-          expect(@client.zadd("key", 2, "existing", options)).to eq(3.0)
+          expect(@client.zadd("key", 2, "existing", **options)).to eq(3.0)
         end
 
         it "should increment only existing elements" do
-          expect(@client.zadd("key", 1, "new", options)).to be_nil
+          expect(@client.zadd("key", 1, "new", **options)).to be_nil
         end
       end
     end

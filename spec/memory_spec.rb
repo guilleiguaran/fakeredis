@@ -21,7 +21,7 @@ RSpec.describe FakeRedis do
       cursor = 0
 
       loop do
-        cursor, keys = redis.scan(cursor, match_arguments)
+        cursor, keys = redis.scan(cursor, **match_arguments)
         returned_keys += keys
         break if cursor == '0'
       end

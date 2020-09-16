@@ -240,9 +240,9 @@ class Redis
       end
 
       def mget(*keys)
+        keys = keys[0] if flatten?(keys)
         raise_argument_error('mget') if keys.empty?
-        # We work with either an array, or list of arguments
-        keys = keys.first if keys.size == 1
+        keys.each { |key| data_type_check(key, String) }
         data.values_at(*keys)
       end
 

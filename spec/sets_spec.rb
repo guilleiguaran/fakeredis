@@ -30,6 +30,13 @@ module FakeRedis
       expect(@client.smembers("key")).to match_array(["value", "other", "something", "more", "and", "additional", "values"])
     end
 
+    it "should return the number added to a set when an array is passed in" do
+      expect(@client.sadd("key", %w(value other something more))).to eq(4)
+      expect(@client.sadd("key", %w(more value additional))).to eq(1)
+      expect(@client.sadd("key", %w(additional))).to eq(0)
+      expect(@client.smembers("key")).to match_array(["value", "other", "something", "more", "additional"])
+    end
+
     it "should get the number of members in a set" do
       @client.sadd("key", "val1")
       @client.sadd("key", "val2")

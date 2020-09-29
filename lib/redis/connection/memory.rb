@@ -358,8 +358,8 @@ class Redis
         data.keys.count
       end
 
-      def exists(key)
-        data.key?(key) ? 1 : 0
+      def exists(*keys)
+        keys.count { |key| data.key?(key) }
       end
 
       def llen(key)

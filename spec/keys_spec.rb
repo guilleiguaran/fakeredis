@@ -508,6 +508,23 @@ module FakeRedis
         expect(@client.psetex("key", 1000, "value")).to eq("OK")
       end
     end
+
+    describe "#exists" do
+      it "returns 0 if none of the keys exist" do
+        expect(@client.exists("key1", "key2")).to eq 0
+      end
+
+      it "returns number of the keys that exist" do
+        @client.set("key2", "val2")
+        @client.set("key3", "val3")
+        expect(@client.exists("key1", "key2", "key3")).to eq 2
+      end
+
+      it "keys mentioned and existing multiple times counted multiple times" do
+        @client.set("key2", "val")
+        expect(@client.exists("key2", "key2")).to eq 2
+      end
+    end
   end
 end
 

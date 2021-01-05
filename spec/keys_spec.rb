@@ -504,6 +504,10 @@ module FakeRedis
         expect(@client.pttl("key")).to be_within(0.1).of(2200)
       end
 
+      it "should raise an error if a non-integer is provided as the expiration" do
+        expect { @client.psetex("key", 100.5, "value") }.to raise_error(Redis::CommandError)
+      end
+
       it "should return 'OK'" do
         expect(@client.psetex("key", 1000, "value")).to eq("OK")
       end

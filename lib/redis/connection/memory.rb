@@ -882,12 +882,18 @@ class Redis
         data[key] = value.to_s
 
         options = Hash[array_options.each_slice(2).to_a]
+        raise_command_error('ERR value is not an integer or out of range') if non_integer_expirations?(options)
         ttl_in_seconds = options["EX"] if options["EX"]
         ttl_in_seconds = options["PX"] / 1000.0 if options["PX"]
 
         expire(key, ttl_in_seconds) if ttl_in_seconds
 
         "OK"
+      end
+
+      def non_integer_expirations?(options)
+        (options["EX"] && !options["EX"].is_a?(Integer)) ||
+          (options["PX"] && !options["PX"].is_a?(Integer))
       end
 
       def setbit(key, offset, bit)
@@ -903,13 +909,17 @@ class Redis
       end
 
       def setex(key, seconds, value)
+        raise_command_error('ERR value is not an integer or out of range') unless seconds.is_a?(Integer)
         data[key] = value.to_s
         expire(key, seconds)
         "OK"
       end
 
       def psetex(key, milliseconds, value)
-        setex(key, milliseconds / 1000.0, value)
+        raise_command_error('ERR value is not an integer or out of range') unless milliseconds.is_a?(Integer)
+        data[key] = value.to_s
+        expire(key, milliseconds / 1000.0)
+        "OK"
       end
 
       def setrange(key, offset, value)

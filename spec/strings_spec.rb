@@ -242,6 +242,10 @@ module FakeRedis
       expect(@client.ttl("key1")).to eq(30)
     end
 
+    it "should raise an error if a non-integer is provided as the expiration" do
+      expect { @client.setex("key1", 1.5, "value1") }.to raise_error(Redis::CommandError)
+    end
+
     it "should set the value of a key, only if the key does not exist" do
       expect(@client.setnx("key1", "test value")).to eq(true)
       expect(@client.setnx("key1", "new value")).to eq(false)

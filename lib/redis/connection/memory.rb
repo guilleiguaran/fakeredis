@@ -763,17 +763,32 @@ class Redis
         !!data.expires.delete(key)
       end
 
-      def hset(key, field, value)
+      def hset(key, *fields)
+        fields = fields.first if fields.size == 1 && fields.first.is_a?(Hash)
+        raise_argument_error('hset') if fields.empty?
+    
+        is_list_of_arrays = fields.all?{|field| field.instance_of?(Array)}
+    
+        raise_argument_error('hmset') if fields.size.odd? and !is_list_of_arrays
+        raise_argument_error('hmset') if is_list_of_arrays and !fields.all?{|field| field.length == 2}
+        
         data_type_check(key, Hash)
-        field = field.to_s
-        if data[key]
-          result = !data[key].include?(field)
-          data[key][field] = value.to_s
-          result ? 1 : 0
+        insert_count = 0
+        data[key] ||= {}
+    
+        if fields.is_a?(Hash)
+          insert_count = fields.keys.size - (data[key].keys & fields.keys).size
+    
+          data[key].merge!(fields)
         else
-          data[key] = { field => value.to_s }
-          1
+          fields.each_slice(2) do |field|
+            insert_count += 1 if data[key][field[0].to_s].nil?
+    
+            data[key][field[0].to_s] = field[1].to_s
+          end
         end
+    
+        insert_count
       end
 
       def hsetnx(key, field, value)

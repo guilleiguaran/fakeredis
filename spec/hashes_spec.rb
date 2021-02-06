@@ -172,6 +172,36 @@ module FakeRedis
 
       expect(@client.hget("key1", "k1")).to eq("val1")
     end
+    
+    it "should accept a list of key-value pair" do
+      @client.hset("key1", "k1", "val1", "k2", "val2")
+
+      expect(@client.hget("key1", "k1")).to eq("val1")
+      expect(@client.hget("key1", "k2")).to eq("val2")
+    end
+    
+    it "should accept a hash of attributes to insert" do
+      @client.hset("key1", {"k1" => "val1", "k2" => "val2"})
+
+      expect(@client.hget("key1", "k1")).to eq("val1")
+      expect(@client.hget("key1", "k2")).to eq("val2")
+    end
+
+    it "should return correct value when inserting a list of key-value pair" do
+      @client.hset("key1", "k1", "val1", "k2", "val2")
+
+      expect(@client.hset("key1", "k1", "val1", "k2", "val2")).to eq(0)
+      expect(@client.hset("key1", "k2", "val2", "k3", "val3")).to eq(1)
+      expect(@client.hset("key1", "k4", "val4", "k5", "val5")).to eq(2)
+    end    
+    
+    it "should return correct value when inserting a hash of attributes" do
+      @client.hset("key1", { "k1" => "val1", "k2" => "val2" })
+
+      expect(@client.hset("key1", { "k1" => "val1", "k2" => "val2" })).to eq(0)
+      expect(@client.hset("key1", { "k2" => "val2", "k3" => "val3" })).to eq(1)
+      expect(@client.hset("key1", { "k4" => "val4", "k5" => "val5" })).to eq(2)
+    end
 
     it "should set the value of a hash field, only if the field does not exist" do
       @client.hset("key1", "k1", "val1")

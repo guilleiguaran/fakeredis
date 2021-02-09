@@ -75,6 +75,19 @@ module FakeRedis
       expect(@client.smembers("new_key")).to match_array(["b", "d"])
     end
 
+    it "should return integer on sdiffstore" do
+      @client.sadd("key1", "a")
+      @client.sadd("key1", "b")
+      @client.sadd("key1", "c")
+      @client.sadd("key1", "d")
+      @client.sadd("key2", "c")
+      @client.sadd("key3", "a")
+      @client.sadd("key3", "c")
+      @client.sadd("key3", "e")
+
+      expect(@client.sdiffstore("key", "key1", "key2", "key3")).to eq(2)
+    end
+
     it "should intersect multiple sets" do
       @client.sadd("key1", "a")
       @client.sadd("key1", "b")

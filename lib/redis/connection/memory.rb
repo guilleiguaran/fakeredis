@@ -649,6 +649,8 @@ class Redis
         data_type_check(destination, ::Set)
         result = sdiff(key1, *keys)
         data[destination] = ::Set.new(result)
+
+        result.size
       end
 
       def srandmember(key, number=nil)

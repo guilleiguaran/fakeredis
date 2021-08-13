@@ -542,6 +542,8 @@ class Redis
 
       def sadd(key, value)
         data_type_check(key, ::Set)
+        should_return_int = value.is_a? Array
+
         value = Array(value)
         raise_argument_error('sadd') if value.empty?
 
@@ -554,8 +556,9 @@ class Redis
           data[key].size
         end
 
-        # 0 = false, 1 = true, 2+ untouched
-        return result == 1 if result < 2
+        # 0 = false, 1 = true unless an array was passed in
+        return result == 1 unless should_return_int
+
         result
       end
 

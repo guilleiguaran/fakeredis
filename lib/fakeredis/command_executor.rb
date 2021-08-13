@@ -15,12 +15,6 @@ module FakeRedis
         raise Redis::CommandError, "ERR unknown command '#{meffod}'"
       end
 
-      if reply == true
-        reply = 1
-      elsif reply == false
-        reply = 0
-      end
-
       replies << reply
       nil
     end

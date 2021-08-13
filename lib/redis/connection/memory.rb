@@ -564,8 +564,7 @@ class Redis
 
       def srem(key, value)
         data_type_check(key, ::Set)
-        value = Array(value)
-        raise_argument_error('srem') if value.empty?
+        raise_argument_error('srem') if Array(value).empty?
         return false unless data[key]
 
         if value.is_a?(Array)

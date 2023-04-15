@@ -68,13 +68,6 @@ module FakeRedis
       expect(@client.pexpire("key1", 1)).to eq(false)
     end
 
-    it "should determine if a key exists" do
-      @client.set("key1", "1")
-
-      expect(@client.exists("key1")).to eq(1)
-      expect(@client.exists("key2")).to eq(0)
-    end
-
     it "should set a key's time to live in seconds" do
       @client.set("key1", "1")
       @client.expire("key1", 1)
@@ -536,11 +529,16 @@ module FakeRedis
     end
 
     describe "#exists?" do
-      it "should return a boolean" do
+      it "should return true if any of the key exists" do
         @client.set("key1", "1")
 
         expect(@client.exists?("key1")).to eq(true)
+        expect(@client.exists?("key1", "key2")).to eq(true)
+      end
+
+      it "should return false if none of the key exists" do
         expect(@client.exists?("key2")).to eq(false)
+        expect(@client.exists?("key2", "key3")).to eq(false)
       end
     end
   end

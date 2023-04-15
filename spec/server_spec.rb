@@ -45,13 +45,13 @@ module FakeRedis
 
         @client.select(0)
         expect(@client.dbsize).to eq(2)
-        expect(@client.exists("key1")).to be true
-        expect(@client.exists("key3")).to be false
+        expect(@client.exists?("key1")).to be true
+        expect(@client.exists?("key3")).to be false
 
         @client.select(1)
         expect(@client.dbsize).to eq(3)
-        expect(@client.exists("key4")).to be true
-        expect(@client.exists("key2")).to be false
+        expect(@client.exists?("key4")).to be true
+        expect(@client.exists?("key2")).to be false
 
         @client.flushall
         expect(@client.dbsize).to eq(0)

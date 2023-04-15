@@ -183,6 +183,12 @@ module FakeRedis
       expect { @client.mget }.to raise_error(Redis::CommandError)
     end
 
+    it 'raises an argument error when the data is a hash' do
+      @client.hincrby("key1", "cont1", 5)
+
+      expect { @client.mget("key1") }.to raise_error(Redis::CommandError)
+    end
+
     it "should set multiple keys to multiple values" do
       @client.mset(:key1, "value1", :key2, "value2")
 
@@ -240,6 +246,11 @@ module FakeRedis
 
       expect(@client.get("key1")).to eq("value1")
       expect(@client.ttl("key1")).to eq(30)
+    end
+
+    it "should raise an error if a non-integer is provided as the expiration" do
+      expect { @client.setex("key1", 1.5, "value1") }.to raise_error(Redis::CommandError)
+      expect { @client.set("key1", "value1", ex: 1.5) }.to raise_error(Redis::CommandError)
     end
 
     it "should set the value of a key, only if the key does not exist" do

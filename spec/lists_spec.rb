@@ -119,7 +119,7 @@ module FakeRedis
     end
 
     it "should return 0 if key does not map to a list" do
-      expect(@client.exists("nonexistant")).to eq(false)
+      expect(@client.exists?("nonexistant")).to eq(false)
       expect(@client.lrem("nonexistant", 0, "value")).to eq(0)
     end
 
@@ -129,7 +129,7 @@ module FakeRedis
       @client.lrem("key1", 1, "v1")
       @client.lrem("key1", 1, "v2")
 
-      expect(@client.exists("key1")).to eq(false)
+      expect(@client.exists?("key1")).to eq(false)
     end
 
     it "should set the value of an element in a list by its index" do

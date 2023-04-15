@@ -86,13 +86,14 @@ class Redis
       attr_writer :replies
 
       def connected?
-        true
+        defined?(@disconnected) ? false : true
       end
 
       def connect_unix(path, timeout)
       end
 
       def disconnect
+        @disconnected = true
       end
 
       def client(command, _options = {})
@@ -240,9 +241,9 @@ class Redis
       end
 
       def mget(*keys)
+        keys = keys[0] if flatten?(keys)
         raise_argument_error('mget') if keys.empty?
-        # We work with either an array, or list of arguments
-        keys = keys.first if keys.size == 1
+        keys.each { |key| data_type_check(key, String) }
         data.values_at(*keys)
       end
 
@@ -360,6 +361,10 @@ class Redis
 
       def exists(*keys)
         keys.count { |key| data.key?(key) }
+      end
+
+      def exists?(key)
+        data.key?(key)
       end
 
       def llen(key)
@@ -542,6 +547,8 @@ class Redis
 
       def sadd(key, value)
         data_type_check(key, ::Set)
+        should_return_int = value.is_a? Array
+
         value = Array(value)
         raise_argument_error('sadd') if value.empty?
 
@@ -554,15 +561,15 @@ class Redis
           data[key].size
         end
 
-        # 0 = false, 1 = true, 2+ untouched
-        return result == 1 if result < 2
+        # 0 = false, 1 = true unless an array was passed in
+        return result == 1 unless should_return_int
+
         result
       end
 
       def srem(key, value)
         data_type_check(key, ::Set)
-        value = Array(value)
-        raise_argument_error('srem') if value.empty?
+        raise_argument_error('srem') if Array(value).empty?
         return false unless data[key]
 
         if value.is_a?(Array)
@@ -649,6 +656,8 @@ class Redis
         data_type_check(destination, ::Set)
         result = sdiff(key1, *keys)
         data[destination] = ::Set.new(result)
+
+        result.size
       end
 
       def srandmember(key, number=nil)
@@ -763,17 +772,32 @@ class Redis
         !!data.expires.delete(key)
       end
 
-      def hset(key, field, value)
+      def hset(key, *fields)
+        fields = fields.first if fields.size == 1 && fields.first.is_a?(Hash)
+        raise_argument_error('hset') if fields.empty?
+    
+        is_list_of_arrays = fields.all?{|field| field.instance_of?(Array)}
+    
+        raise_argument_error('hmset') if fields.size.odd? and !is_list_of_arrays
+        raise_argument_error('hmset') if is_list_of_arrays and !fields.all?{|field| field.length == 2}
+        
         data_type_check(key, Hash)
-        field = field.to_s
-        if data[key]
-          result = !data[key].include?(field)
-          data[key][field] = value.to_s
-          result ? 1 : 0
+        insert_count = 0
+        data[key] ||= {}
+    
+        if fields.is_a?(Hash)
+          insert_count = fields.keys.size - (data[key].keys & fields.keys).size
+    
+          data[key].merge!(fields)
         else
-          data[key] = { field => value.to_s }
-          1
+          fields.each_slice(2) do |field|
+            insert_count += 1 if data[key][field[0].to_s].nil?
+    
+            data[key][field[0].to_s] = field[1].to_s
+          end
         end
+    
+        insert_count
       end
 
       def hsetnx(key, field, value)
@@ -882,12 +906,18 @@ class Redis
         data[key] = value.to_s
 
         options = Hash[array_options.each_slice(2).to_a]
+        raise_command_error('ERR value is not an integer or out of range') if non_integer_expirations?(options)
         ttl_in_seconds = options["EX"] if options["EX"]
         ttl_in_seconds = options["PX"] / 1000.0 if options["PX"]
 
         expire(key, ttl_in_seconds) if ttl_in_seconds
 
         "OK"
+      end
+
+      def non_integer_expirations?(options)
+        (options["EX"] && !options["EX"].is_a?(Integer)) ||
+          (options["PX"] && !options["PX"].is_a?(Integer))
       end
 
       def setbit(key, offset, bit)
@@ -903,13 +933,17 @@ class Redis
       end
 
       def setex(key, seconds, value)
+        raise_command_error('ERR value is not an integer or out of range') unless seconds.is_a?(Integer)
         data[key] = value.to_s
         expire(key, seconds)
         "OK"
       end
 
       def psetex(key, milliseconds, value)
-        setex(key, milliseconds / 1000.0, value)
+        raise_command_error('ERR value is not an integer or out of range') unless milliseconds.is_a?(Integer)
+        data[key] = value.to_s
+        expire(key, milliseconds / 1000.0)
+        "OK"
       end
 
       def setrange(key, offset, value)
@@ -1153,7 +1187,7 @@ class Redis
         data[key][value.to_s] ||= 0
         data[key].increment(value.to_s, num)
 
-        if num =~ /^\+?inf/
+        if num.is_a?(String) && num =~ /^\+?inf/
           "inf"
         elsif num == "-inf"
           "-inf"

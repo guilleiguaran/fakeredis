@@ -32,7 +32,7 @@ module FakeRedis
       expect(@client.hdel("key1", "k1")).to be(1)
       expect(@client.hdel("key1", "k2")).to be(1)
 
-      expect(@client.exists("key1")).to eq(false)
+      expect(@client.exists("key1")).to eq(0)
     end
 
     it "should convert key to a string for hset" do
@@ -135,13 +135,13 @@ module FakeRedis
 
     it "should reject an empty list of values" do
       expect { @client.hmset("key") }.to raise_error(Redis::CommandError)
-      expect(@client.exists("key")).to be false
+      expect(@client.exists?("key")).to be false
     end
 
     it "rejects an insert with a key but no value" do
       expect { @client.hmset("key", 'foo') }.to raise_error(Redis::CommandError)
       expect { @client.hmset("key", 'foo', 3, 'bar') }.to raise_error(Redis::CommandError)
-      expect(@client.exists("key")).to be false
+      expect(@client.exists?("key")).to be false
     end
 
     it "should reject the wrong number of arguments" do
@@ -171,6 +171,36 @@ module FakeRedis
       expect(@client.hset("key1", "k1", "val1")).to eq(0)
 
       expect(@client.hget("key1", "k1")).to eq("val1")
+    end
+
+    it "should accept a list of key-value pair" do
+      @client.hset("key1", "k1", "val1", "k2", "val2")
+
+      expect(@client.hget("key1", "k1")).to eq("val1")
+      expect(@client.hget("key1", "k2")).to eq("val2")
+    end
+
+    it "should accept a hash of attributes to insert" do
+      @client.hset("key1", {"k1" => "val1", "k2" => "val2"})
+
+      expect(@client.hget("key1", "k1")).to eq("val1")
+      expect(@client.hget("key1", "k2")).to eq("val2")
+    end
+
+    it "should return correct value when inserting a list of key-value pair" do
+      @client.hset("key1", "k1", "val1", "k2", "val2")
+
+      expect(@client.hset("key1", "k1", "val1", "k2", "val2")).to eq(0)
+      expect(@client.hset("key1", "k2", "val2", "k3", "val3")).to eq(1)
+      expect(@client.hset("key1", "k4", "val4", "k5", "val5")).to eq(2)
+    end
+
+    it "should return correct value when inserting a hash of attributes" do
+      @client.hset("key1", { "k1" => "val1", "k2" => "val2" })
+
+      expect(@client.hset("key1", { "k1" => "val1", "k2" => "val2" })).to eq(0)
+      expect(@client.hset("key1", { "k2" => "val2", "k3" => "val3" })).to eq(1)
+      expect(@client.hset("key1", { "k4" => "val4", "k5" => "val5" })).to eq(2)
     end
 
     it "should set the value of a hash field, only if the field does not exist" do

@@ -30,6 +30,13 @@ module FakeRedis
       expect(@client.smembers("key")).to match_array(["value", "other", "something", "more", "and", "additional", "values"])
     end
 
+    it "should return the number added to a set when an array is passed in" do
+      expect(@client.sadd("key", %w(value other something more))).to eq(4)
+      expect(@client.sadd("key", %w(more value additional))).to eq(1)
+      expect(@client.sadd("key", %w(additional))).to eq(0)
+      expect(@client.smembers("key")).to match_array(["value", "other", "something", "more", "additional"])
+    end
+
     it "should get the number of members in a set" do
       @client.sadd("key", "val1")
       @client.sadd("key", "val2")
@@ -73,6 +80,19 @@ module FakeRedis
 
       expect(@client.smembers("key")).to match_array(["b", "d"])
       expect(@client.smembers("new_key")).to match_array(["b", "d"])
+    end
+
+    it "should return integer on sdiffstore" do
+      @client.sadd("key1", "a")
+      @client.sadd("key1", "b")
+      @client.sadd("key1", "c")
+      @client.sadd("key1", "d")
+      @client.sadd("key2", "c")
+      @client.sadd("key3", "a")
+      @client.sadd("key3", "c")
+      @client.sadd("key3", "e")
+
+      expect(@client.sdiffstore("key", "key1", "key2", "key3")).to eq(2)
     end
 
     it "should intersect multiple sets" do
@@ -188,7 +208,7 @@ module FakeRedis
       @client.srem("key1", "b")
       @client.srem("key1", "a")
 
-      expect(@client.exists("key1")).to eq(false)
+      expect(@client.exists?("key1")).to eq(false)
     end
 
     it "should add multiple sets" do

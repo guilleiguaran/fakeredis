@@ -86,13 +86,14 @@ class Redis
       attr_writer :replies
 
       def connected?
-        true
+        defined?(@disconnected) ? false : true
       end
 
       def connect_unix(path, timeout)
       end
 
       def disconnect
+        @disconnected = true
       end
 
       def client(command, _options = {})

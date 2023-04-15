@@ -74,7 +74,7 @@ module FakeRedis
     def georadiusbymember(*args)
       args = args.dup
       raise_argument_error("georadiusbymember") if args.size < 4
-      key, member, radius, unit, *rest = args
+      key, member, radius, unit, *_ = args
       raise_argument_error("georadiusbymember") unless DISTANCE_UNITS.has_key?(unit)
       radius *= DISTANCE_UNITS[unit]
 

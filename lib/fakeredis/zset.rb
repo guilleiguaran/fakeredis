@@ -26,7 +26,7 @@ module FakeRedis
     def _floatify(str, increment = true)
       if (( inf = str.to_s.match(/^([+-])?inf/i) ))
         (inf[1] == "-" ? -1.0 : 1.0) / 0.0
-      elsif (( number = str.to_s.match(/^\((\d+)/i) ))
+      elsif (( number = str.to_s.match(/^\((-?\d+)/i) ))
         number[1].to_i + (increment ? 1 : -1)
       else
         Float str.to_s

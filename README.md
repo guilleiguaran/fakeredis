@@ -1,4 +1,5 @@
-# FakeRedis [![Build Status](https://secure.travis-ci.org/guilleiguaran/fakeredis.png)](http://travis-ci.org/guilleiguaran/fakeredis)
+# FakeRedis
+![Build Status](https://github.com/github/docs/actions/workflows/ruby.yml/badge.svg)
 This a fake implementation of redis-rb for machines without Redis or test environments
 
 
@@ -100,5 +101,4 @@ Thanks to [all contributors](https://github.com/guilleiguaran/fakeredis/graphs/c
 
 ## Copyright
 
-Copyright (c) 2011-2018 Guillermo Iguaran. See LICENSE for
-further details.
+Copyright (c) 2011-2023 Guillermo Iguaran. See LICENSE for further details.

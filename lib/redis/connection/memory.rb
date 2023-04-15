@@ -562,9 +562,15 @@ class Redis
         end
 
         # 0 = false, 1 = true unless an array was passed in
-        return result == 1 unless should_return_int
+        if Redis.sadd_returns_boolean && !should_return_int
+          return result == 1
+        end
 
         result
+      end
+
+      def sadd?(key, value)
+        sadd(key, value) == 1
       end
 
       def srem(key, value)

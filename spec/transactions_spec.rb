@@ -94,8 +94,8 @@ module FakeRedis
         @client.sadd('set', 'member1')
 
         responses = @client.multi do |multi|
-          multi.sadd('set', 'member1')
-          multi.sadd('set', 'member2')
+          multi.sadd?('set', 'member1')
+          multi.sadd?('set', 'member2')
         end
 
         expect(responses).to eq([false, true])

@@ -7,8 +7,8 @@ module FakeRedis
     end
 
     it "should add a member to a set" do
-      expect(@client.sadd("key", "value")).to eq(true)
-      expect(@client.sadd("key", "value")).to eq(false)
+      expect(@client.sadd?("key", "value")).to eq(true)
+      expect(@client.sadd?("key", "value")).to eq(false)
 
       expect(@client.smembers("key")).to eq(["value"])
     end

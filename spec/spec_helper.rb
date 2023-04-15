@@ -11,6 +11,9 @@ RSpec.configure do |config|
   # Enable memory adapter
   config.before(:each) { FakeRedis.enable }
 
+  # Set the default behavior for sadd in v5.0
+  config.before(:all) { Redis.sadd_returns_boolean = false }
+
   config.backtrace_exclusion_patterns = []
 end
 

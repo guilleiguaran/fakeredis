@@ -1,5 +1,5 @@
 # FakeRedis
-![Build Status](https://github.com/fakeredis/redis/actions/workflows/ruby.yml/badge.svg)
+![Build Status](https://github.com/guilleiguaran/fakeredis/actions/workflows/ruby.yml/badge.svg)
 
 This a fake implementation of redis-rb for machines without Redis or test environments
 

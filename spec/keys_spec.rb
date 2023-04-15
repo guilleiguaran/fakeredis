@@ -29,11 +29,16 @@ module FakeRedis
         @client.set("key1", "1")
         expect(@client.public_send(command, ["key1", "key2"])).to eq(1)
       end
+    end
 
-      it "should error '#{command}'ing no keys" do
-        expect { @client.public_send(command) }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for '#{command}' command")
-        expect { @client.public_send(command, []) }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for '#{command}' command")
-      end
+    it "should return 0 when deleting no keys" do
+      expect(@client.del).to eq(0)
+      expect(@client.del([])).to eq(0)
+    end
+
+    it "should error when unlinking no keys" do
+      expect { @client.unlink }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for 'unlink' command")
+      expect { @client.unlink([]) }.to raise_error(Redis::CommandError, "ERR wrong number of arguments for 'unlink' command")
     end
 
     it "should return true when setnx keys that don't exist" do
@@ -66,8 +71,8 @@ module FakeRedis
     it "should determine if a key exists" do
       @client.set("key1", "1")
 
-      expect(@client.exists("key1")).to eq(true)
-      expect(@client.exists("key2")).to eq(false)
+      expect(@client.exists("key1")).to eq(1)
+      expect(@client.exists("key2")).to eq(0)
     end
 
     it "should set a key's time to live in seconds" do
@@ -134,7 +139,7 @@ module FakeRedis
       @client.set("key1", "1")
       @client.expireat("key1", Time.now.to_i)
 
-      expect(@client.exists("key1")).to be false
+      expect(@client.exists?("key1")).to be false
     end
 
     it "should get integer and string keys" do
@@ -409,7 +414,7 @@ module FakeRedis
 
     describe "#dump" do
       it "returns nil for unknown key" do
-        expect(@client.exists("key1")).to be false
+        expect(@client.exists?("key1")).to be false
         expect(@client.dump("key1")).to be nil
       end
 
@@ -445,7 +450,7 @@ module FakeRedis
           @dumped_value = @client.dump("key1")
 
           @client.del("key1")
-          expect(@client.exists("key1")).to be false
+          expect(@client.exists?("key1")).to be false
         end
 
         it "restores to a new key successfully" do

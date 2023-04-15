@@ -100,7 +100,7 @@ module FakeRedis
     it "should remove sorted set's key when it is empty" do
       @client.zadd("key", 1, "val")
       @client.zrem("key", "val")
-      expect(@client.exists("key")).to eq(false)
+      expect(@client.exists?("key")).to eq(false)
     end
 
     it "should pop members with the highest scores from sorted set" do

@@ -208,7 +208,7 @@ module FakeRedis
       @client.srem("key1", "b")
       @client.srem("key1", "a")
 
-      expect(@client.exists("key1")).to eq(false)
+      expect(@client.exists?("key1")).to eq(false)
     end
 
     it "should add multiple sets" do

@@ -5,7 +5,7 @@ shared_examples_for "a bitwise operation" do |operator|
 
   it "should not create destination key if nothing found" do
     expect(@client.bitop(operator, "dest1", "nothing_here1")).to eq(0)
-    expect(@client.exists("dest1")).to eq(false)
+    expect(@client.exists?("dest1")).to eq(false)
   end
 
   it "should accept operator as a case-insensitive symbol" do

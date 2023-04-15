@@ -1168,7 +1168,7 @@ class Redis
         data[key][value.to_s] ||= 0
         data[key].increment(value.to_s, num)
 
-        if num =~ /^\+?inf/
+        if num.is_a?(String) && num =~ /^\+?inf/
           "inf"
         elsif num == "-inf"
           "-inf"

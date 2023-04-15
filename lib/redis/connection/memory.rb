@@ -122,7 +122,7 @@ class Redis
         "OK"
       end
 
-      def auth(password)
+      def auth(*args)
         "OK"
       end
 

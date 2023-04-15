@@ -87,7 +87,7 @@ require 'fakeredis/minitest'
 
 ## Acknowledgements
 
-Thanks to [all contributors](https://github.com/guilleiguaran/fakeredis/graphs/contributors), specially to [Caius Durling](https://github.com/caius) the most active one.
+Thanks to [all contributors](https://github.com/guilleiguaran/fakeredis/graphs/contributors).
 
 ## Contributing to FakeRedis
 

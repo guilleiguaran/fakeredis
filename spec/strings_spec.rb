@@ -183,6 +183,12 @@ module FakeRedis
       expect { @client.mget }.to raise_error(Redis::CommandError)
     end
 
+    it 'raises an argument error when the data is a hash' do
+      @client.hincrby("key1", "cont1", 5)
+
+      expect { @client.mget("key1") }.to raise_error(Redis::CommandError)
+    end
+
     it "should set multiple keys to multiple values" do
       @client.mset(:key1, "value1", :key2, "value2")
 

@@ -781,28 +781,28 @@ class Redis
       def hset(key, *fields)
         fields = fields.first if fields.size == 1 && fields.first.is_a?(Hash)
         raise_argument_error('hset') if fields.empty?
-    
+
         is_list_of_arrays = fields.all?{|field| field.instance_of?(Array)}
-    
+
         raise_argument_error('hmset') if fields.size.odd? and !is_list_of_arrays
         raise_argument_error('hmset') if is_list_of_arrays and !fields.all?{|field| field.length == 2}
-        
+
         data_type_check(key, Hash)
         insert_count = 0
         data[key] ||= {}
-    
+
         if fields.is_a?(Hash)
           insert_count = fields.keys.size - (data[key].keys & fields.keys).size
-    
+
           data[key].merge!(fields)
         else
           fields.each_slice(2) do |field|
             insert_count += 1 if data[key][field[0].to_s].nil?
-    
+
             data[key][field[0].to_s] = field[1].to_s
           end
         end
-    
+
         insert_count
       end
 
@@ -1156,12 +1156,12 @@ class Redis
         count.nil? ? results.first : results.flatten
       end
 
-      def bzpopmax(*args)
-        bzpop(:bzpopmax, args)
+      def bzpopmax(*args, timeout: 0)
+        bzpop(:bzpopmax, args, timeout)
       end
 
-      def bzpopmin(*args)
-        bzpop(:bzpopmin, args)
+      def bzpopmin(*args, timeout: 0)
+        bzpop(:bzpopmin, args, timeout)
       end
 
       def zcard(key)
@@ -1600,15 +1600,7 @@ class Redis
           end
         end
 
-        def bzpop(command, args)
-          timeout =
-            if args.last.is_a?(Hash)
-              args.pop[:timeout]
-            elsif args.last.respond_to?(:to_int)
-              args.pop.to_int
-            end
-
-          timeout ||= 0
+        def bzpop(command, args, timeout)
           single_pop_command = command.to_s[1..-1]
           keys = args.flatten
           keys.each do |key|

@@ -120,14 +120,14 @@ module FakeRedis
     it "should pop members with the highest score from first sorted set that is non-empty" do
       @client.zadd("key1", [1, "val1", 2, "val2"])
       @client.zadd("key2", [3, "val3"])
-      expect(@client.bzpopmax("nonexistent", "key1", "key2", 0)).to eq(["key1", "val2", 2.0])
+      expect(@client.bzpopmax("nonexistent", "key1", "key2", timeout: 0)).to eq(["key1", "val2", 2.0])
       expect(@client.bzpopmax("nonexistent")).to eq(nil)
     end
 
     it "should pop members with the lowest score from first sorted set that is non-empty" do
       @client.zadd("key1", [1, "val1", 2, "val2"])
       @client.zadd("key2", [3, "val3"])
-      expect(@client.bzpopmin("nonexistent", "key1", "key2", 0)).to eq(["key1", "val1", 1.0])
+      expect(@client.bzpopmin("nonexistent", "key1", "key2", timeout: 0)).to eq(["key1", "val1", 1.0])
       expect(@client.bzpopmin("nonexistent")).to eq(nil)
     end
 

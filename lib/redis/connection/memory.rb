@@ -362,6 +362,10 @@ class Redis
         data.key?(key) ? 1 : 0
       end
 
+      def exists?(key)
+        data.key?(key)
+      end
+
       def llen(key)
         data_type_check(key, Array)
         return 0 unless data[key]

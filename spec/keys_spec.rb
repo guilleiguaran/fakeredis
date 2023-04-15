@@ -508,6 +508,15 @@ module FakeRedis
         expect(@client.psetex("key", 1000, "value")).to eq("OK")
       end
     end
+
+    describe "#exists?" do
+      it "should return a boolean" do
+        @client.set("key1", "1")
+
+        expect(@client.exists?("key1")).to eq(true)
+        expect(@client.exists?("key2")).to eq(false)
+      end
+    end
   end
 end
 

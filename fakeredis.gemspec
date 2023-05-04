@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Guillermo Iguaran"]
   s.email       = ["guilleiguaran@gmail.com"]
-  s.homepage    = "https://guilleiguaran.github.com/fakeredis"
+  s.homepage    = "https://github.com/guilleiguaran/fakeredis"
   s.license     = "MIT"
   s.summary     = %q{Fake (In-memory) driver for redis-rb.}
   s.description = %q{Fake (In-memory) driver for redis-rb. Useful for testing environment and machines without Redis.}

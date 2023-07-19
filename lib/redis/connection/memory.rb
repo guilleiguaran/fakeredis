@@ -55,7 +55,7 @@ class Redis
       end
 
       def initialize(options = {})
-        self.options = self.options ? self.options.merge(options) : options
+        self.options = options
       end
 
       def database_id

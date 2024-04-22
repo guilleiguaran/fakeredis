@@ -16,9 +16,10 @@ require 'fakeredis'
 
 RSpec.configure do |c|
 
-  c.before do    
+  c.around do |ex|
     Redis::Connection::Memory.reset_all_databases
     Redis::Connection::Memory.reset_all_channels
+    ex.run
   end
 
 end

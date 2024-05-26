@@ -1442,7 +1442,7 @@ class Redis
 
       def zscan(key, start_cursor, *args)
         data_type_check(key, ZSet)
-        return [] unless data[key]
+        return '0', [] unless data[key] # return cursor 0, indicating end of iteration
 
         match = "*"
         count = 10

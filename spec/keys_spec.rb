@@ -76,7 +76,7 @@ module FakeRedis
     end
 
     it "should set a key's time to live in miliseconds" do
-      allow(Time).to receive(:now).and_return(1000)
+      allow(Time).to receive(:now).and_return(Time.at(1000))
       @client.set("key1", "1")
       @client.pexpire("key1", 2200)
       expect(@client.pttl("key1")).to be_within(0.1).of(2200)
@@ -497,7 +497,7 @@ module FakeRedis
 
     describe "#psetex" do
       it "should set a key's time to live in milliseconds" do
-        allow(Time).to receive(:now).and_return(1000)
+        allow(Time).to receive(:now).and_return(Time.at(1000))
         @client.psetex("key", 2200, "value")
         expect(@client.pttl("key")).to be_within(0.1).of(2200)
       end

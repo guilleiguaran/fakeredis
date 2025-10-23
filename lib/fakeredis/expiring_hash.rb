@@ -34,7 +34,7 @@ module FakeRedis
 
     def expired?(key)
       key = normalize key
-      expires.include?(key) && expires[key] <= Time.now
+      expires.include?(key) && expires[key] <= Time.now.utc
     end
 
     def key?(key)

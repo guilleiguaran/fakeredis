@@ -203,6 +203,30 @@ module FakeRedis
       expect(@client.hset("key1", { "k4" => "val4", "k5" => "val5" })).to eq(2)
     end
 
+    it "should accept a flattened hash as arguments" do
+      hash = { :k1 => "val1", :k2 => "val2", :k3 => "val3" }
+      expect(@client.hset("key1", hash.flatten)).to eq(3)
+
+      expect(@client.hget("key1", "k1")).to eq("val1")
+      expect(@client.hget("key1", "k2")).to eq("val2")
+      expect(@client.hget("key1", "k3")).to eq("val3")
+    end
+
+    it "should accept a flattened hash with single key-value pair" do
+      hash = { :k1 => "val1" }
+      expect(@client.hset("key1", hash.flatten)).to eq(1)
+
+      expect(@client.hget("key1", "k1")).to eq("val1")
+    end
+
+    it "should accept a flattened hash with two key-value pairs" do
+      hash = { :k1 => "val1", :k2 => "val2" }
+      expect(@client.hset("key1", hash.flatten)).to eq(2)
+
+      expect(@client.hget("key1", "k1")).to eq("val1")
+      expect(@client.hget("key1", "k2")).to eq("val2")
+    end
+
     it "should set the value of a hash field, only if the field does not exist" do
       @client.hset("key1", "k1", "val1")
       expect(@client.hsetnx("key1", "k1", "value")).to eq(false)

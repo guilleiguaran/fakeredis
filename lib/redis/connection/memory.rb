@@ -779,13 +779,26 @@ class Redis
       end
 
       def hset(key, *fields)
+        # Unwrap if a single Hash is passed
         fields = fields.first if fields.size == 1 && fields.first.is_a?(Hash)
+
+        # Handle flattened array wrapped in array
+        # When calling redis.hset("key", hash.flatten), redis-rb wraps it: [[:k1, "v1", :k2, "v2"]]
+        # We need to distinguish between:
+        #   - Flat list: [:k1, "v1", :k2, "v2"] -> unwrap to process as key-value pairs
+        #   - Nested pairs: [[:k1, "v1"], [:k2, "v2"]] -> keep as is (valid format)
+        if fields.size == 1 && fields.first.is_a?(Array)
+          inner = fields.first
+          is_nested_pairs = inner.all? { |f| f.is_a?(Array) && f.length == 2 }
+          fields = inner unless is_nested_pairs
+        end
+
         raise_argument_error('hset') if fields.empty?
 
-        is_list_of_arrays = fields.all?{|field| field.instance_of?(Array)}
+        is_list_of_arrays = fields.all? { |field| field.instance_of?(Array) }
 
-        raise_argument_error('hmset') if fields.size.odd? and !is_list_of_arrays
-        raise_argument_error('hmset') if is_list_of_arrays and !fields.all?{|field| field.length == 2}
+        raise_argument_error('hset') if fields.size.odd? && !is_list_of_arrays
+        raise_argument_error('hset') if is_list_of_arrays && !fields.all? { |field| field.length == 2 }
 
         data_type_check(key, Hash)
         insert_count = 0

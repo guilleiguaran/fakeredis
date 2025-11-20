@@ -743,13 +743,13 @@ class Redis
 
       def expire(key, ttl)
         return 0 unless data[key]
-        data.expires[key] = Time.now + ttl
+        data.expires[key] = Time.now.utc + ttl
         1
       end
 
       def pexpire(key, ttl)
         return 0 unless data[key]
-        data.expires[key] = Time.now + (ttl / 1000.0)
+        data.expires[key] = Time.now.utc + (ttl / 1000.0)
         1
       end
 
